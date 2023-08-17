@@ -18,12 +18,14 @@ repositories {
 dependencies {
     implementation(libs.maven.model)
     implementation(libs.tomlj)
+
+    testImplementation(libs.bundles.testing)
 }
 
 testing {
     suites {
         val test by getting(JvmTestSuite::class) {
-            useJUnitJupiter()
+            useJUnitJupiter(libs.versions.junit)
         }
     }
 }
