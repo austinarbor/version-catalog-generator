@@ -1,0 +1,11 @@
+[versions]
+kotlin = "1.9.0"
+maven = "3.9.4"
+tomlj = "1.1.0"
+
+[libraries]
+maven-model = { group = "org.apache.maven", name = "maven-model", version.ref = "maven" }
+tomlj = { group = "org.tomlj", name = "tomlj", version.ref = "tomlj" }
+
+[plugins]
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
