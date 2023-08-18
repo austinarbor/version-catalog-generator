@@ -1,8 +1,12 @@
 plugins {
     alias(libs.plugins.kotlin)
-    `java-gradle-plugin`
     `kotlin-dsl`
+    `java-gradle-plugin`
+    `maven-publish`
 }
+
+group = "dev.aga.gradle.plugin"
+version = "0.0.1-SNAPSHOT"
 
 gradlePlugin {
     val generator by plugins.creating {
@@ -20,6 +24,17 @@ dependencies {
     implementation(libs.tomlj)
 
     testImplementation(libs.bundles.testing)
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "dev.aga.gradle.plugin"
+            artifactId = "version-catalog-generator"
+            version = "0.0.1-SNAPSHOT"
+            from(components["java"])
+        }
+    }
 }
 
 testing {
