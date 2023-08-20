@@ -57,7 +57,5 @@ object CatalogParser {
         return library.getString("version") ?: throw RuntimeException("Version not found")
     }
 
-    private fun parseCatalog(file: File): TomlParseResult {
-        return Toml.parse(file.toPath())
-    }
+    private fun parseCatalog(file: File) = Toml.parse(file.toPath())
 }

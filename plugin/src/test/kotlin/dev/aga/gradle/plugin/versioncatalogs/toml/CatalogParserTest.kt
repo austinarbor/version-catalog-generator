@@ -6,7 +6,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
-import java.nio.file.Path
 import java.nio.file.Paths
 
 internal class CatalogParserTest {
@@ -39,11 +38,7 @@ internal class CatalogParserTest {
             )
         }
 
-        private fun buildPath(fileName: String): Path {
-            return Paths.get(srcDir, fileName)
-        }
+        private fun buildPath(fileName: String) = Paths.get(srcDir, fileName)
 
     }
-
-
 }
