@@ -3,6 +3,7 @@ plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
     `maven-publish`
+    jacoco
 }
 
 group = "dev.aga.gradle.plugin"
@@ -34,6 +35,17 @@ publishing {
             version = "0.0.1-SNAPSHOT"
             from(components["java"])
         }
+    }
+}
+
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test) // tests are required to run before generating the report
+    reports {
+        xml.required = true
     }
 }
 
