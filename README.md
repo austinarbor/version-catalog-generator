@@ -1,3 +1,6 @@
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/austinarbor/version-catalog-generator/.github%2Fworkflows%2Fci.yml)
+![Codecov](https://img.shields.io/codecov/c/github/austinarbor/version-catalog-generator)
+
 # Version Catalog Generator Plugin
 
 Gradle's [Version Catalog](https://docs.gradle.org/current/userguide/platforms.html) functionality currently lacks
@@ -23,11 +26,14 @@ plugins {
 
 versionCatalog {
     generate("bomLibs") { // the name of the generated catalog
-        sourceLibraryNameInCatalog = "spring-boot-dependencies" // required, must be a valid alias in the library file below
+        sourceLibraryNameInCatalog =
+            "spring-boot-dependencies" // required, must be a valid alias in the library file below
         sourceCatalogFile = file("gradle/libs.versions.toml") // optional, change if required
         repoBaseUrl = "https://repo1.maven.org/maven2" // optional, change if required
-        libraryAliasGenerator = dev.aga.gradle.plugin.versioncatalogs.GeneratorConfig.DEFAULT_ALIAS_GENERATOR // optional, change if required
-        versionNameGenerator = dev.aga.gradle.plugin.versioncatalogs.GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR // optional, change if required
+        libraryAliasGenerator =
+            dev.aga.gradle.plugin.versioncatalogs.GeneratorConfig.DEFAULT_ALIAS_GENERATOR // optional, change if required
+        versionNameGenerator =
+            dev.aga.gradle.plugin.versioncatalogs.GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR // optional, change if required
     }
 }
 ```
