@@ -40,7 +40,7 @@ versionCatalog {
 
 ## FAQ
 
-- Why must I specify the source BOM in a catalog file?
+### Why must I specify the source BOM in a catalog file?
 
 I really want this to work well with Dependabot. As of this writing, Dependabot only supports
 updating dependency versions in Version Catalogs that
@@ -48,7 +48,7 @@ are [declared in gradle/libs.versions.toml](https://docs.github.com/en/code-secu
 Although `libs.versions.toml` is the default catalog file, any valid catalog file should work with the plugin. I plan on
 adding support for more sources in the future, but this approach will the first priority.
 
-- Why must I specify a Maven repository URL?
+### Why must I specify a Maven repository URL?
 
 `Settings` plugins do not currently have access to the internal Gradle resolution APIs. In `Project` plugins you can
 easily query for artifacts, but so far this functionality is not possible from `Settings`.
