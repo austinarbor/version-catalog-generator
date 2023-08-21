@@ -36,3 +36,8 @@ jobs:
           name: junit-test-results
           path: '**/build/test-results/test/TEST-*.xml'
           retention-days: 1
+
+      - name: Upload Coverage Report
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
