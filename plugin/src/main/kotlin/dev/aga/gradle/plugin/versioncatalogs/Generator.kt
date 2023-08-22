@@ -15,9 +15,13 @@ object Generator {
      * @param name the name of the version catalog
      * @param conf the generator configuration options
      */
-    fun MutableVersionCatalogContainer.generate(name: String, conf: GeneratorConfig.() -> Unit): VersionCatalogBuilder {
+    fun MutableVersionCatalogContainer.generate(
+        name: String,
+        conf: GeneratorConfig.() -> Unit
+    ): VersionCatalogBuilder {
         val config = GeneratorConfig().apply(conf)
-        val bomDep = CatalogParser.findBom(config.sourceCatalogFile, config.sourceLibraryNameInCatalog)
+        val bomDep =
+            CatalogParser.findBom(config.sourceCatalogFile, config.sourceLibraryNameInCatalog)
         val pom = POMFetcher.fetchPOM(config.repoBaseUrl, bomDep)
         val props = getProperties(pom, config.versionNameGenerator)
         return create(name) {
@@ -27,31 +31,34 @@ object Generator {
                 }
             }
             val dependencies = getDependencies(pom, config.versionNameGenerator)
-            dependencies.asSequence()
-                .forEach { (version, deps) ->
-                    val aliases = mutableListOf<String>()
-                    deps.forEach { dep ->
-                        val alias = config.libraryAliasGenerator(dep.groupId, dep.artifactId)
-                        val library = library(alias, dep.groupId, dep.artifactId)
-                        if (props.containsKey(version)) {
-                            aliases += alias
-                            library.versionRef(version)
-                        } else {
-                            library.version(version)
-                        }
-                    }
-                    if (aliases.isNotEmpty()) {
-                        bundle(version, aliases)
+            dependencies.asSequence().forEach { (version, deps) ->
+                val aliases = mutableListOf<String>()
+                deps.forEach { dep ->
+                    val alias = config.libraryAliasGenerator(dep.groupId, dep.artifactId)
+                    val library = library(alias, dep.groupId, dep.artifactId)
+                    if (props.containsKey(version)) {
+                        aliases += alias
+                        library.versionRef(version)
+                    } else {
+                        library.version(version)
                     }
                 }
+                if (aliases.isNotEmpty()) {
+                    bundle(version, aliases)
+                }
+            }
         }
     }
 
-    fun getDependencies(model: Model, versionMapper: (String) -> String): Map<String, List<Dependency>> {
+    fun getDependencies(
+        model: Model,
+        versionMapper: (String) -> String
+    ): Map<String, List<Dependency>> {
         val props = getProperties(model, versionMapper)
         val seen = mutableSetOf<String>()
         val grouped =
-            model.dependencyManagement.dependencies.asSequence()
+            model.dependencyManagement.dependencies
+                .asSequence()
                 .filter { null == it.type || "jar" == it.type }
                 .filter { seen.add("${it.groupId}:${it.artifactId}") }
                 .map {
