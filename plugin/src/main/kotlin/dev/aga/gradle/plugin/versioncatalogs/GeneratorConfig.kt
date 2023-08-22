@@ -30,9 +30,18 @@ class GeneratorConfig {
     var versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
 
     companion object {
+        val INVALID_PREFIXES = setOf("bundles", "plugins", "versions")
+
         val DEFAULT_ALIAS_GENERATOR: (String, String) -> String = { group, artifact ->
-            val prefix = group.split(".").last()
-            "${prefix}.${artifact}"
+            val split = group.split(".")
+            if (INVALID_PREFIXES.contains(split.last())) {
+                require(split.size >= 2) {
+                    "Cannot generate alias for ${group}:${artifact}, please provide custom generator"
+                }
+                "${split[split.size - 2]}.${split.last()}.${artifact}"
+            } else {
+                "${split.last()}.${artifact}"
+            }
         }
 
         val DEFAULT_VERSION_NAME_GENERATOR: (String) -> String = { version ->
