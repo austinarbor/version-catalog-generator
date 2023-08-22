@@ -29,7 +29,9 @@ internal class GeneratorConfigTest {
                 arguments(
                     "org.springframework.boot",
                     "spring-boot-starter-web",
-                    "boot.spring-boot-starter-web"))
+                    "boot.spring-boot-starter-web",
+                ),
+            )
         }
 
         @JvmStatic
@@ -37,7 +39,8 @@ internal class GeneratorConfigTest {
             return listOf(
                 arguments("activemq.version", "activemq"),
                 arguments("jackson.version.modules", "jackson.modules"),
-                arguments("devVersion", "dev"))
+                arguments("devVersion", "dev"),
+            )
         }
     }
 }

@@ -17,7 +17,7 @@ object Generator {
      */
     fun MutableVersionCatalogContainer.generate(
         name: String,
-        conf: GeneratorConfig.() -> Unit
+        conf: GeneratorConfig.() -> Unit,
     ): VersionCatalogBuilder {
         val config = GeneratorConfig().apply(conf)
         val bomDep =
@@ -52,7 +52,7 @@ object Generator {
 
     fun getDependencies(
         model: Model,
-        versionMapper: (String) -> String
+        versionMapper: (String) -> String,
     ): Map<String, List<Dependency>> {
         val props = getProperties(model, versionMapper)
         val seen = mutableSetOf<String>()

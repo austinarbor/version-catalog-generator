@@ -27,7 +27,7 @@ internal class CatalogParserTest {
 
     companion object {
 
-        private val srcDir = "src/test/resources"
+        private const val srcDir = "src/test/resources"
 
         @JvmStatic
         private fun testFindBomProvider(): List<Arguments> {
@@ -35,7 +35,8 @@ internal class CatalogParserTest {
                 arguments("groovy-core", arrayOf("org.codehaus.groovy", "groovy", "3.0.5"), false),
                 arguments("fake-lib", arrayOf("dev.aga.lib", "fake-lib", "1.0.2"), false),
                 arguments("another-lib", arrayOf("dev.aga.lib", "another-lib", "1.0.0"), false),
-                arguments("commons-lang3", arrayOf(""), true))
+                arguments("commons-lang3", arrayOf(""), true),
+            )
         }
 
         private fun buildPath(fileName: String) = Paths.get(srcDir, fileName)
