@@ -5,6 +5,7 @@ plugins {
     `maven-publish`
     jacoco
     alias(libs.plugins.spotless)
+    alias(libs.plugins.detekt)
 }
 
 group = "dev.aga.gradle.plugin"
@@ -25,6 +26,8 @@ dependencies {
     implementation(libs.maven.model)
     implementation(libs.tomlj)
 
+    detektPlugins(libs.detekt.formatting)
+
     testImplementation(libs.bundles.testing)
 }
 
@@ -33,6 +36,12 @@ spotless {
         ktfmt().dropboxStyle()
         endWithNewline()
     }
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom("$projectDir/config/detekt.yml")
+    baseline = file("$projectDir/config/detekt-baseline.xml")
 }
 
 publishing {

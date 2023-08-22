@@ -1,0 +1,14 @@
+style:
+  UnusedPrivateMember:
+    excludes:
+      - '**/test/**' # it doesn't correctly identify parameterized tests with MethodSources
+
+formatting:
+  ImportOrdering:
+    active: false
+  StringTemplate:
+    active: false
+  TrailingCommaOnCallSite:
+    active: true
+  TrailingCommaOnDeclarationSite:
+    active: true
