@@ -4,6 +4,7 @@ plugins {
     `java-gradle-plugin`
     `maven-publish`
     jacoco
+    alias(libs.plugins.spotless)
 }
 
 group = "dev.aga.gradle.plugin"
@@ -25,6 +26,13 @@ dependencies {
     implementation(libs.tomlj)
 
     testImplementation(libs.bundles.testing)
+}
+
+spotless {
+    kotlin {
+        ktfmt().dropboxStyle()
+        endWithNewline()
+    }
 }
 
 publishing {
