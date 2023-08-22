@@ -1,10 +1,10 @@
 package dev.aga.gradle.plugin.versioncatalogs.toml
 
+import java.io.File
 import org.apache.maven.model.Dependency
 import org.tomlj.Toml
 import org.tomlj.TomlParseResult
 import org.tomlj.TomlTable
-import java.io.File
 
 object CatalogParser {
     fun findBom(file: File, name: String): Dependency {
@@ -20,9 +20,7 @@ object CatalogParser {
                 ?.let { it as? TomlTable }
                 ?: throw RuntimeException("${libraryName} not found in catalog file")
 
-        val versions =
-            toml["versions"]
-                ?.let { it as? TomlTable }
+        val versions = toml["versions"]?.let { it as? TomlTable }
 
         return getGAV(library, versions)
     }
@@ -33,8 +31,12 @@ object CatalogParser {
                 val split = (library["module"] as String).split(":")
                 split[0] to split[1]
             } else {
-                val group = library["group"]?.let { it as? String } ?: throw RuntimeException("Group not found ")
-                val name = library["name"]?.let { it as? String } ?: throw RuntimeException("Name not found")
+                val group =
+                    library["group"]?.let { it as? String }
+                        ?: throw RuntimeException("Group not found ")
+                val name =
+                    library["name"]?.let { it as? String }
+                        ?: throw RuntimeException("Name not found")
                 val version = getVersion(library, versions)
                 group to name
             }
@@ -45,14 +47,13 @@ object CatalogParser {
             artifactId = name
             this.version = version
         }
-
     }
 
     private fun getVersion(library: TomlTable, versions: TomlTable?): String {
-        library.getString("version.ref")
-            ?.let {
-                return versions?.getString(it) ?: throw RuntimeException("Version ref '${it}' not found")
-            }
+        library.getString("version.ref")?.let {
+            return versions?.getString(it)
+                ?: throw RuntimeException("Version ref '${it}' not found")
+        }
 
         return library.getString("version") ?: throw RuntimeException("Version not found")
     }

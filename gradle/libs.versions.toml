@@ -1,12 +1,15 @@
 [versions]
 assertj = "3.24.2"
+detekt = "1.23.1"
 junit = "5.10.0"
 kotlin = "1.9.0"
 maven = "3.9.4"
+spotless = "6.20.0"
 tomlj = "1.1.0"
 
 [libraries]
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
+detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt" }
 maven-model = { group = "org.apache.maven", name = "maven-model", version.ref = "maven" }
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 tomlj = { group = "org.tomlj", name = "tomlj", version.ref = "tomlj" }
@@ -15,4 +18,6 @@ tomlj = { group = "org.tomlj", name = "tomlj", version.ref = "tomlj" }
 testing = ["assertj", "junit"]
 
 [plugins]
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

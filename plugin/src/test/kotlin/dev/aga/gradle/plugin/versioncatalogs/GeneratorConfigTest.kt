@@ -26,7 +26,11 @@ internal class GeneratorConfigTest {
         private fun defaultLibraryNameProvider(): List<Arguments> {
             return listOf(
                 arguments("dev.aga", "version-catalog-generator", "aga.version-catalog-generator"),
-                arguments("org.springframework.boot", "spring-boot-starter-web", "boot.spring-boot-starter-web")
+                arguments(
+                    "org.springframework.boot",
+                    "spring-boot-starter-web",
+                    "boot.spring-boot-starter-web",
+                ),
             )
         }
 
@@ -35,7 +39,7 @@ internal class GeneratorConfigTest {
             return listOf(
                 arguments("activemq.version", "activemq"),
                 arguments("jackson.version.modules", "jackson.modules"),
-                arguments("devVersion", "dev")
+                arguments("devVersion", "dev"),
             )
         }
     }
