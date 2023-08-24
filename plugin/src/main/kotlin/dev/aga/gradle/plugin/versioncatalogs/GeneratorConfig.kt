@@ -30,8 +30,15 @@ class GeneratorConfig {
     var versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
 
     companion object {
+        /** Set of prefixes which are not allowed for libraries in version catalogs */
         val INVALID_PREFIXES = setOf("bundles", "plugins", "versions")
 
+        /**
+         * Default function to generate a library's alias based on its groupId and artifactId. This
+         * will use the last segment after the last . in the groupId, followed by the entirety of
+         * the artifactId. If the last segment of the groupId is a disallowed word, it will use the
+         * last two segments.
+         */
         val DEFAULT_ALIAS_GENERATOR: (String, String) -> String = { group, artifact ->
             val split = group.split(".")
             if (INVALID_PREFIXES.contains(split.last())) {
@@ -44,6 +51,13 @@ class GeneratorConfig {
             }
         }
 
+        /**
+         * Default function to generate the alias for the version, based on the version in the
+         * version string. This function will first replace all case-insensitive instances of the
+         * string *version* with an empty string. Then, all instances of two or more consecutive
+         * periods are replaced with a single period. Finally, any leading or trailing periods are
+         * trimmed.
+         */
         val DEFAULT_VERSION_NAME_GENERATOR: (String) -> String = { version ->
             val versionRegEx = "version".toRegex(RegexOption.IGNORE_CASE)
             val dotRegex = """\.{2,}""".toRegex()

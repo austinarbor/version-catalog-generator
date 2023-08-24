@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory
 object Generator {
 
     private val logger = LoggerFactory.getLogger(Generator::class.java)
+    private val jarFilter = { dep: Dependency -> null == dep.type || "jar" == dep.type }
+    private val importFilter = { dep: Dependency -> "pom" == dep.type && "import" == dep.scope }
 
     /**
      * Generate a version catalog with the provided name
@@ -67,36 +69,22 @@ object Generator {
         excludedProps: Set<String>,
         seenModules: MutableSet<String>,
     ) {
-        val dependencies = getNewDependencies(model, config, seenModules)
-
-        dependencies.forEach { (version, deps) ->
-            val (imports, rest) = deps.partition { "pom" == it.type && "import" == it.scope }
-            imports.forEach {
-                if (props.containsKey(it.version)) {
-                    it.version = props[it.version]
+        getNewDependencies(model, config, seenModules, importFilter).forEach { (version, boms) ->
+            boms.forEach { bom ->
+                // if the version is a property, replace it with the
+                // actual version value
+                if (props.containsKey(version)) {
+                    bom.version = props[version]
                 }
-                queue.add(it)
+                queue.add(bom)
             }
-            val aliases = mutableListOf<String>()
-            rest
-                .filter { null == it.type || "jar" == it.type }
-                .filter {
-                    if (excludedProps.contains(version)) {
-                        logger.warn(
-                            "excluding {}:{}:{} found in {}:{}:{}",
-                            it.groupId,
-                            it.artifactId,
-                            it.version,
-                            model.groupId,
-                            model.artifactId,
-                            model.version,
-                        )
-                        false
-                    } else {
-                        true
-                    }
-                }
-                .forEach { dep ->
+        }
+
+        getNewDependencies(model, config, seenModules, jarFilter)
+            .filter { skipAndLogExcluded(model, it, excludedProps) }
+            .forEach { (version, deps) ->
+                val aliases = mutableListOf<String>()
+                deps.forEach { dep ->
                     val alias = config.libraryAliasGenerator(dep.groupId, dep.artifactId)
                     val library = library(alias, dep.groupId, dep.artifactId)
                     if (props.containsKey(version)) {
@@ -106,24 +94,24 @@ object Generator {
                         library.version(version)
                     }
                 }
-            if (aliases.isNotEmpty()) {
-                bundle(version, aliases)
+                if (aliases.isNotEmpty()) {
+                    bundle(version, aliases)
+                }
             }
-        }
     }
 
     fun getNewDependencies(
         model: Model,
         config: GeneratorConfig,
         seenModules: MutableSet<String> = mutableSetOf(),
+        filter: (Dependency) -> Boolean,
     ): Map<String, List<Dependency>> {
         return model.dependencyManagement.dependencies
             .asSequence()
-            .map { it.apply { groupId = mapGroup(model, it.groupId) } }
+            .onEach { it.groupId = mapGroup(model, it.groupId) }
             .filter { seenModules.add("${it.groupId}:${it.artifactId}") }
-            .map {
-                it.apply { version = mapVersion(model, it.version, config.versionNameGenerator) }
-            }
+            .filter(filter)
+            .onEach { it.version = mapVersion(model, it.version, config.versionNameGenerator) }
             .groupBy { it.version }
     }
 
@@ -141,6 +129,7 @@ object Generator {
                 .map { mapVersion(model, it, versionMapper) to props.getProperty(it) }
                 .partition { !existingProperties.contains(it.first) }
 
+        // turn the dupes into a set of strings
         val dupeVersions = dupes.asSequence().map { it.first }.toSet()
 
         return newProps.toMap() to dupeVersions
@@ -160,5 +149,29 @@ object Generator {
         // remove leading ${ and ending } if they exist
         val v = version.removePrefix("\${").trimEnd('}')
         return versionMapper(v)
+    }
+
+    private fun skipAndLogExcluded(
+        source: Model,
+        e: Map.Entry<String, List<Dependency>>,
+        excludedProps: Set<String>,
+    ): Boolean {
+        val (version, deps) = e
+        if (excludedProps.contains(version)) {
+            deps.forEach {
+                logger.warn(
+                    "excluding {}:{}:{} found in {}:{}:{}",
+                    it.groupId,
+                    it.artifactId,
+                    it.version,
+                    source.groupId,
+                    source.artifactId,
+                    source.version,
+                )
+            }
+            return false
+        } else {
+            return true
+        }
     }
 }
