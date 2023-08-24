@@ -11,7 +11,15 @@ internal object POMFetcher {
         val urlString =
             "${baseUrl}/${groupIdPath}/${dep.artifactId}/${dep.version}/${dep.artifactId}-${dep.version}.pom"
         val reader = MavenXpp3Reader()
-        return URL(urlString).openStream().use { reader.read(it) }.takeIf { it.packaging == "pom" }
+        return URL(urlString)
+            .openStream()
+            .use { reader.read(it) }
+            .takeIf { it.packaging == "pom" }
+            ?.also {
+                if (it.version == null) {
+                    it.version = dep.version
+                }
+            }
             ?: throw RuntimeException("Invalid pom file")
     }
 
