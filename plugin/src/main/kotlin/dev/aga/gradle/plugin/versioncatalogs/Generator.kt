@@ -95,9 +95,10 @@ object Generator {
     ) {
         getNewDependencies(model, config, seenModules, importFilter).forEach { (version, boms) ->
             boms.forEach { bom ->
+                val (_, isRef) = createLibrary(bom, version, props, config)
                 // if the version is a property, replace it with the
                 // actual version value
-                if (props.containsKey(version)) {
+                if (isRef) {
                     bom.version = props[version]
                 }
                 queue.add(bom)
