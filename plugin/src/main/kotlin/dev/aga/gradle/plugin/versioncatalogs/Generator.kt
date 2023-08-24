@@ -1,7 +1,9 @@
 package dev.aga.gradle.plugin.versioncatalogs
 
+import dev.aga.gradle.plugin.versioncatalogs.service.CatalogParser
+import dev.aga.gradle.plugin.versioncatalogs.service.FileCatalogParser
 import dev.aga.gradle.plugin.versioncatalogs.service.POMFetcher
-import dev.aga.gradle.plugin.versioncatalogs.toml.CatalogParser
+import dev.aga.gradle.plugin.versioncatalogs.service.RemotePOMFetcher
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
@@ -26,15 +28,34 @@ object Generator {
         conf: GeneratorConfig.() -> Unit,
     ): VersionCatalogBuilder {
         val config = GeneratorConfig().apply(conf)
-        val bomDep =
-            CatalogParser.findBom(config.sourceCatalogFile, config.sourceLibraryNameInCatalog)
+        val parser = FileCatalogParser(config.sourceCatalogFile)
+        val fetcher = RemotePOMFetcher(config.repoBaseUrl)
+        return generate(name, config, parser, fetcher)
+    }
+
+    /**
+     * Generate a version catalog with the provided [name].
+     *
+     * @param name the name of the version catalog
+     * @param config the [GeneratorConfig]
+     * @param parser the [CatalogParser]
+     * @param fetcher the [POMFetcher]
+     * @return the [VersionCatalogBuilder]
+     */
+    internal fun MutableVersionCatalogContainer.generate(
+        name: String,
+        config: GeneratorConfig,
+        parser: CatalogParser,
+        fetcher: POMFetcher,
+    ): VersionCatalogBuilder {
+        val bomDep = parser.findLibrary(config.sourceLibraryNameInCatalog)
         return create(name) {
             val props = mutableMapOf<String, String>()
             val seenModules = mutableSetOf<String>()
             val queue = ArrayDeque(listOf(bomDep))
             while (queue.isNotEmpty()) {
                 val dep = queue.removeFirst()
-                val pom = POMFetcher.fetchPOM(config.repoBaseUrl, dep)
+                val pom = fetcher.fetch(dep)
                 loadBom(pom, config, queue, props, seenModules)
             }
         }
