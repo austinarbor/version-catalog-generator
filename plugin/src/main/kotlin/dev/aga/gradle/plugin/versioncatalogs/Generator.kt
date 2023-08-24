@@ -158,8 +158,8 @@ object Generator {
         return model.dependencyManagement.dependencies
             .asSequence()
             .onEach { it.groupId = mapGroup(model, it.groupId) }
-            .filter { seenModules.add("${it.groupId}:${it.artifactId}") }
             .filter(filter)
+            .filter { seenModules.add("${it.groupId}:${it.artifactId}") }
             .onEach { it.version = mapVersion(model, it.version, config.versionNameGenerator) }
             .groupBy { it.version }
     }
