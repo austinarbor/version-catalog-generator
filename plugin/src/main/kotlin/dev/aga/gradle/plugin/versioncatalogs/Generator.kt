@@ -15,10 +15,11 @@ object Generator {
     private val importFilter = { dep: Dependency -> "pom" == dep.type && "import" == dep.scope }
 
     /**
-     * Generate a version catalog with the provided name
+     * Generate a version catalog with the provided [name].
      *
      * @param name the name of the version catalog
      * @param conf the generator configuration options
+     * @return the [VersionCatalogBuilder]
      */
     fun MutableVersionCatalogContainer.generate(
         name: String,
@@ -39,6 +40,17 @@ object Generator {
         }
     }
 
+    /**
+     * Traverse the BOM and create a version reference for each property value. If the BOM contains
+     * properties with names we have previously seen, we will ignore that version and the
+     * dependencies mapped to that version.
+     *
+     * @param model the BOM
+     * @param config [GeneratorConfig]
+     * @param queue the BFS queue to add more BOMs into
+     * @param props the version properties
+     * @param seenModules the set of modules we have already created libraries for
+     */
     internal fun VersionCatalogBuilder.loadBom(
         model: Model,
         config: GeneratorConfig,
@@ -61,6 +73,18 @@ object Generator {
         loadDependencies(model, config, queue, props, dupes, seenModules)
     }
 
+    /**
+     * Traverse the BOM and create a library from each dependency. Any dependency that has a version
+     * that exists as a key in [excludedProps] will be ignored. Any dependencies we encounter in the
+     * BOM that have `type == "pom" && scope == "import"` will be added to the [queue].
+     *
+     * @param model the BOM
+     * @param config [GeneratorConfig]
+     * @param queue the BFS queue to add more BOMs into
+     * @param props the version properties
+     * @param excludedProps the set of version properties to ignore
+     * @param seenModules the set of modules we have already created libraries for
+     */
     internal fun VersionCatalogBuilder.loadDependencies(
         model: Model,
         config: GeneratorConfig,
@@ -85,19 +109,44 @@ object Generator {
             .forEach { (version, deps) ->
                 val aliases = mutableListOf<String>()
                 deps.forEach { dep ->
-                    val alias = config.libraryAliasGenerator(dep.groupId, dep.artifactId)
-                    val library = library(alias, dep.groupId, dep.artifactId)
-                    if (props.containsKey(version)) {
+                    val (alias, isRef) = createLibrary(dep, version, props, config)
+                    if (isRef) {
                         aliases += alias
-                        library.versionRef(version)
-                    } else {
-                        library.version(version)
                     }
                 }
                 if (aliases.isNotEmpty()) {
                     bundle(version, aliases)
                 }
             }
+    }
+
+    /**
+     * Create a library from the given information. If the [version] exists as a key in properties
+     * then the library will be created with a versionRef to it. Otherwise, the version will be set
+     * directly on the library
+     *
+     * @param dep the dependency
+     * @param version the version of the dependency, may be a property of actual version
+     * @param props the version properties
+     * @param config the [GeneratorConfig]
+     * @return the library's alias and true if the version was a reference, or false if it was not
+     */
+    internal fun VersionCatalogBuilder.createLibrary(
+        dep: Dependency,
+        version: String,
+        props: Map<String, String>,
+        config: GeneratorConfig,
+    ): Pair<String, Boolean> {
+        val alias = config.libraryAliasGenerator(dep.groupId, dep.artifactId)
+        val library = library(alias, dep.groupId, dep.artifactId)
+        return if (props.containsKey(version)) {
+            // aliases += alias
+            library.versionRef(version)
+            alias to true
+        } else {
+            library.version(version)
+            alias to false
+        }
     }
 
     fun getNewDependencies(
