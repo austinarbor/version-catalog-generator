@@ -3,11 +3,11 @@
   <ManuallySuppressedIssues></ManuallySuppressedIssues>
   <CurrentIssues>
     <ID>EmptyFunctionBlock:VersionCatalogGeneratorPlugin.kt$VersionCatalogGeneratorPlugin${}</ID>
-    <ID>TooGenericExceptionThrown:CatalogParser.kt$CatalogParser$throw RuntimeException("${libraryName} not found in catalog file")</ID>
-    <ID>TooGenericExceptionThrown:CatalogParser.kt$CatalogParser$throw RuntimeException("Group not found ")</ID>
-    <ID>TooGenericExceptionThrown:CatalogParser.kt$CatalogParser$throw RuntimeException("Name not found")</ID>
-    <ID>TooGenericExceptionThrown:CatalogParser.kt$CatalogParser$throw RuntimeException("Version not found")</ID>
-    <ID>TooGenericExceptionThrown:CatalogParser.kt$CatalogParser$throw RuntimeException("Version ref '${it}' not found")</ID>
-    <ID>TooGenericExceptionThrown:POMFetcher.kt$POMFetcher$throw RuntimeException("Invalid pom file")</ID>
+    <ID>TooGenericExceptionThrown:FileCatalogParser.kt$FileCatalogParser$throw RuntimeException("${libraryName} not found in catalog file")</ID>
+    <ID>TooGenericExceptionThrown:FileCatalogParser.kt$FileCatalogParser$throw RuntimeException("Group not found ")</ID>
+    <ID>TooGenericExceptionThrown:FileCatalogParser.kt$FileCatalogParser$throw RuntimeException("Name not found")</ID>
+    <ID>TooGenericExceptionThrown:FileCatalogParser.kt$FileCatalogParser$throw RuntimeException("Version not found")</ID>
+    <ID>TooGenericExceptionThrown:FileCatalogParser.kt$FileCatalogParser$throw RuntimeException("Version ref '${it}' not found")</ID>
+    <ID>TooGenericExceptionThrown:RemotePOMFetcher.kt$RemotePOMFetcher$throw RuntimeException("Invalid pom file")</ID>
   </CurrentIssues>
 </SmellBaseline>

@@ -56,6 +56,14 @@ object Generator {
             while (queue.isNotEmpty()) {
                 val dep = queue.removeFirst()
                 val pom = fetcher.fetch(dep)
+                pom.apply {
+                    if (groupId == null) {
+                        groupId = dep.groupId
+                    }
+                    if (version == null) {
+                        version = dep.version
+                    }
+                }
                 loadBom(pom, config, queue, props, seenModules)
             }
         }
@@ -89,8 +97,21 @@ object Generator {
                 model.version,
             )
         }
-        newProps.forEach { (key, value) -> version(key, value) }
-        props.putAll(newProps)
+
+        val finalProps = HashMap<String, String>(newProps)
+        for ((k, v) in newProps) {
+            var mappedValue = mapVersion(model, v, config.versionNameGenerator)
+            if (newProps.containsKey(mappedValue)) {
+                while (newProps.containsKey(mappedValue)) {
+                    val x = newProps[mappedValue]!!
+                    mappedValue = mapVersion(model, x, config.versionNameGenerator)
+                }
+                finalProps[k] = mappedValue
+            }
+        }
+
+        finalProps.forEach { (key, value) -> version(key, value) }
+        props.putAll(finalProps)
         loadDependencies(model, config, queue, props, dupes, seenModules)
     }
 
@@ -116,6 +137,7 @@ object Generator {
     ) {
         getNewDependencies(model, config, seenModules, importFilter).forEach { (version, boms) ->
             boms.forEach { bom ->
+                logger.info("${model.groupId}:${model.artifactId} contains other boms")
                 val (_, isRef) = createLibrary(bom, version, props, config)
                 // if the version is a property, replace it with the
                 // actual version value

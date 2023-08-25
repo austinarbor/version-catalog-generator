@@ -8,11 +8,12 @@ interface POMFetcher {
     fun fetch(dep: Dependency): Model
 
     fun fetch(groupId: String, artifactId: String, version: String): Model {
-        val dep = Dependency().apply {
-            this.groupId = groupId
-            this.artifactId = artifactId
-            this.version = version
-        }
+        val dep =
+            Dependency().apply {
+                this.groupId = groupId
+                this.artifactId = artifactId
+                this.version = version
+            }
         return fetch(dep)
     }
 

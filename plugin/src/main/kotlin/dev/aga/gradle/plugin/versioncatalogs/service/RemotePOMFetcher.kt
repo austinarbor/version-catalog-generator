@@ -1,9 +1,9 @@
 package dev.aga.gradle.plugin.versioncatalogs.service
 
+import java.net.URL
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader
-import java.net.URL
 
 internal class RemotePOMFetcher(private val baseUrl: String) : POMFetcher {
 

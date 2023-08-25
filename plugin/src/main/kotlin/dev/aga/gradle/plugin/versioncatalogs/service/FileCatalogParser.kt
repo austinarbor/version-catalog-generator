@@ -1,10 +1,10 @@
 package dev.aga.gradle.plugin.versioncatalogs.service
 
+import java.io.File
 import org.apache.maven.model.Dependency
 import org.tomlj.Toml
 import org.tomlj.TomlParseResult
 import org.tomlj.TomlTable
-import java.io.File
 
 internal class FileCatalogParser(private val file: File) : CatalogParser {
 
