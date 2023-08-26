@@ -3,6 +3,7 @@ package dev.aga.gradle.plugin.versioncatalogs
 import dev.aga.gradle.plugin.versioncatalogs.Generator.generate
 import dev.aga.gradle.plugin.versioncatalogs.service.CatalogParser
 import dev.aga.gradle.plugin.versioncatalogs.service.LocalPOMFetcher
+import java.nio.file.Paths
 import org.apache.maven.model.Dependency
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Action
@@ -17,29 +18,26 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-
-// in the mocks, add created libraries, bundles, versions to lists etc that we can more easily
-// verify later
+import org.tomlj.Toml
+import org.tomlj.TomlTable
 
 internal class GeneratorTest {
 
-    private val createdVersions = mutableMapOf<String, String>()
-    private val libraries = mutableMapOf<String, Triple<String, String, String>>()
-    private val libraryRefs = mutableMapOf<String, Triple<String, String, String>>()
+    private val resourceRoot = Paths.get("src", "test", "resources")
+    private val generatedLibraries = mutableMapOf<String, LibraryAliasBuilder>()
 
     @BeforeEach
-    fun setup() {
-        createdVersions.clear()
-        libraries.clear()
-        libraryRefs.clear()
+    fun beforeEach() {
+        generatedLibraries.clear()
     }
 
     @Test
     fun testGenerate() {
         val dep = dep("org.springframework.boot", "spring-boot-abbrev-dependencies", "3.1.2")
         val parser = mock<CatalogParser> { on { findLibrary(anyString()) } doReturn dep }
-        val fetcher = LocalPOMFetcher("src/test/resources/poms")
+        val fetcher = LocalPOMFetcher(resourceRoot.resolve("poms").toString())
 
         val builder =
             mock<VersionCatalogBuilder> {
@@ -48,26 +46,11 @@ internal class GeneratorTest {
                         val alias = mock.arguments[0] as String
                         val group = mock.arguments[1] as String
                         val name = mock.arguments[2] as String
-                        mock<LibraryAliasBuilder> {
-                            on { version(any<String>()) } doAnswer
-                                {
-                                    val dep = Triple(group, name, it.arguments[0] as String)
-                                    libraries.put(alias, dep)
-                                    null
-                                }
-                            on { versionRef(any<String>()) } doAnswer
-                                {
-                                    val dep = Triple(group, name, it.arguments[0] as String)
-                                    libraryRefs.put(alias, dep)
-                                    null
-                                }
-                        }
+                        val mockBuilder = mock<LibraryAliasBuilder>()
+                        generatedLibraries[alias] = mockBuilder
+                        mockBuilder
                     }
-                on { version(any<String>(), any<String>()) } doAnswer
-                    {
-                        createdVersions[it.arguments[0] as String] = it.arguments[1] as String
-                        it.arguments[0] as String
-                    }
+                on { version(any<String>(), any<String>()) } doAnswer { it.arguments[0] as String }
             }
 
         val container =
@@ -80,7 +63,44 @@ internal class GeneratorTest {
             }
         container.generate("myLibs", GeneratorConfig(), parser, fetcher)
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
-        assertThat(createdVersions).containsExactlyInAnyOrderEntriesOf(expectedVersions())
+        val (versions, libraries, bundles) = getExpectedCatalog(dep)
+        // validate the versions
+        verify(builder, times(29)).version(any<String>(), any<String>())
+        versions.dottedKeySet().forEach { v -> verify(builder).version(v, versions.getString(v)!!) }
+
+        verify(builder, times(43)).library(any<String>(), any<String>(), any<String>())
+        // sort the keys and split into groups of 3, which should give us
+        // the group, name, and version properties
+        libraries.dottedKeySet().sorted().chunked(3).forEach { libProps ->
+            val alias = getLibraryAlias(libProps[0])
+            val group = libraries.getString(libProps[0])!!
+            val name = libraries.getString(libProps[1])!!
+            assertThat(generatedLibraries).containsKey(alias)
+            val mock = generatedLibraries[alias]!!
+            val versionProp = libProps[2]
+            val versionValue = libraries.getString(versionProp)!!
+            verify(builder).library(alias, group, name)
+            if (versionProp.endsWith(".ref")) {
+                verify(mock).versionRef(versionValue)
+            } else if (versionProp.endsWith(".version")) {
+                verify(mock).version(versionValue)
+            } else {
+                throw RuntimeException("Unexpected property: ${versionProp}")
+            }
+        }
+    }
+
+    private fun getLibraryAlias(property: String): String {
+        val split = property.split(".")
+        // if we have version.ref, return last -2
+        val result = mutableListOf<String>()
+        for (s in split) {
+            if (s in listOf("name", "group", "version")) {
+                break
+            }
+            result += s
+        }
+        return result.joinToString(".")
     }
 
     private fun dep(groupId: String, artifactId: String, version: String): Dependency {
@@ -92,37 +112,12 @@ internal class GeneratorTest {
         }
     }
 
-    private fun expectedVersions(): Map<String, String> {
-        return mapOf(
-            "activemq" to "5.18.2",
-            "assertj" to "3.24.2",
-            "brave" to "5.15.1",
-            "caffeine" to "3.1.6",
-            "dropwizard-metrics" to "4.2.19",
-            "jackson" to "2.15.2",
-            "jackson.annotations" to "2.15.2",
-            "jackson-bom" to "2.15.2",
-            "jackson.core" to "2.15.2",
-            "jackson.databind" to "2.15.2",
-            "jackson.dataformat" to "2.15.2",
-            "jackson.datatype" to "2.15.2",
-            "jackson.jaxrs" to "2.15.2",
-            "jackson.jacksonjr" to "2.15.2",
-            "jackson.jakarta.rs" to "2.15.2",
-            "jackson.module" to "2.15.2",
-            "jackson.module.kotlin" to "2.15.2",
-            "jackson.module.scala" to "2.15.2",
-            "javax.activation" to "1.2.0",
-            "main.basedir" to "\${project.basedir}/..",
-            "nexus-staging-maven-plugin" to "1.6.8",
-            "project.build.outputEncoding" to "UTF-8",
-            "project.build.outputTimestamp" to "2023-05-30T20:28:33Z",
-            "project.build.resourceEncoding" to "UTF-8",
-            "project.build.sourceEncoding" to "UTF-8",
-            "project.reporting.outputEncoding" to "UTF-8",
-            "zipkin" to "2.23.2",
-            "zipkin-proto3" to "1.0.0",
-            "zipkin-reporter" to "2.16.3",
-        )
+    private fun getExpectedCatalog(dep: Dependency): Triple<TomlTable, TomlTable, TomlTable> {
+        val expectations = Paths.get("expectations", "${dep.artifactId}", "libs.versions.toml")
+        val parseResult = Toml.parse(resourceRoot.resolve(expectations))
+        val versions = parseResult.getTable("versions")!!
+        val libraries = parseResult.getTable("libraries")!!
+        val bundles = parseResult.getTable("bundles")!!
+        return Triple(versions, libraries, bundles)
     }
 }
