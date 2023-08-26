@@ -193,7 +193,7 @@ object Generator {
         }
     }
 
-    fun getNewDependencies(
+    internal fun getNewDependencies(
         model: Model,
         config: GeneratorConfig,
         seenModules: MutableSet<String> = mutableSetOf(),
@@ -208,7 +208,7 @@ object Generator {
             .groupBy { it.version }
     }
 
-    fun getProperties(
+    internal fun getProperties(
         model: Model,
         versionMapper: (String) -> String,
         existingProperties: Set<String> = setOf(),
@@ -228,14 +228,18 @@ object Generator {
         return newProps.toMap() to dupeVersions
     }
 
-    fun mapGroup(model: Model, group: String): String {
+    internal fun mapGroup(model: Model, group: String): String {
         if ("\${project.groupId}" == group) {
             return model.groupId
         }
         return group
     }
 
-    fun mapVersion(model: Model, version: String, versionMapper: (String) -> String): String {
+    internal fun mapVersion(
+        model: Model,
+        version: String,
+        versionMapper: (String) -> String,
+    ): String {
         if ("\${project.version}" == version) {
             return model.version
         }
