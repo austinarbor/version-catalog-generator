@@ -44,8 +44,6 @@ internal class GeneratorTest {
                 on { library(any<String>(), any<String>(), any<String>()) } doAnswer
                     { mock ->
                         val alias = mock.arguments[0] as String
-                        val group = mock.arguments[1] as String
-                        val name = mock.arguments[2] as String
                         val mockBuilder = mock<LibraryAliasBuilder>()
                         generatedLibraries[alias] = mockBuilder
                         mockBuilder
@@ -80,12 +78,11 @@ internal class GeneratorTest {
             val versionProp = libProps[2]
             val versionValue = libraries.getString(versionProp)!!
             verify(builder).library(alias, group, name)
-            if (versionProp.endsWith(".ref")) {
-                verify(mock).versionRef(versionValue)
-            } else if (versionProp.endsWith(".version")) {
-                verify(mock).version(versionValue)
-            } else {
-                throw RuntimeException("Unexpected property: ${versionProp}")
+
+            when {
+                versionProp.endsWith(".ref") -> verify(mock).versionRef(versionValue)
+                versionProp.endsWith(".version") -> verify(mock).version(versionValue)
+                else -> throw RuntimeException("Unexpected property: ${versionProp}")
             }
         }
     }
