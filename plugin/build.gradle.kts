@@ -29,6 +29,7 @@ dependencies {
     detektPlugins(libs.detekt.formatting)
 
     testImplementation(libs.bundles.testing)
+    testImplementation(libs.bundles.mockito)
 }
 
 spotless {

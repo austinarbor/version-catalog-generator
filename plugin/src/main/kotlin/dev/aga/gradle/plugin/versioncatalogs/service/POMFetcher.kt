@@ -1,29 +1,23 @@
 package dev.aga.gradle.plugin.versioncatalogs.service
 
-import java.net.URL
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader
+import org.gradle.api.artifacts.Dependency as GradleDependency
 
-internal object POMFetcher {
-    fun fetchPOM(baseUrl: String, dep: Dependency): Model {
-        val groupIdPath = splitGroupId(dep.groupId)
-        val urlString =
-            "${baseUrl}/${groupIdPath}/${dep.artifactId}/${dep.version}/${dep.artifactId}-${dep.version}.pom"
-        val reader = MavenXpp3Reader()
-        return URL(urlString)
-            .openStream()
-            .use { reader.read(it) }
-            .takeIf { it.packaging == "pom" }
-            ?.also {
-                if (it.version == null) {
-                    it.version = dep.version
-                }
+interface POMFetcher {
+    fun fetch(dep: Dependency): Model
+
+    fun fetch(groupId: String, artifactId: String, version: String): Model {
+        val dep =
+            Dependency().apply {
+                this.groupId = groupId
+                this.artifactId = artifactId
+                this.version = version
             }
-            ?: throw RuntimeException("Invalid pom file")
+        return fetch(dep)
     }
 
-    private fun splitGroupId(groupId: String): String {
-        return groupId.split(".").joinToString("/")
+    fun fetch(dep: GradleDependency): Model {
+        return fetch(dep.group!!, dep.name, dep.version!!)
     }
 }

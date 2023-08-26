@@ -3,6 +3,14 @@ complexity:
     constructorThreshold: 7
     functionThreshold: 7
 
+exceptions:
+  TooGenericExceptionThrown:
+    excludes:
+      - '**/test/**'
+  TooGenericExceptionCaught:
+    excludes:
+      - '**/test/**'
+
 style:
   UnusedPrivateMember:
     excludes:
