@@ -12,7 +12,6 @@ import org.gradle.api.initialization.dsl.VersionCatalogBuilder.LibraryAliasBuild
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
@@ -27,6 +26,7 @@ internal class GeneratorTest {
 
     private val resourceRoot = Paths.get("src", "test", "resources")
     private val generatedLibraries = mutableMapOf<String, LibraryAliasBuilder>()
+    private val generatedBundles = mutableMapOf<String, List<String>>()
 
     @BeforeEach
     fun beforeEach() {
@@ -36,7 +36,7 @@ internal class GeneratorTest {
     @Test
     fun testGenerate() {
         val dep = dep("org.springframework.boot", "spring-boot-abbrev-dependencies", "3.1.2")
-        val parser = mock<CatalogParser> { on { findLibrary(anyString()) } doReturn dep }
+        val parser = mock<CatalogParser> { on { findLibrary(any<String>()) } doReturn dep }
         val fetcher = LocalPOMFetcher(resourceRoot.resolve("poms").toString())
 
         val builder =
@@ -49,11 +49,17 @@ internal class GeneratorTest {
                         mockBuilder
                     }
                 on { version(any<String>(), any<String>()) } doAnswer { it.arguments[0] as String }
+                on { bundle(any<String>(), any<List<String>>()) } doAnswer
+                    {
+                        val alias = it.arguments[0] as String
+                        generatedBundles[alias] = it.arguments[1] as List<String>
+                        null
+                    }
             }
 
         val container =
             mock<MutableVersionCatalogContainer> {
-                on { create(anyString(), any<Action<VersionCatalogBuilder>>()) }
+                on { create(any<String>(), any<Action<VersionCatalogBuilder>>()) }
                     .then { mock ->
                         (mock.arguments[1] as Action<VersionCatalogBuilder>).execute(builder)
                         builder
@@ -84,6 +90,13 @@ internal class GeneratorTest {
                 versionProp.endsWith(".version") -> verify(mock).version(versionValue)
                 else -> throw RuntimeException("Unexpected property: ${versionProp}")
             }
+        }
+
+        verify(builder, times(15)).bundle(any<String>(), any<List<String>>())
+        bundles.dottedKeySet().forEach {
+            assertThat(generatedBundles.containsKey(it))
+            val expectedLibraries = bundles.getArrayOrEmpty(it).toList()
+            assertThat(expectedLibraries).containsExactlyInAnyOrderElementsOf(generatedBundles[it])
         }
     }
 
