@@ -61,4 +61,5 @@ easily query for artifacts, but so far this functionality is not possible from `
 I [opened an issue](https://github.com/gradle/gradle/issues/26111)
 with the Gradle team, but as of this writing it is still awaiting triage. Until that issue is resolved, we unfortunately
 must be provided with a Maven repository URL to use to look up the BOM's metadata. If anyone has a workaround for this,
-I am definitely interested!
+I am definitely interested! We _do_ check the local Gradle cache to see if the pom has already been fetched before
+reaching out to the remote URL. 
