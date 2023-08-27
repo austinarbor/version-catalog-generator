@@ -1,5 +1,5 @@
 ![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/austinarbor/version-catalog-generator/.github%2Fworkflows%2Fci.yml)
-![Codecov](https://img.shields.io/codecov/c/github/austinarbor/version-catalog-generator)
+[![codecov](https://codecov.io/gh/austinarbor/version-catalog-generator/graph/badge.svg?token=IO5UCDD5A0)](https://codecov.io/gh/austinarbor/version-catalog-generator)
 
 # Version Catalog Generator Plugin
 
