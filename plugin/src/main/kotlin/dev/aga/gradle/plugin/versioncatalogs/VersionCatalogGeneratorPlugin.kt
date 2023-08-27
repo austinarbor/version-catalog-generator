@@ -3,11 +3,14 @@
  */
 package dev.aga.gradle.plugin.versioncatalogs
 
+import dev.aga.gradle.plugin.versioncatalogs.service.GradleCachePOMFetcher
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 
 class VersionCatalogGeneratorPlugin : Plugin<Settings> {
     // nothing to do in apply, all our logic
     // is in the extension function
-    override fun apply(settings: Settings) {}
+    override fun apply(settings: Settings) {
+        GradleCachePOMFetcher.setSettingsDirectory(settings.gradle.gradleUserHomeDir)
+    }
 }
