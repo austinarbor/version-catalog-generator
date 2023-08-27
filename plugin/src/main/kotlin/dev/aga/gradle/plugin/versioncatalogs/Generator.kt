@@ -2,7 +2,9 @@ package dev.aga.gradle.plugin.versioncatalogs
 
 import dev.aga.gradle.plugin.versioncatalogs.service.CatalogParser
 import dev.aga.gradle.plugin.versioncatalogs.service.FileCatalogParser
+import dev.aga.gradle.plugin.versioncatalogs.service.GradleCachePOMFetcher
 import dev.aga.gradle.plugin.versioncatalogs.service.POMFetcher
+import dev.aga.gradle.plugin.versioncatalogs.service.POMFetcherChain
 import dev.aga.gradle.plugin.versioncatalogs.service.RemotePOMFetcher
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
@@ -29,7 +31,7 @@ object Generator {
     ): VersionCatalogBuilder {
         val config = GeneratorConfig().apply(conf)
         val parser = FileCatalogParser(config.sourceCatalogFile)
-        val fetcher = RemotePOMFetcher(config.repoBaseUrl)
+        val fetcher = POMFetcherChain(GradleCachePOMFetcher(), RemotePOMFetcher(config.repoBaseUrl))
         return generate(name, config, parser, fetcher)
     }
 

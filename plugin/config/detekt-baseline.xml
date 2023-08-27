@@ -2,12 +2,19 @@
 <SmellBaseline>
   <ManuallySuppressedIssues></ManuallySuppressedIssues>
   <CurrentIssues>
-    <ID>EmptyFunctionBlock:VersionCatalogGeneratorPlugin.kt$VersionCatalogGeneratorPlugin${}</ID>
+    <ID>MagicNumber:RemotePOMFetcher.kt$RemotePOMFetcher$200</ID>
+    <ID>SwallowedException:GradleCachePOMFetcher.kt$GradleCachePOMFetcher$e: RuntimeException</ID>
+    <ID>TooGenericExceptionCaught:GradleCachePOMFetcher.kt$GradleCachePOMFetcher$e: RuntimeException</ID>
+    <ID>TooGenericExceptionCaught:POMFetcherChain.kt$POMFetcherChain$e: Exception</ID>
     <ID>TooGenericExceptionThrown:FileCatalogParser.kt$FileCatalogParser$throw RuntimeException("${libraryName} not found in catalog file")</ID>
     <ID>TooGenericExceptionThrown:FileCatalogParser.kt$FileCatalogParser$throw RuntimeException("Group not found ")</ID>
     <ID>TooGenericExceptionThrown:FileCatalogParser.kt$FileCatalogParser$throw RuntimeException("Name not found")</ID>
     <ID>TooGenericExceptionThrown:FileCatalogParser.kt$FileCatalogParser$throw RuntimeException("Version not found")</ID>
     <ID>TooGenericExceptionThrown:FileCatalogParser.kt$FileCatalogParser$throw RuntimeException("Version ref '${it}' not found")</ID>
+    <ID>TooGenericExceptionThrown:GradleCachePOMFetcher.kt$GradleCachePOMFetcher$throw RuntimeException("Unable to find POM in Gradle cache")</ID>
+    <ID>TooGenericExceptionThrown:LocalPOMFetcher.kt$LocalPOMFetcher$throw RuntimeException("Path ${path} does not exist")</ID>
+    <ID>TooGenericExceptionThrown:POMFetcherChain.kt$POMFetcherChain$throw RuntimeException("Unable to fetch POM from any of the fetchers in the chain")</ID>
+    <ID>TooGenericExceptionThrown:RemotePOMFetcher.kt$RemotePOMFetcher$throw RuntimeException( "Received response code ${res.statusCode()} from ${req.uri()}", )</ID>
     <ID>TooGenericExceptionThrown:RemotePOMFetcher.kt$RemotePOMFetcher$throw RuntimeException("Invalid pom file")</ID>
   </CurrentIssues>
 </SmellBaseline>
