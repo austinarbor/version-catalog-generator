@@ -12,7 +12,7 @@ class LocalPOMFetcher(private val rootDir: String) : POMFetcher {
 
     override fun fetch(dep: Dependency): Model {
         val reader = MavenXpp3Reader()
-        val path = Paths.get(rootDir, "${dep.artifactId}.pom")
+        val path = Paths.get(rootDir, "${dep.artifactId}-${dep.version}.pom")
         if (path.exists()) {
             return Files.newBufferedReader(path, StandardCharsets.UTF_8).use { reader.read(it) }
         }
