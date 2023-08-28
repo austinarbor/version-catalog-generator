@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     alias(libs.plugins.kotlin)
     `kotlin-dsl`
@@ -6,17 +8,19 @@ plugins {
     jacoco
     alias(libs.plugins.spotless)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.gradle.publish)
+    alias(libs.plugins.shadow)
 }
 
-group = "dev.aga.gradle.plugin"
-version = "0.0.1-SNAPSHOT"
+val GROUP_ID: String by project
+val ARTIFACT_ID: String by project
+val VERSION: String by project
+val SCM_URL: String by project
+val PLUGIN_DISPLAY_NAME: String by project
+val PLUGIN_DESCRIPTION: String by project
 
-gradlePlugin {
-    val generator by plugins.creating {
-        id = "dev.aga.gradle.plugin.version-catalog-generator"
-        implementationClass = "dev.aga.gradle.plugin.versioncatalogs.VersionCatalogGeneratorPlugin"
-    }
-}
+group = GROUP_ID
+version = VERSION
 
 repositories {
     mavenCentral()
@@ -45,12 +49,55 @@ detekt {
     baseline = file("$projectDir/config/detekt-baseline.xml")
 }
 
+
+tasks.withType<ShadowJar> {
+    archiveClassifier = ""
+}
+
+gradlePlugin {
+    website = SCM_URL
+    vcsUrl = SCM_URL
+    val generator by plugins.creating {
+        id = "dev.aga.gradle.version-catalog-generator"
+        implementationClass = "dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPlugin"
+        displayName = PLUGIN_DISPLAY_NAME
+        description = PLUGIN_DESCRIPTION
+        tags = listOf("version", "catalog", "bom", "generate")
+    }
+}
+
+val projectProps = project.properties
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = "dev.aga.gradle.plugin"
-            artifactId = "version-catalog-generator"
-            version = "0.0.1-SNAPSHOT"
+            groupId = GROUP_ID
+            artifactId = ARTIFACT_ID
+            version = VERSION
+
+            pom {
+                name = PLUGIN_DISPLAY_NAME
+                description = PLUGIN_DESCRIPTION
+                licenses {
+                    license {
+                        name = projectProps["LICENSE_NAME"].toString()
+                        url = projectProps["LICENSE_URL"].toString()
+                        distribution = projectProps["LICENSE_DISTRIBUTION"].toString()
+                    }
+                }
+                developers {
+                    developer {
+                        id = "austinarbor"
+                        name = "Austin Arbor"
+                        email = "aarbor989@gmail.com"
+                    }
+                }
+                scm {
+                    url = SCM_URL
+                    connection = projectProps["SCM_CONNECTION"].toString()
+                }
+            }
+
             from(components["java"])
         }
     }

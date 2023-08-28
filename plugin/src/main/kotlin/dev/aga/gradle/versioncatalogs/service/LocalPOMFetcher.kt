@@ -1,4 +1,4 @@
-package dev.aga.gradle.plugin.versioncatalogs.service
+package dev.aga.gradle.versioncatalogs.service
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files

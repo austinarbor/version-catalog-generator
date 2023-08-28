@@ -1,11 +1,11 @@
-package dev.aga.gradle.plugin.versioncatalogs
+package dev.aga.gradle.versioncatalogs
 
-import dev.aga.gradle.plugin.versioncatalogs.service.CatalogParser
-import dev.aga.gradle.plugin.versioncatalogs.service.FileCatalogParser
-import dev.aga.gradle.plugin.versioncatalogs.service.GradleCachePOMFetcher
-import dev.aga.gradle.plugin.versioncatalogs.service.POMFetcher
-import dev.aga.gradle.plugin.versioncatalogs.service.POMFetcherChain
-import dev.aga.gradle.plugin.versioncatalogs.service.RemotePOMFetcher
+import dev.aga.gradle.versioncatalogs.service.CatalogParser
+import dev.aga.gradle.versioncatalogs.service.FileCatalogParser
+import dev.aga.gradle.versioncatalogs.service.GradleCachePOMFetcher
+import dev.aga.gradle.versioncatalogs.service.POMFetcher
+import dev.aga.gradle.versioncatalogs.service.POMFetcherChain
+import dev.aga.gradle.versioncatalogs.service.RemotePOMFetcher
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder

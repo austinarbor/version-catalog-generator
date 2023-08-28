@@ -1,4 +1,4 @@
-package dev.aga.gradle.plugin.versioncatalogs.service
+package dev.aga.gradle.versioncatalogs.service
 
 import java.net.http.HttpClient
 import java.net.http.HttpRequest

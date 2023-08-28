@@ -1,4 +1,4 @@
-package dev.aga.gradle.plugin.versioncatalogs.service
+package dev.aga.gradle.versioncatalogs.service
 
 import java.io.File
 import org.apache.maven.model.Dependency
@@ -38,7 +38,6 @@ internal class FileCatalogParser(private val file: File) : CatalogParser {
                 val name =
                     library["name"]?.let { it as? String }
                         ?: throw RuntimeException("Name not found")
-                val version = getVersion(library, versions)
                 group to name
             }
 

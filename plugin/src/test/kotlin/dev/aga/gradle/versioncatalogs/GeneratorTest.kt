@@ -1,8 +1,8 @@
-package dev.aga.gradle.plugin.versioncatalogs
+package dev.aga.gradle.versioncatalogs
 
-import dev.aga.gradle.plugin.versioncatalogs.Generator.generate
-import dev.aga.gradle.plugin.versioncatalogs.service.CatalogParser
-import dev.aga.gradle.plugin.versioncatalogs.service.LocalPOMFetcher
+import dev.aga.gradle.versioncatalogs.Generator.generate
+import dev.aga.gradle.versioncatalogs.service.CatalogParser
+import dev.aga.gradle.versioncatalogs.service.LocalPOMFetcher
 import java.nio.file.Paths
 import org.apache.maven.model.Dependency
 import org.assertj.core.api.Assertions.assertThat
