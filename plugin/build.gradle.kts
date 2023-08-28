@@ -11,25 +11,16 @@ plugins {
     alias(libs.plugins.gradle.publish)
     alias(libs.plugins.shadow)
 }
-val projectProps = project.properties
-val mavenGroupId = projectProps["GROUP_ID"].toString()
-val mavenArtifactId = projectProps["ARTIFACT_ID"].toString()
-val mavenVersion = projectProps["VERSION"].toString()
 
-group = mavenGroupId
-version = mavenVersion
+val GROUP_ID: String by project
+val ARTIFACT_ID: String by project
+val VERSION: String by project
+val SCM_URL: String by project
+val PLUGIN_DISPLAY_NAME: String by project
+val PLUGIN_DESCRIPTION: String by project
 
-gradlePlugin {
-    website = projectProps["SCM_URL"].toString()
-    vcsUrl = projectProps["SCM_URL"].toString()
-    val generator by plugins.creating {
-        id = "dev.aga.gradle.version-catalog-generator"
-        implementationClass = "dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPlugin"
-        displayName = projectProps["PLUGIN_DISPLAY_NAME"].toString()
-        description = projectProps["PLUGIN_DESCRIPTION"].toString()
-        tags = listOf("version", "catalog", "bom", "generate")
-    }
-}
+group = GROUP_ID
+version = VERSION
 
 repositories {
     mavenCentral()
@@ -63,16 +54,30 @@ tasks.withType<ShadowJar> {
     archiveClassifier = ""
 }
 
+gradlePlugin {
+    website = SCM_URL
+    vcsUrl = SCM_URL
+    val generator by plugins.creating {
+        id = "dev.aga.gradle.version-catalog-generator"
+        implementationClass = "dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPlugin"
+        displayName = PLUGIN_DISPLAY_NAME
+        description = PLUGIN_DESCRIPTION
+        tags = listOf("version", "catalog", "bom", "generate")
+    }
+}
+
+val projectProps = project.properties
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = mavenGroupId
-            artifactId = mavenArtifactId
-            version = mavenVersion
+            groupId = GROUP_ID
+            artifactId = ARTIFACT_ID
+            version = VERSION
 
             pom {
-                name = projectProps["PLUGIN_DISPLAY_NAME"].toString()
-                description = projectProps["PLUGIN_DESCRIPTION"].toString()
+                name = PLUGIN_DISPLAY_NAME
+                description = PLUGIN_DESCRIPTION
                 licenses {
                     license {
                         name = projectProps["LICENSE_NAME"].toString()
@@ -88,7 +93,7 @@ publishing {
                     }
                 }
                 scm {
-                    url = projectProps["SCM_URL"].toString()
+                    url = SCM_URL
                     connection = projectProps["SCM_CONNECTION"].toString()
                 }
             }
