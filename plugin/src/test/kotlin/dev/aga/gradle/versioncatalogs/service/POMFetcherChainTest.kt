@@ -1,4 +1,4 @@
-package dev.aga.gradle.plugin.versioncatalogs.service
+package dev.aga.gradle.versioncatalogs.service
 
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType

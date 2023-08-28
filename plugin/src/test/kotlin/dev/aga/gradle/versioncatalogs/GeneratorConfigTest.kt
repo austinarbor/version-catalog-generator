@@ -1,4 +1,4 @@
-package dev.aga.gradle.plugin.versioncatalogs
+package dev.aga.gradle.versioncatalogs
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
