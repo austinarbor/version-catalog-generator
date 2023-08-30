@@ -25,17 +25,33 @@ plugins {
     id("dev.aga.gradle.plugin.version-catalog-generator")
 }
 
-versionCatalog {
-    generate("bomLibs") { // the name of the generated catalog
-        sourceLibraryNameInCatalog =
-            "spring-boot-dependencies" // required, must be a valid alias in the library file below
-        sourceCatalogFile = file("gradle/libs.versions.toml") // optional, change if required
-        repoBaseUrl = "https://repo1.maven.org/maven2" // optional, change if required
-        libraryAliasGenerator =
-            dev.aga.gradle.plugin.versioncatalogs.GeneratorConfig.DEFAULT_ALIAS_GENERATOR // optional, change if required
-        versionNameGenerator =
-            dev.aga.gradle.plugin.versioncatalogs.GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR // optional, change if required
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral() // must include repositories here for dependency resolution to work from settings
     }
+    versionCatalogs {
+        generate("springLibs") { // the name of the generated catalog
+            from {
+                toml {
+                    alias = "spring-boot-dependencies" // required, alias of the library in the toml below
+                    file = File("gradle/libs.versions.toml") // optional, only required if not using this value
+                }
+            }
+            // use this instead if you just want to use direct dependency notation
+            from("org.springframework.boot:spring-boot-dependencies:3.1.2")
+            libraryAliasGenerator =
+                dev.aga.gradle.plugin.versioncatalogs.GeneratorConfig.DEFAULT_ALIAS_GENERATOR // optional, change if required
+            versionNameGenerator =
+                dev.aga.gradle.plugin.versioncatalogs.GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR // optional, change if required
+        }
+    }
+}
+```
+build.gradle.kts
+```kotlin
+// add your dependencies from the generated catalog
+dependencies {
+    implementation(springLibs.boot.spring.boot.starter.jdbc)
 }
 ```
 
@@ -44,23 +60,3 @@ versionCatalog {
 - Compatible with Dependabot
 - Easy to override versions (similar to `ext["version.property"] = ...` in Spring Boot Dependencies plugin)
 - Nested BOM support (i.e. `spring-boot-dependences` imports `mockito-bom`, etc)
-
-## FAQ
-
-### Why must I specify the source BOM in a catalog file?
-
-I really want this to work well with Dependabot. As of this writing, Dependabot only supports
-updating dependency versions in Version Catalogs that
-are [declared in gradle/libs.versions.toml](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/about-dependabot-version-updates#gradle).
-Although `libs.versions.toml` is the default catalog file, any valid catalog file should work with the plugin. I plan on
-adding support for more sources in the future, but this approach will the first priority.
-
-### Why must I specify a Maven repository URL?
-
-`Settings` plugins do not currently have access to the internal Gradle resolution APIs. In `Project` plugins you can
-easily query for artifacts, but so far this functionality is not possible from `Settings`.
-I [opened an issue](https://github.com/gradle/gradle/issues/26111)
-with the Gradle team, but as of this writing it is still awaiting triage. Until that issue is resolved, we unfortunately
-must be provided with a Maven repository URL to use to look up the BOM's metadata. If anyone has a workaround for this,
-I am definitely interested! We _do_ check the local Gradle cache to see if the pom has already been fetched before
-reaching out to the remote URL. 
