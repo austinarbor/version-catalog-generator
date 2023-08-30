@@ -29,7 +29,7 @@ object Generator {
         conf: GeneratorConfig.() -> Unit,
     ): VersionCatalogBuilder {
         val config = GeneratorConfig().apply(conf)
-        val resolver = GradleDependencyResolver(objects, dependencyResolutionServices)
+        val resolver = GradleDependencyResolver(objectFactory, dependencyResolutionServices)
         return generate(name, config, resolver)
     }
 
@@ -46,6 +46,9 @@ object Generator {
         config: GeneratorConfig,
         resolver: DependencyResolver,
     ): VersionCatalogBuilder {
+        // need to clean up this logic so that we don't double-resolve the first
+        // dependency. I think the resolver interface/logic could use some
+        // improvement as well
         val bomDep =
             when (val src = config.source()) {
                 is Dependency -> resolver.resolve(src)
@@ -281,8 +284,16 @@ object Generator {
         }
     }
 
-    private val MutableVersionCatalogContainer.objects: ObjectFactory
+    /*
+    Below methods inspired by / taken from
+     https://github.com/F43nd1r/bomVersionCatalog/blob/master/bom-version-catalog/src/main/kotlin/com/faendir/gradle/extensions.kt
+     */
+    private val MutableVersionCatalogContainer.objectFactory: ObjectFactory
         get() = accessField("objects")
+
+    private val MutableVersionCatalogContainer.dependencyResolutionServices:
+        Supplier<DependencyResolutionServices>
+        get() = accessField("dependencyResolutionServices")
 
     private fun <T> MutableVersionCatalogContainer.accessField(name: String): T {
         return this.javaClass.superclass
@@ -290,8 +301,4 @@ object Generator {
             .apply { isAccessible = true }
             .get(this) as T
     }
-
-    private val MutableVersionCatalogContainer.dependencyResolutionServices:
-        Supplier<DependencyResolutionServices>
-        get() = accessField("dependencyResolutionServices")
 }
