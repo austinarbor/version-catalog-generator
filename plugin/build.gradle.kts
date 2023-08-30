@@ -34,6 +34,7 @@ dependencies {
 
     testImplementation(libs.bundles.testing)
     testImplementation(libs.bundles.mockito)
+    testImplementation(gradleTestKit())
 }
 
 spotless {
