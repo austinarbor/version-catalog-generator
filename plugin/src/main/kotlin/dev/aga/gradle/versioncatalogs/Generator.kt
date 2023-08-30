@@ -53,11 +53,11 @@ object Generator {
             when (val src = config.source()) {
                 is Dependency -> resolver.resolve(src)
                 else -> resolver.resolve(src)
-            }.let { m: Model ->
+            }.let {
                 Dependency().apply {
-                    groupId = m.groupId
-                    artifactId = m.artifactId
-                    version = m.version
+                    this.groupId = it.groupId ?: it.parent?.groupId
+                    this.artifactId = it.artifactId
+                    this.version = it.version
                 }
             }
 
