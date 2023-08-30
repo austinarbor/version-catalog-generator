@@ -1,15 +1,14 @@
 package dev.aga.gradle.versioncatalogs
 
-import dev.aga.gradle.versioncatalogs.service.CatalogParser
-import dev.aga.gradle.versioncatalogs.service.FileCatalogParser
-import dev.aga.gradle.versioncatalogs.service.GradleCachePOMFetcher
-import dev.aga.gradle.versioncatalogs.service.POMFetcher
-import dev.aga.gradle.versioncatalogs.service.POMFetcherChain
-import dev.aga.gradle.versioncatalogs.service.RemotePOMFetcher
+import dev.aga.gradle.versioncatalogs.service.DependencyResolver
+import dev.aga.gradle.versioncatalogs.service.GradleDependencyResolver
+import java.util.function.Supplier
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
+import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.api.model.ObjectFactory
 import org.slf4j.LoggerFactory
 
 object Generator {
@@ -30,9 +29,8 @@ object Generator {
         conf: GeneratorConfig.() -> Unit,
     ): VersionCatalogBuilder {
         val config = GeneratorConfig().apply(conf)
-        val parser = FileCatalogParser(config.sourceCatalogFile)
-        val fetcher = POMFetcherChain(GradleCachePOMFetcher(), RemotePOMFetcher(config.repoBaseUrl))
-        return generate(name, config, parser, fetcher)
+        val resolver = GradleDependencyResolver(objectFactory, dependencyResolutionServices)
+        return generate(name, config, resolver)
     }
 
     /**
@@ -40,32 +38,36 @@ object Generator {
      *
      * @param name the name of the version catalog
      * @param config the [GeneratorConfig]
-     * @param parser the [CatalogParser]
-     * @param fetcher the [POMFetcher]
+     * @param resolver the [DependencyResolver]
      * @return the [VersionCatalogBuilder]
      */
     internal fun MutableVersionCatalogContainer.generate(
         name: String,
         config: GeneratorConfig,
-        parser: CatalogParser,
-        fetcher: POMFetcher,
+        resolver: DependencyResolver,
     ): VersionCatalogBuilder {
-        val bomDep = parser.findLibrary(config.sourceLibraryNameInCatalog)
+        // need to clean up this logic so that we don't double-resolve the first
+        // dependency. I think the resolver interface/logic could use some
+        // improvement as well
+        val bomDep =
+            when (val src = config.source()) {
+                is Dependency -> resolver.resolve(src)
+                else -> resolver.resolve(src)
+            }.let {
+                Dependency().apply {
+                    this.groupId = it.groupId ?: it.parent?.groupId
+                    this.artifactId = it.artifactId
+                    this.version = it.version
+                }
+            }
+
         return create(name) {
             val props = mutableMapOf<String, String>()
             val seenModules = mutableSetOf<String>()
             val queue = ArrayDeque(listOf(bomDep))
             while (queue.isNotEmpty()) {
                 val dep = queue.removeFirst()
-                val pom = fetcher.fetch(dep)
-                pom.apply {
-                    if (groupId == null) {
-                        groupId = dep.groupId
-                    }
-                    if (version == null) {
-                        version = dep.version
-                    }
-                }
+                val pom = resolver.resolve(dep)
                 loadBom(pom, config, queue, props, seenModules)
             }
         }
@@ -272,5 +274,23 @@ object Generator {
         } else {
             return true
         }
+    }
+
+    /*
+    Below methods inspired by / taken from
+     https://github.com/F43nd1r/bomVersionCatalog/blob/master/bom-version-catalog/src/main/kotlin/com/faendir/gradle/extensions.kt
+     */
+    private val MutableVersionCatalogContainer.objectFactory: ObjectFactory
+        get() = accessField("objects")
+
+    private val MutableVersionCatalogContainer.dependencyResolutionServices:
+        Supplier<DependencyResolutionServices>
+        get() = accessField("dependencyResolutionServices")
+
+    private fun <T> MutableVersionCatalogContainer.accessField(name: String): T {
+        return this.javaClass.superclass
+            .getDeclaredField(name)
+            .apply { isAccessible = true }
+            .get(this) as T
     }
 }

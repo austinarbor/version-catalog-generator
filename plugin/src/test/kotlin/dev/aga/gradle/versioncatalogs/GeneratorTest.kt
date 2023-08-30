@@ -1,8 +1,7 @@
 package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.Generator.generate
-import dev.aga.gradle.versioncatalogs.service.CatalogParser
-import dev.aga.gradle.versioncatalogs.service.LocalPOMFetcher
+import dev.aga.gradle.versioncatalogs.service.LocalDependencyResolver
 import java.nio.file.Paths
 import org.apache.maven.model.Dependency
 import org.assertj.core.api.Assertions.assertThat
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
-import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
@@ -35,9 +33,10 @@ internal class GeneratorTest {
 
     @Test
     fun testGenerate() {
-        val dep = dep("org.springframework.boot", "spring-boot-abbrev-dependencies", "3.1.2")
-        val parser = mock<CatalogParser> { on { findLibrary(any<String>()) } doReturn dep }
-        val fetcher = LocalPOMFetcher(resourceRoot.resolve("poms").toString())
+        val dep = dep("org.springframework.boot", "spring-boot-dependencies", "3.1.2")
+        val resolver = LocalDependencyResolver(resourceRoot.resolve("poms"))
+
+        val config = GeneratorConfig().apply { source = { dep } }
 
         val builder =
             mock<VersionCatalogBuilder> {
@@ -65,7 +64,7 @@ internal class GeneratorTest {
                         builder
                     }
             }
-        container.generate("myLibs", GeneratorConfig(), parser, fetcher)
+        container.generate("myLibs", config, resolver)
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
         val (versions, libraries, bundles) = getExpectedCatalog(dep)
         // validate the versions

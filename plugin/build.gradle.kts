@@ -34,6 +34,7 @@ dependencies {
 
     testImplementation(libs.bundles.testing)
     testImplementation(libs.bundles.mockito)
+    testImplementation(gradleTestKit())
 }
 
 spotless {
@@ -62,7 +63,7 @@ gradlePlugin {
         implementationClass = "dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPlugin"
         displayName = PLUGIN_DISPLAY_NAME
         description = PLUGIN_DESCRIPTION
-        tags = listOf("version", "catalog", "bom", "generate")
+        tags = listOf("version", "catalog", "bom", "generate", "pom")
     }
 }
 

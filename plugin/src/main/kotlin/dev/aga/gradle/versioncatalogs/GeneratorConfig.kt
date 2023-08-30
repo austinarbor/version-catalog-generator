@@ -1,16 +1,9 @@
 package dev.aga.gradle.versioncatalogs
 
+import dev.aga.gradle.versioncatalogs.service.FileCatalogParser
 import java.io.File
 
 class GeneratorConfig {
-    /** The name of the library in the TOML catalog file */
-    var sourceLibraryNameInCatalog = ""
-
-    /** The catalog file containing the BOM library entry */
-    var sourceCatalogFile = File("gradle/libs.versions.toml")
-
-    /** The base url of the maven repository to fetch the pom from */
-    var repoBaseUrl = "https://repo1.maven.org/maven2"
 
     /**
      * Function to generate the name of the library in the generated catalog The default function
@@ -28,6 +21,87 @@ class GeneratorConfig {
      * occurrences of '.' with a single one.
      */
     var versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
+
+    /** The provider for the source BOM to generate the dependency from. */
+    lateinit var source: () -> Any
+
+    /**
+     * Specify the source BOM to generate the version catalog from using standard dependency
+     * notation ```group:artifact:version```
+     */
+    fun from(notation: String) {
+        from { dependency(notation) }
+    }
+
+    /**
+     * Specify the source BOM to generate the version catalog from. BOMs can be specified by using a
+     * reference to a library in a toml file, or by using regular dependency notation. To use a toml
+     *
+     * ```kotlin
+     * from {
+     *   toml {
+     *     libraryName = "spring-boot-dependencies"
+     *     file = File("gradle/libs.versions.toml") // optional, defaults to this value
+     *   }
+     * }
+     * ```
+     *
+     * To use regular notation
+     *
+     * ```kotlin
+     * from("org.springframework.boot:spring-boot-dependencies:3.1.2")
+     * // or
+     * from {
+     *   dependency("org.springframework.boot:spring-boot-dependencies:3.1.2")
+     * }
+     * ```
+     *
+     * @param sc the config block
+     */
+    fun from(sc: SourceConfig.() -> Unit) {
+        val cfg = SourceConfig().apply(sc)
+        if (cfg.hasTomlConfig()) {
+            val parser = FileCatalogParser(cfg.tomlConfig.file)
+            source = { parser.findLibrary(cfg.tomlConfig.libraryAlias) }
+        } else if (cfg.hasDependency()) {
+            source = { cfg.dependencyNotation }
+        }
+    }
+
+    class SourceConfig {
+        internal lateinit var tomlConfig: TomlConfig
+        internal lateinit var dependencyNotation: Any
+
+        fun toml(tc: TomlConfig.() -> Unit) {
+            val cfg = TomlConfig().apply(tc)
+            require(cfg.isInitialized()) { "Library name must be set" }
+            tomlConfig = cfg
+        }
+
+        fun dependency(notation: Any) {
+            this.dependencyNotation = notation
+        }
+
+        internal fun hasTomlConfig(): Boolean {
+            return ::tomlConfig.isInitialized
+        }
+
+        internal fun hasDependency(): Boolean {
+            return ::dependencyNotation.isInitialized
+        }
+    }
+
+    class TomlConfig {
+        /** The name of the library in the TOML catalog file */
+        lateinit var libraryAlias: String
+
+        /** The catalog file containing the BOM library entry */
+        var file = File("gradle/libs.versions.toml")
+
+        internal fun isInitialized(): Boolean {
+            return ::libraryAlias.isInitialized
+        }
+    }
 
     companion object {
         /** Set of prefixes which are not allowed for libraries in version catalogs */
