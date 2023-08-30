@@ -33,7 +33,7 @@ dependencyResolutionManagement {
         generate("springLibs") { // the name of the generated catalog
             from {
                 toml {
-                    alias = "spring-boot-dependencies" // required, alias of the library in the toml below
+                    libraryAlias = "spring-boot-dependencies" // required, alias of the library in the toml below
                     file = File("gradle/libs.versions.toml") // optional, only required if not using this value
                 }
             }
