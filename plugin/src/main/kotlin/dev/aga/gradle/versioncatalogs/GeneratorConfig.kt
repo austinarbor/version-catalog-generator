@@ -62,7 +62,7 @@ class GeneratorConfig {
         val cfg = SourceConfig().apply(sc)
         if (cfg.hasTomlConfig()) {
             val parser = FileCatalogParser(cfg.tomlConfig.file)
-            source = { parser.findLibrary(cfg.tomlConfig.libraryName) }
+            source = { parser.findLibrary(cfg.tomlConfig.alias) }
         } else if (cfg.hasDependency()) {
             source = { cfg.dependencyNotation }
         }
@@ -93,13 +93,13 @@ class GeneratorConfig {
 
     class TomlConfig {
         /** The name of the library in the TOML catalog file */
-        lateinit var libraryName: String
+        lateinit var alias: String
 
         /** The catalog file containing the BOM library entry */
         var file = File("gradle/libs.versions.toml")
 
         internal fun isInitialized(): Boolean {
-            return ::libraryName.isInitialized
+            return ::alias.isInitialized
         }
     }
 
