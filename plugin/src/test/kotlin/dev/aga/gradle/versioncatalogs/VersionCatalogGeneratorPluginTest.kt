@@ -1,7 +1,7 @@
 package dev.aga.gradle.versioncatalogs
 
 import java.io.File
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -33,7 +33,8 @@ class VersionCatalogGeneratorPluginTest {
               }
             }
         """
-                .trimIndent())
+                .trimIndent(),
+        )
         buildFile.writeText(
             """
             plugins {
@@ -44,7 +45,8 @@ class VersionCatalogGeneratorPluginTest {
               implementation(jsonLibs.bundles.jackson.module)
             }
             """
-                .trimIndent())
+                .trimIndent(),
+        )
 
         // Run the build
         val runner =
@@ -52,9 +54,6 @@ class VersionCatalogGeneratorPluginTest {
 
         val result = runner.build()
 
-        Assertions.assertThat(result.output).contains("BUILD SUCCESSFUL")
-        // Verify the result
-        // assertTrue(result.output.contains("Hello from plugin
-        // 'dev.aga.gradle.plugin.versioncatalogs.greeting'"))
+        assertThat(result.output).contains("BUILD SUCCESSFUL")
     }
 }
