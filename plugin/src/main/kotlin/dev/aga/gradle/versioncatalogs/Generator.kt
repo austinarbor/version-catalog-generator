@@ -68,14 +68,6 @@ object Generator {
             while (queue.isNotEmpty()) {
                 val dep = queue.removeFirst()
                 val pom = resolver.resolve(dep)
-                pom.apply {
-                    if (groupId == null) {
-                        groupId = dep.groupId
-                    }
-                    if (version == null) {
-                        version = dep.version
-                    }
-                }
                 loadBom(pom, config, queue, props, seenModules)
             }
         }
