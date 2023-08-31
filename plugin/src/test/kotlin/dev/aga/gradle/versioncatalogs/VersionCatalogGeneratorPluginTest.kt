@@ -3,6 +3,7 @@ package dev.aga.gradle.versioncatalogs
 import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
@@ -11,6 +12,22 @@ class VersionCatalogGeneratorPluginTest {
 
     private val buildFile by lazy { projectDir.resolve("build.gradle.kts") }
     private val settingsFile by lazy { projectDir.resolve("settings.gradle.kts") }
+    private val propertiesFile by lazy { projectDir.resolve("gradle.properties") }
+
+    private lateinit var classpathString: String
+
+    @BeforeEach
+    fun setup() {
+        // create the classpath string which we use in the buildscript in the test build file
+        val classpathFiles = getResourceAsText("testkit-classpath.txt").lines().map { File(it) }
+
+        classpathString =
+            classpathFiles
+                .map { it.absolutePath.replace('\\', '/') }
+                .joinToString(",") { "\"$it\"" }
+        // copy the generated properties file into the runner's directory
+        propertiesFile.writeText(getResourceAsText("testkit-gradle.properties"))
+    }
 
     @Test
     fun `plugin usage succeeds`() {
@@ -18,7 +35,11 @@ class VersionCatalogGeneratorPluginTest {
         settingsFile.writeText(
             """
             import dev.aga.gradle.versioncatalogs.Generator.generate
-            
+            buildscript {
+              dependencies {
+                classpath(files($classpathString))
+              }
+            }
             plugins {
                 id("dev.aga.gradle.version-catalog-generator")
             }
@@ -55,5 +76,11 @@ class VersionCatalogGeneratorPluginTest {
         val result = runner.build()
 
         assertThat(result.output).contains("BUILD SUCCESSFUL")
+    }
+
+    companion object {
+        private fun getResourceAsText(name: String): String {
+            return javaClass.classLoader.getResource(name).readText()
+        }
     }
 }
