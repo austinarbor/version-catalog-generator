@@ -57,6 +57,6 @@ dependencies {
 
 ## Goals
 
-- Compatible with Dependabot
-- Easy to override versions (similar to `ext["version.property"] = ...` in Spring Boot Dependencies plugin)
-- Nested BOM support (i.e. `spring-boot-dependences` imports `mockito-bom`, etc)
+- [x] Compatible with Dependabot
+- [x] Nested BOM support (i.e. `spring-boot-dependences` imports `mockito-bom`, etc)
+- [ ] Easy to override versions (similar to `ext["version.property"] = ...` in Spring Boot Dependencies plugin)
