@@ -3,6 +3,7 @@ package dev.aga.gradle.versioncatalogs
 import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
@@ -11,6 +12,23 @@ class VersionCatalogGeneratorPluginTest {
 
     private val buildFile by lazy { projectDir.resolve("build.gradle.kts") }
     private val settingsFile by lazy { projectDir.resolve("settings.gradle.kts") }
+    private val propertiesFile by lazy { projectDir.resolve("gradle.properties") }
+
+    private lateinit var classpathString: String
+
+    @BeforeEach
+    fun setup() {
+        val classpathUrl = javaClass.classLoader.getResource("testkit-classpath.txt")
+        val classpathFiles = classpathUrl.readText().lines().map { File(it) }
+        classpathString =
+            classpathFiles
+                .map { it.absolutePath.replace('\\', '/') }
+                .joinToString(",") { "\"$it\"" }
+
+        propertiesFile.writeText(
+            javaClass.classLoader.getResource("testkit-gradle.properties").readText(),
+        )
+    }
 
     @Test
     fun `plugin usage succeeds`() {
@@ -18,7 +36,11 @@ class VersionCatalogGeneratorPluginTest {
         settingsFile.writeText(
             """
             import dev.aga.gradle.versioncatalogs.Generator.generate
-            
+            buildscript {
+              dependencies {
+                classpath(files($classpathString))
+              }
+            }
             plugins {
                 id("dev.aga.gradle.version-catalog-generator")
             }

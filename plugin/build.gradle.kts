@@ -22,6 +22,8 @@ val PLUGIN_DESCRIPTION: String by project
 group = GROUP_ID
 version = VERSION
 
+val jacocoRuntime by configurations.creating
+
 repositories {
     mavenCentral()
 }
@@ -35,6 +37,8 @@ dependencies {
     testImplementation(libs.bundles.testing)
     testImplementation(libs.bundles.mockito)
     testImplementation(gradleTestKit())
+    testRuntimeOnly(files("$buildDir/testkit"))
+    jacocoRuntime("org.jacoco:org.jacoco.agent:${jacoco.toolVersion}:runtime")
 }
 
 spotless {
@@ -104,8 +108,24 @@ publishing {
     }
 }
 
+val createTestkitFiles by tasks.registering {
+    val outputDir = file("${buildDir}/testkit")
+    inputs.files(sourceSets.main.get().runtimeClasspath)
+    inputs.files(jacocoRuntime)
+    outputs.dir(outputDir)
+    doLast {
+        outputDir.mkdirs()
+        val jacocoPath = jacocoRuntime.asPath.replace('\\', '/')
+        file("$outputDir/testkit-classpath.txt").writeText(sourceSets.main.get().runtimeClasspath.joinToString("\n"))
+        file("$outputDir/testkit-gradle.properties").writeText(
+            "org.gradle.jvmargs=-javaagent:${jacocoPath}=destfile=$buildDir/jacoco/test.exec"
+        )
+    }
+}
+
 tasks {
     test {
+        dependsOn(createTestkitFiles)
         finalizedBy(jacocoTestReport) // report is always generated after tests run
     }
     jacocoTestReport {
