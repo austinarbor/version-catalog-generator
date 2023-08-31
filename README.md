@@ -22,7 +22,7 @@ This plugin is in alpha! Expect breaking changes until we reach a more stable st
 import dev.aga.gradle.versioncatalogs.Generator.generate
 
 plugins {
-    id("dev.aga.gradle.plugin.version-catalog-generator")
+    id("dev.aga.gradle.plugin.version-catalog-generator") version("0.0.2-alpha")
 }
 
 dependencyResolutionManagement {
