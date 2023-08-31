@@ -2,6 +2,7 @@
 assertj = "3.24.2"
 detekt = "1.23.1"
 gradle-publish = "1.2.1"
+jacoco = "0.8.10"
 junit = "5.10.0"
 kotlin = "1.9.10"
 maven = "3.9.4"
@@ -14,6 +15,7 @@ tomlj = "1.1.0"
 [libraries]
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
 detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt" }
+jacoco-agent = { group = "org.jacoco", name = "org.jacoco.agent", version.ref = "jacoco" }
 maven-model = { group = "org.apache.maven", name = "maven-model", version.ref = "maven" }
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 mockito-junit-jupiter = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockito" }

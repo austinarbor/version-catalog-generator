@@ -18,16 +18,15 @@ class VersionCatalogGeneratorPluginTest {
 
     @BeforeEach
     fun setup() {
-        val classpathUrl = javaClass.classLoader.getResource("testkit-classpath.txt")
-        val classpathFiles = classpathUrl.readText().lines().map { File(it) }
+        // create the classpath string which we use in the buildscript in the test build file
+        val classpathFiles = getResourceAsText("testkit-classpath.txt").lines().map { File(it) }
+
         classpathString =
             classpathFiles
                 .map { it.absolutePath.replace('\\', '/') }
                 .joinToString(",") { "\"$it\"" }
-
-        propertiesFile.writeText(
-            javaClass.classLoader.getResource("testkit-gradle.properties").readText(),
-        )
+        // copy the generated properties file into the runner's directory
+        propertiesFile.writeText(getResourceAsText("testkit-gradle.properties"))
     }
 
     @Test
@@ -77,5 +76,11 @@ class VersionCatalogGeneratorPluginTest {
         val result = runner.build()
 
         assertThat(result.output).contains("BUILD SUCCESSFUL")
+    }
+
+    companion object {
+        private fun getResourceAsText(name: String): String {
+            return javaClass.classLoader.getResource(name).readText()
+        }
     }
 }
