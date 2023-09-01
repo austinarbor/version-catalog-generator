@@ -5,6 +5,7 @@ import dev.aga.gradle.versioncatalogs.service.GradleDependencyResolver
 import java.util.function.Supplier
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
+import org.gradle.api.Action
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
@@ -24,11 +25,13 @@ object Generator {
      * @param conf the generator configuration options
      * @return the [VersionCatalogBuilder]
      */
+    @JvmStatic
     fun MutableVersionCatalogContainer.generate(
         name: String,
-        conf: GeneratorConfig.() -> Unit,
+        conf: Action<in GeneratorConfig>,
     ): VersionCatalogBuilder {
-        val config = GeneratorConfig().apply(conf)
+        val config = GeneratorConfig()
+        conf.execute(config)
         val resolver = GradleDependencyResolver(objectFactory, dependencyResolutionServices)
         return generate(name, config, resolver)
     }

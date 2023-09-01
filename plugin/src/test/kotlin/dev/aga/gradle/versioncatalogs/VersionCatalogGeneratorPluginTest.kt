@@ -13,6 +13,7 @@ class VersionCatalogGeneratorPluginTest {
     private val buildFile by lazy { projectDir.resolve("build.gradle.kts") }
     private val settingsFile by lazy { projectDir.resolve("settings.gradle.kts") }
     private val propertiesFile by lazy { projectDir.resolve("gradle.properties") }
+    private val groovySettingsFile by lazy { projectDir.resolve("settings.gradle") }
 
     private lateinit var classpathString: String
 
@@ -30,7 +31,7 @@ class VersionCatalogGeneratorPluginTest {
     }
 
     @Test
-    fun `plugin usage succeeds`() {
+    fun `kotlin dsl succeeds`() {
         // Set up the test build
         settingsFile.writeText(
             """
@@ -70,6 +71,55 @@ class VersionCatalogGeneratorPluginTest {
         )
 
         // Run the build
+        val runner =
+            GradleRunner.create().forwardOutput().withPluginClasspath().withProjectDir(projectDir)
+
+        val result = runner.build()
+
+        assertThat(result.output).contains("BUILD SUCCESSFUL")
+    }
+
+    @Test
+    fun `groovy dsl succeeds`() {
+        // Set up the test build
+        groovySettingsFile.writeText(
+            """
+            import static dev.aga.gradle.versioncatalogs.Generator.generate
+            buildscript {
+              dependencies {
+                classpath(files($classpathString))
+              }
+            }
+            plugins {
+                id("dev.aga.gradle.version-catalog-generator")
+            }
+            dependencyResolutionManagement {
+              repositories {
+                mavenCentral()
+              }
+              versionCatalogs { vc ->
+                generate(vc, "jsonLibs") { cfg ->
+                  cfg.from("com.fasterxml.jackson:jackson-bom:2.15.2")
+                }
+              }
+            }
+        """
+                .trimIndent(),
+        )
+
+        buildFile.writeText(
+            """
+            plugins {
+              java
+            }
+            dependencies {
+              implementation(jsonLibs.core.jackson.databind)
+              implementation(jsonLibs.bundles.jackson.module)
+            }
+            """
+                .trimIndent(),
+        )
+
         val runner =
             GradleRunner.create().forwardOutput().withPluginClasspath().withProjectDir(projectDir)
 
