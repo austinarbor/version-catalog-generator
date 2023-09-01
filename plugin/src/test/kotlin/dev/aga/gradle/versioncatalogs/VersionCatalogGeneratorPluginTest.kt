@@ -51,6 +51,8 @@ class VersionCatalogGeneratorPluginTest {
               versionCatalogs {
                 generate("jsonLibs") {
                   from("com.fasterxml.jackson:jackson-bom:2.15.2")
+                  libraryAliasGenerator = dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_ALIAS_GENERATOR
+                  versionNameGenerator = dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
                 }
               }
             }
@@ -100,6 +102,8 @@ class VersionCatalogGeneratorPluginTest {
               versionCatalogs { vc ->
                 generate(vc, "jsonLibs") { cfg ->
                   cfg.from("com.fasterxml.jackson:jackson-bom:2.15.2")
+                  cfg.libraryAliasGenerator = dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_ALIAS_GENERATOR
+                  cfg.versionNameGenerator = dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
                 }
               }
             }
