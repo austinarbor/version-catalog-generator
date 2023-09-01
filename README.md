@@ -15,14 +15,14 @@ a version catalog from an external BOM.
 This plugin is in alpha! Expect breaking changes until we reach a more stable state.
 
 ## Usage
-
-`settings.gradle.kts`
+<details open>
+  <summary>settings.gradle.kts</summary>
 
 ```kotlin
 import dev.aga.gradle.versioncatalogs.Generator.generate
 
 plugins {
-    id("dev.aga.gradle.plugin.version-catalog-generator") version("0.0.2-alpha")
+    id("dev.aga.gradle.version-catalog-generator") version("0.0.2-alpha")
 }
 
 dependencyResolutionManagement {
@@ -40,13 +40,41 @@ dependencyResolutionManagement {
             // use this instead if you just want to use direct dependency notation
             from("org.springframework.boot:spring-boot-dependencies:3.1.2")
             libraryAliasGenerator =
-                dev.aga.gradle.plugin.versioncatalogs.GeneratorConfig.DEFAULT_ALIAS_GENERATOR // optional, change if required
+                dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_ALIAS_GENERATOR // optional, change if required
             versionNameGenerator =
-                dev.aga.gradle.plugin.versioncatalogs.GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR // optional, change if required
+                dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR // optional, change if required
         }
     }
 }
 ```
+</details>
+<details>
+    <summary>settings.gradle</summary>
+
+```groovy
+import static dev.aga.gradle.versioncatalogs.Generator.generate;
+
+plugins {
+    id('dev.aga.gradle.version-catalog-generator') version '0.0.2-alpha'
+}
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral() // must include repositories here for dependency resolution to work from settings
+    }
+    versionCatalogs { vc ->
+        generate(vc, 'springLibs') { cfg ->
+            cfg.from("org.springframework.boot:spring-boot-dependencies:3.1.2")
+            cfg.libraryAliasGenerator =
+                    dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_ALIAS_GENERATOR // optional, change if required
+            cfg.versionNameGenerator =
+                    dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR // optional, change if required
+        }
+    }
+}
+```
+</details>
+
 build.gradle.kts
 ```kotlin
 // add your dependencies from the generated catalog
