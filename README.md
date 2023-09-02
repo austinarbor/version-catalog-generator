@@ -15,7 +15,7 @@ a version catalog from an external BOM.
 This plugin is in alpha! Expect breaking changes until we reach a more stable state.
 
 ## Usage
-<details open>
+<details>
   <summary>settings.gradle.kts</summary>
 
 ```kotlin
@@ -74,14 +74,16 @@ dependencyResolutionManagement {
 }
 ```
 </details>
+<details>
+    <summary>build.gradle.kts</summary>
 
-build.gradle.kts
 ```kotlin
 // add your dependencies from the generated catalog
 dependencies {
     implementation(springLibs.boot.spring.boot.starter.jdbc)
 }
 ```
+</details>
 
 ## Goals
 
