@@ -1,5 +1,6 @@
 package dev.aga.gradle.versioncatalogs.service
 
+import dev.aga.gradle.versioncatalogs.exception.ConfigurationException
 import java.io.File
 import org.apache.maven.model.Dependency
 import org.tomlj.Toml
@@ -19,14 +20,16 @@ internal class FileCatalogParser(private val file: File) : CatalogParser {
                 ?.let { it as? TomlTable }
                 ?.let { it[libraryName] }
                 ?.let { it as? TomlTable }
-                ?: throw RuntimeException("${libraryName} not found in catalog file")
+                ?: throw ConfigurationException(
+                    "${libraryName} not found in catalog file ${file.absolutePath}",
+                )
 
         val versions = toml["versions"]?.let { it as? TomlTable }
 
-        return getGAV(library, versions)
+        return getGAV(libraryName, library, versions)
     }
 
-    private fun getGAV(library: TomlTable, versions: TomlTable?): Dependency {
+    private fun getGAV(libraryName: String, library: TomlTable, versions: TomlTable?): Dependency {
         val (group, name) =
             if (library["module"] is String) {
                 val split = (library["module"] as String).split(":")
@@ -34,14 +37,18 @@ internal class FileCatalogParser(private val file: File) : CatalogParser {
             } else {
                 val group =
                     library["group"]?.let { it as? String }
-                        ?: throw RuntimeException("Group not found ")
+                        ?: throw ConfigurationException(
+                            "Group not found for library ${libraryName} in catalog file ${file.absolutePath}",
+                        )
                 val name =
                     library["name"]?.let { it as? String }
-                        ?: throw RuntimeException("Name not found")
+                        ?: throw ConfigurationException(
+                            "Name not found for library ${libraryName} in catalog file ${file.absolutePath}",
+                        )
                 group to name
             }
 
-        val version = getVersion(library, versions)
+        val version = getVersion(libraryName, library, versions)
         return Dependency().apply {
             groupId = group
             artifactId = name
@@ -49,13 +56,18 @@ internal class FileCatalogParser(private val file: File) : CatalogParser {
         }
     }
 
-    private fun getVersion(library: TomlTable, versions: TomlTable?): String {
+    private fun getVersion(libraryName: String, library: TomlTable, versions: TomlTable?): String {
         library.getString("version.ref")?.let {
             return versions?.getString(it)
-                ?: throw RuntimeException("Version ref '${it}' not found")
+                ?: throw ConfigurationException(
+                    "Version ref '${it}' for library ${libraryName} not found in catalog file ${file.absolutePath}",
+                )
         }
 
-        return library.getString("version") ?: throw RuntimeException("Version not found")
+        return library.getString("version")
+            ?: throw ConfigurationException(
+                "Version not found for library ${libraryName} in catalog file ${file.absolutePath}",
+            )
     }
 
     private fun parseCatalog(file: File) = Toml.parse(file.toPath())
