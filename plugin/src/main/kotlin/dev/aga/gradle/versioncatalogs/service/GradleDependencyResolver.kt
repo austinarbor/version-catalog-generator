@@ -1,5 +1,6 @@
 package dev.aga.gradle.versioncatalogs.service
 
+import dev.aga.gradle.versioncatalogs.exception.ResolutionException
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Supplier
 import org.apache.maven.model.Model
@@ -38,7 +39,7 @@ class GradleDependencyResolver(
             val resolver = LocalDependencyResolver(path.parent)
             return resolver.resolve(path.fileName)
         }
-        throw RuntimeException("Unable to resolve ${notation}")
+        throw ResolutionException("Unable to resolve ${notation}")
     }
 
     private fun createConfiguration(): Configuration {
