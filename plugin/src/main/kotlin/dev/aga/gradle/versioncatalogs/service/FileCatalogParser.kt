@@ -57,17 +57,21 @@ internal class FileCatalogParser(private val file: File) : CatalogParser {
     }
 
     private fun getVersion(libraryName: String, library: TomlTable, versions: TomlTable?): String {
-        library.getString("version.ref")?.let {
-            return versions?.getString(it)
+        if (library.isTable("version") && library.isString("version.ref")) {
+            val ref = library.getString("version.ref")
+            return versions?.getString(ref)
                 ?: throw ConfigurationException(
-                    "Version ref '${it}' for library ${libraryName} not found in catalog file ${file.absolutePath}",
+                    "Version ref '${ref}' not found for library ${libraryName} in catalog file ${file.absolutePath}",
                 )
         }
 
-        return library.getString("version")
-            ?: throw ConfigurationException(
-                "Version not found for library ${libraryName} in catalog file ${file.absolutePath}",
-            )
+        if (library.isString("version")) {
+            return library.getString("version")!!
+        }
+
+        throw ConfigurationException(
+            "Version not found for library ${libraryName} in catalog file ${file.absolutePath}",
+        )
     }
 
     private fun parseCatalog(file: File) = Toml.parse(file.toPath())
