@@ -4,12 +4,6 @@
   <CurrentIssues>
     <ID>EmptyFunctionBlock:VersionCatalogGeneratorPlugin.kt$VersionCatalogGeneratorPlugin${}</ID>
     <ID>MagicNumber:LocalDependencyResolver.kt$LocalDependencyResolver$3</ID>
-    <ID>TooGenericExceptionThrown:FileCatalogParser.kt$FileCatalogParser$throw RuntimeException("${libraryName} not found in catalog file")</ID>
-    <ID>TooGenericExceptionThrown:FileCatalogParser.kt$FileCatalogParser$throw RuntimeException("Group not found ")</ID>
-    <ID>TooGenericExceptionThrown:FileCatalogParser.kt$FileCatalogParser$throw RuntimeException("Name not found")</ID>
-    <ID>TooGenericExceptionThrown:FileCatalogParser.kt$FileCatalogParser$throw RuntimeException("Version not found")</ID>
-    <ID>TooGenericExceptionThrown:FileCatalogParser.kt$FileCatalogParser$throw RuntimeException("Version ref '${it}' not found")</ID>
-    <ID>TooGenericExceptionThrown:GradleDependencyResolver.kt$GradleDependencyResolver$throw RuntimeException("Unable to resolve ${notation}")</ID>
     <ID>TooGenericExceptionThrown:LocalDependencyResolver.kt$LocalDependencyResolver$throw RuntimeException( "LocalDependencyResolver can only resolve File, Path, or Dependency notations", )</ID>
     <ID>TooGenericExceptionThrown:LocalDependencyResolver.kt$LocalDependencyResolver$throw RuntimeException("Path ${filePath} does not exist")</ID>
     <ID>TooGenericExceptionThrown:LocalDependencyResolver.kt$LocalDependencyResolver$throw RuntimeException("Unable to parse notation '${notation}")</ID>

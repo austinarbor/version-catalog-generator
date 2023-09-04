@@ -203,7 +203,14 @@ object Generator {
         seenModules: MutableSet<String> = mutableSetOf(),
         filter: (Dependency) -> Boolean,
     ): Map<String, List<Dependency>> {
-        return model.dependencyManagement.dependencies
+        val deps = model.dependencyManagement?.dependencies ?: listOf<Dependency>()
+        if (deps.isEmpty()) {
+            logger.warn(
+                "${model.groupId}:${model.artifactId}:${model.version} does not have any dependencies defined " +
+                    "in dependencyManagement",
+            )
+        }
+        return deps
             .asSequence()
             .onEach { it.groupId = mapGroup(model, it.groupId) }
             .filter(filter)
