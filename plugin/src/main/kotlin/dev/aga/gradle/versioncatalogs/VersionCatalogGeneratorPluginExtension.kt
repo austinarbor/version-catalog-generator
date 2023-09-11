@@ -2,6 +2,7 @@ package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.service.FileCatalogParser
+import java.nio.file.Paths
 import javax.inject.Inject
 import org.gradle.api.Action
 import org.gradle.api.initialization.Settings
@@ -121,7 +122,8 @@ constructor(
         lateinit var libraryAlias: String
 
         /** The catalog file containing the BOM library entry */
-        var file = settings.rootDir.resolve("gradle/libs.versions.toml")
+        var file =
+            settings.rootDir.toPath().resolve(Paths.get("gradle", "libs.versions.toml")).toFile()
 
         internal fun isInitialized(): Boolean {
             return ::libraryAlias.isInitialized
