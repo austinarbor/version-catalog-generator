@@ -1,9 +1,35 @@
 package dev.aga.gradle.versioncatalogs
 
+import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.service.FileCatalogParser
-import java.io.File
+import java.nio.file.Paths
+import javax.inject.Inject
+import org.gradle.api.Action
+import org.gradle.api.initialization.Settings
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder
+import org.gradle.api.model.ObjectFactory
 
-class GeneratorConfig {
+open class VersionCatalogGeneratorPluginExtension
+@Inject
+constructor(
+    private val settings: Settings,
+    val objects: ObjectFactory,
+) {
+
+    /**
+     * Generate a version catalog with the provided [name]. This is mostly used as an entry point
+     * for the Gradle dsl
+     *
+     * @param name the name to use for the generated catalog
+     * @param conf the [VersionCatalogGeneratorPluginExtension] configuration
+     * @return the [VersionCatalogBuilder]
+     */
+    fun generate(
+        name: String,
+        conf: Action<VersionCatalogGeneratorPluginExtension>,
+    ): VersionCatalogBuilder {
+        return settings.generate(name, conf)
+    }
 
     /**
      * Function to generate the name of the library in the generated catalog The default function
@@ -59,7 +85,7 @@ class GeneratorConfig {
      * @param sc the config block
      */
     fun from(sc: SourceConfig.() -> Unit) {
-        val cfg = SourceConfig().apply(sc)
+        val cfg = SourceConfig(settings).apply(sc)
         if (cfg.hasTomlConfig()) {
             val parser = FileCatalogParser(cfg.tomlConfig.file)
             source = { parser.findLibrary(cfg.tomlConfig.libraryAlias) }
@@ -68,12 +94,12 @@ class GeneratorConfig {
         }
     }
 
-    class SourceConfig {
+    class SourceConfig(private val settings: Settings) {
         internal lateinit var tomlConfig: TomlConfig
         internal lateinit var dependencyNotation: Any
 
         fun toml(tc: TomlConfig.() -> Unit) {
-            val cfg = TomlConfig().apply(tc)
+            val cfg = TomlConfig(settings).apply(tc)
             require(cfg.isInitialized()) { "Library name must be set" }
             tomlConfig = cfg
         }
@@ -91,12 +117,13 @@ class GeneratorConfig {
         }
     }
 
-    class TomlConfig {
+    class TomlConfig(private val settings: Settings) {
         /** The name of the library in the TOML catalog file */
         lateinit var libraryAlias: String
 
         /** The catalog file containing the BOM library entry */
-        var file = File("gradle/libs.versions.toml")
+        var file =
+            settings.rootDir.toPath().resolve(Paths.get("gradle", "libs.versions.toml")).toFile()
 
         internal fun isInitialized(): Boolean {
             return ::libraryAlias.isInitialized

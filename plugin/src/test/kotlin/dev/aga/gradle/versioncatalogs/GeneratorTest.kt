@@ -6,9 +6,11 @@ import java.nio.file.Paths
 import org.apache.maven.model.Dependency
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Action
+import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder.LibraryAliasBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
+import org.gradle.api.model.ObjectFactory
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -35,8 +37,10 @@ internal class GeneratorTest {
     fun testGenerate() {
         val dep = dep("org.springframework.boot", "spring-boot-dependencies", "3.1.2")
         val resolver = LocalDependencyResolver(resourceRoot.resolve("poms"))
-
-        val config = GeneratorConfig().apply { source = { dep } }
+        val settings = mock<Settings>()
+        val objects = mock<ObjectFactory>()
+        val config =
+            VersionCatalogGeneratorPluginExtension(settings, objects).apply { source = { dep } }
 
         val builder =
             mock<VersionCatalogBuilder> {

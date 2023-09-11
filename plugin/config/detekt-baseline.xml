@@ -2,7 +2,7 @@
 <SmellBaseline>
   <ManuallySuppressedIssues></ManuallySuppressedIssues>
   <CurrentIssues>
-    <ID>EmptyFunctionBlock:VersionCatalogGeneratorPlugin.kt$VersionCatalogGeneratorPlugin${}</ID>
+    <ID>LongMethod:GeneratorTest.kt$GeneratorTest$@Test fun testGenerate()</ID>
     <ID>MagicNumber:LocalDependencyResolver.kt$LocalDependencyResolver$3</ID>
     <ID>TooGenericExceptionThrown:LocalDependencyResolver.kt$LocalDependencyResolver$throw RuntimeException( "LocalDependencyResolver can only resolve File, Path, or Dependency notations", )</ID>
     <ID>TooGenericExceptionThrown:LocalDependencyResolver.kt$LocalDependencyResolver$throw RuntimeException("Path ${filePath} does not exist")</ID>

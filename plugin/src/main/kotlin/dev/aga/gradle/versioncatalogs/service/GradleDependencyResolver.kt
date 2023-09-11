@@ -16,7 +16,6 @@ class GradleDependencyResolver(
     private val drsSupplier: Supplier<DependencyResolutionServices>,
 ) : DependencyResolver {
     private val drs by lazy { drsSupplier.get() }
-    private val count = AtomicInteger(0)
 
     override fun resolve(notation: Any): Model {
         val config = createConfiguration()
@@ -34,7 +33,7 @@ class GradleDependencyResolver(
                 )
         }
         config.dependencies.add(dependency)
-        config.incoming.artifacts.first {
+        config.incoming.artifacts.firstOrNull()?.let {
             val path = it.file.toPath()
             val resolver = LocalDependencyResolver(path.parent)
             return resolver.resolve(path.fileName)
@@ -43,7 +42,8 @@ class GradleDependencyResolver(
     }
 
     private fun createConfiguration(): Configuration {
-        val config = drs.configurationContainer.create("incomingBom${count.incrementAndGet()}")
+        val config =
+            drs.configurationContainer.create("incomingBom${configurationCount.incrementAndGet()}")
         config.resolutionStrategy.activateDependencyLocking()
         config.attributes {
             attribute(
@@ -54,5 +54,9 @@ class GradleDependencyResolver(
         config.isCanBeResolved = true
         config.isCanBeConsumed = false
         return config
+    }
+
+    companion object {
+        private val configurationCount = AtomicInteger(0)
     }
 }

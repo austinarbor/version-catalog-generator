@@ -34,15 +34,15 @@ dependencyResolutionManagement {
             from {
                 toml {
                     libraryAlias = "spring-boot-dependencies" // required, alias of the library in the toml below
-                    file = File("gradle/libs.versions.toml") // optional, only required if not using this value
+                    file = file("gradle/libs.versions.toml") // optional, only required if not using this value
                 }
             }
             // use this instead if you just want to use direct dependency notation
             from("org.springframework.boot:spring-boot-dependencies:3.1.2")
             libraryAliasGenerator =
-                dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_ALIAS_GENERATOR // optional, change if required
+                dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR // optional, change if required
             versionNameGenerator =
-                dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR // optional, change if required
+                dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_VERSION_NAME_GENERATOR // optional, change if required
         }
     }
 }
@@ -63,12 +63,16 @@ dependencyResolutionManagement {
         mavenCentral() // must include repositories here for dependency resolution to work from settings
     }
     versionCatalogs {
-        Generator.generate(it, 'springLibs') {
-            it.from("org.springframework.boot:spring-boot-dependencies:3.1.2")
+        Generator.generate(this.settings, 'springLibs') { // uses the static import
+            it.from('org.springframework.boot:spring-boot-dependencies:3.1.2')
             it.libraryAliasGenerator =
-                    dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_ALIAS_GENERATOR // optional, change if required
+                    dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR // optional, change if desired
             it.versionNameGenerator =
-                    dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR // optional, change if required
+                    dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_VERSION_NAME_GENERATOR // optional, change if desired
+        }
+        
+        generator.generate('mockitoLibs') { // or use the extension directly
+            it.from('org.mockito:mockito-bom:5.5.0')
         }
     }
 }
