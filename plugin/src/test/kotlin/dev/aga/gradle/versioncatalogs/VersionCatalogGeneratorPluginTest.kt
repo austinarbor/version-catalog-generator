@@ -51,9 +51,10 @@ class VersionCatalogGeneratorPluginTest {
               versionCatalogs {
                 generate("jsonLibs") {
                   from("com.fasterxml.jackson:jackson-bom:2.15.2")
-                  libraryAliasGenerator = dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_ALIAS_GENERATOR
-                  versionNameGenerator = dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
+                  libraryAliasGenerator = dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR
+                  versionNameGenerator = dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_VERSION_NAME_GENERATOR
                 }
+                
               }
             }
         """
@@ -96,15 +97,20 @@ class VersionCatalogGeneratorPluginTest {
             plugins {
                 id("dev.aga.gradle.version-catalog-generator")
             }
+            
             dependencyResolutionManagement {
               repositories {
                 mavenCentral()
               }
               versionCatalogs {
-                Generator.generate(it, "jsonLibs") {
+                Generator.generate(this.settings, "jsonLibs") {
                   it.from("com.fasterxml.jackson:jackson-bom:2.15.2")
-                  it.libraryAliasGenerator = dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_ALIAS_GENERATOR
-                  it.versionNameGenerator = dev.aga.gradle.versioncatalogs.GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
+                  it.libraryAliasGenerator = dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR
+                  it.versionNameGenerator = dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_VERSION_NAME_GENERATOR
+                }
+                
+                generator.generate("mockitoLibs") {
+                    it.from("org.mockito:mockito-bom:5.5.0")
                 }
               }
             }
@@ -119,6 +125,7 @@ class VersionCatalogGeneratorPluginTest {
             dependencies {
               implementation(jsonLibs.core.jackson.databind)
               implementation(jsonLibs.bundles.jackson.module)
+              testImplementation(mockitoLibs.mockito.mockito.core)
             }
             """
                 .trimIndent(),

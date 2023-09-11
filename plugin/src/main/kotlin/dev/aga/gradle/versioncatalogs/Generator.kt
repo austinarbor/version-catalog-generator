@@ -5,10 +5,12 @@ import dev.aga.gradle.versioncatalogs.service.GradleDependencyResolver
 import java.util.function.Supplier
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
+import org.gradle.api.Action
+import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.ExtensionAware
 import org.slf4j.LoggerFactory
 
 object Generator {
@@ -17,33 +19,54 @@ object Generator {
     private val jarFilter = { dep: Dependency -> null == dep.type || "jar" == dep.type }
     private val importFilter = { dep: Dependency -> "pom" == dep.type && "import" == dep.scope }
 
+    /** Getter for the extension */
+    private val Settings.generatorExt: VersionCatalogGeneratorPluginExtension
+        get() =
+            (this as ExtensionAware).extensions.getByName("generator")
+                as VersionCatalogGeneratorPluginExtension
+
     /**
-     * Generate a version catalog with the provided [name].
+     * Generate a version catalog with the provided [name]
      *
-     * @param name the name of the version catalog
-     * @param conf the generator configuration options
+     * @param name the name to use for the generated catalog
+     * @param conf the [VersionCatalogGeneratorPluginExtension] configuration
      * @return the [VersionCatalogBuilder]
      */
-    fun MutableVersionCatalogContainer.generate(
+    fun Settings.generate(
         name: String,
-        conf: GeneratorConfig.() -> Unit,
+        conf: Action<VersionCatalogGeneratorPluginExtension>,
     ): VersionCatalogBuilder {
-        val config = GeneratorConfig().apply(conf)
-        val resolver = GradleDependencyResolver(objectFactory, dependencyResolutionServices)
-        return generate(name, config, resolver)
+        (this as ExtensionAware).extensions.configure("generator", conf)
+
+        return this.dependencyResolutionManagement.versionCatalogs.generate(name, generatorExt)
     }
 
     /**
      * Generate a version catalog with the provided [name].
      *
      * @param name the name of the version catalog
-     * @param config the [GeneratorConfig]
+     * @param conf the configured extension
+     * @return the [VersionCatalogBuilder]
+     */
+    internal fun MutableVersionCatalogContainer.generate(
+        name: String,
+        conf: VersionCatalogGeneratorPluginExtension,
+    ): VersionCatalogBuilder {
+        val resolver = GradleDependencyResolver(conf.objects, dependencyResolutionServices)
+        return generate(name, conf, resolver)
+    }
+
+    /**
+     * Generate a version catalog with the provided [name].
+     *
+     * @param name the name of the version catalog
+     * @param config the [VersionCatalogGeneratorPluginExtension]
      * @param resolver the [DependencyResolver]
      * @return the [VersionCatalogBuilder]
      */
     internal fun MutableVersionCatalogContainer.generate(
         name: String,
-        config: GeneratorConfig,
+        config: VersionCatalogGeneratorPluginExtension,
         resolver: DependencyResolver,
     ): VersionCatalogBuilder {
         // need to clean up this logic so that we don't double-resolve the first
@@ -79,14 +102,14 @@ object Generator {
      * dependencies mapped to that version.
      *
      * @param model the BOM
-     * @param config [GeneratorConfig]
+     * @param config [VersionCatalogGeneratorPluginExtension]
      * @param queue the BFS queue to add more BOMs into
      * @param props the version properties
      * @param seenModules the set of modules we have already created libraries for
      */
     internal fun VersionCatalogBuilder.loadBom(
         model: Model,
-        config: GeneratorConfig,
+        config: VersionCatalogGeneratorPluginExtension,
         queue: MutableList<Dependency>,
         props: MutableMap<String, String>,
         seenModules: MutableSet<String>,
@@ -125,7 +148,7 @@ object Generator {
      * BOM that have `type == "pom" && scope == "import"` will be added to the [queue].
      *
      * @param model the BOM
-     * @param config [GeneratorConfig]
+     * @param config [VersionCatalogGeneratorPluginExtension]
      * @param queue the BFS queue to add more BOMs into
      * @param props the version properties
      * @param excludedProps the set of version properties to ignore
@@ -133,7 +156,7 @@ object Generator {
      */
     internal fun VersionCatalogBuilder.loadDependencies(
         model: Model,
-        config: GeneratorConfig,
+        config: VersionCatalogGeneratorPluginExtension,
         queue: MutableList<Dependency>,
         props: Map<String, String>,
         excludedProps: Set<String>,
@@ -176,14 +199,14 @@ object Generator {
      * @param dep the dependency
      * @param version the version of the dependency, may be a property of actual version
      * @param props the version properties
-     * @param config the [GeneratorConfig]
+     * @param config the [VersionCatalogGeneratorPluginExtension]
      * @return the library's alias and true if the version was a reference, or false if it was not
      */
     internal fun VersionCatalogBuilder.createLibrary(
         dep: Dependency,
         version: String,
         props: Map<String, String>,
-        config: GeneratorConfig,
+        config: VersionCatalogGeneratorPluginExtension,
     ): Pair<String, Boolean> {
         val alias = config.libraryAliasGenerator(dep.groupId, dep.artifactId)
         val library = library(alias, dep.groupId, dep.artifactId)
@@ -199,7 +222,7 @@ object Generator {
 
     internal fun getNewDependencies(
         model: Model,
-        config: GeneratorConfig,
+        config: VersionCatalogGeneratorPluginExtension,
         seenModules: MutableSet<String> = mutableSetOf(),
         filter: (Dependency) -> Boolean,
     ): Map<String, List<Dependency>> {
@@ -287,9 +310,6 @@ object Generator {
     Below methods inspired by / taken from
      https://github.com/F43nd1r/bomVersionCatalog/blob/master/bom-version-catalog/src/main/kotlin/com/faendir/gradle/extensions.kt
      */
-    private val MutableVersionCatalogContainer.objectFactory: ObjectFactory
-        get() = accessField("objects")
-
     private val MutableVersionCatalogContainer.dependencyResolutionServices:
         Supplier<DependencyResolutionServices>
         get() = accessField("dependencyResolutionServices")

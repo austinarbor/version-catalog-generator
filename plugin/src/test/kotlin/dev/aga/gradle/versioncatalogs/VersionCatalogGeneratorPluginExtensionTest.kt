@@ -6,18 +6,18 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 
-internal class GeneratorConfigTest {
+internal class VersionCatalogGeneratorPluginExtensionTest {
     @ParameterizedTest
     @MethodSource("defaultLibraryNameProvider")
     fun `default library alias generator`(group: String, name: String, expected: String) {
-        val actual = GeneratorConfig.DEFAULT_ALIAS_GENERATOR(group, name)
+        val actual = VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR(group, name)
         assertThat(actual).isEqualTo(expected)
     }
 
     @ParameterizedTest
     @MethodSource("defaultVersionNameProvider")
     fun `default version name generator`(version: String, expected: String) {
-        val actual = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR(version)
+        val actual = VersionCatalogGeneratorPluginExtension.DEFAULT_VERSION_NAME_GENERATOR(version)
         assertThat(actual).isEqualTo(expected)
     }
 
