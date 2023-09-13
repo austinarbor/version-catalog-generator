@@ -20,6 +20,7 @@ This plugin is in alpha! Expect breaking changes until we reach a more stable st
 
 ```kotlin
 import dev.aga.gradle.versioncatalogs.Generator.generate
+import dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension
 
 plugins {
     id("dev.aga.gradle.version-catalog-generator") version("0.0.4-alpha")
@@ -39,10 +40,18 @@ dependencyResolutionManagement {
             }
             // use this instead if you just want to use direct dependency notation
             from("org.springframework.boot:spring-boot-dependencies:3.1.2")
-            libraryAliasGenerator =
-                dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR // optional, change if required
-            versionNameGenerator =
-                dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_VERSION_NAME_GENERATOR // optional, change if required
+            // you can optionally change the library alias generation behavior
+            // by providing your own algorithms below. check the javadoc for more
+            // information
+            libraryAliasGenerator = {groupId, artifactId ->
+                val prefix = aliasPrefixGenerator(groupId, artifactId)
+                val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
+                VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR(prefix,suffix)
+            }
+            // you can optionally change the version alias generation behavior by
+            // providing your own algorithm below. check the javadoc for more 
+            // information
+            versionNameGenerator = VersionCatalogGeneratorPluginExtension.DEFAULT_VERSION_NAME_GENERATOR
         }
     }
 }
@@ -52,8 +61,6 @@ dependencyResolutionManagement {
     <summary>settings.gradle</summary>
 
 ```groovy
-import static dev.aga.gradle.versioncatalogs.Generator.INSTANCE as Generator
-
 plugins {
     id('dev.aga.gradle.version-catalog-generator') version '0.0.4-alpha'
 }
@@ -63,16 +70,20 @@ dependencyResolutionManagement {
         mavenCentral() // must include repositories here for dependency resolution to work from settings
     }
     versionCatalogs {
-        Generator.generate(this.settings, 'springLibs') { // uses the static import
-            it.from('org.springframework.boot:spring-boot-dependencies:3.1.2')
-            it.libraryAliasGenerator =
-                    dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR // optional, change if desired
-            it.versionNameGenerator =
-                    dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_VERSION_NAME_GENERATOR // optional, change if desired
-        }
-        
-        generator.generate('mockitoLibs') { // or use the extension directly
-            it.from('org.mockito:mockito-bom:5.5.0')
+        generator.generate("jsonLibs") {
+            it.from("com.fasterxml.jackson:jackson-bom:2.15.2")
+            // you can optionally change the library alias generation behavior
+            // by providing your own algorithms below. check the javadoc for more
+            // information
+            it.libraryAliasGenerator = { groupId, artifactId ->
+                def prefix = aliasPrefixGenerator.invoke(groupId, artifactId)
+                def suffix = aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
+                DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
+            }
+            // you can optionally change the version alias generation behavior by
+            // providing your own algorithm below. check the javadoc for more 
+            // information
+            it.versionNameGenerator = it.DEFAULT_VERSION_NAME_GENERATOR
         }
     }
 }

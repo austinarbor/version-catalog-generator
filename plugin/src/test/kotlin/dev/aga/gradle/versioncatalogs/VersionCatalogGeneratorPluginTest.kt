@@ -36,6 +36,7 @@ class VersionCatalogGeneratorPluginTest {
         settingsFile.writeText(
             """
             import dev.aga.gradle.versioncatalogs.Generator.generate
+            import dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension
             buildscript {
               dependencies {
                 classpath(files($classpathString))
@@ -51,10 +52,13 @@ class VersionCatalogGeneratorPluginTest {
               versionCatalogs {
                 generate("jsonLibs") {
                   from("com.fasterxml.jackson:jackson-bom:2.15.2")
-                  libraryAliasGenerator = dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR
-                  versionNameGenerator = dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_VERSION_NAME_GENERATOR
+                  libraryAliasGenerator = {groupId, artifactId -> 
+                    val prefix = aliasPrefixGenerator(groupId, artifactId)
+                    val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
+                    VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR(prefix,suffix)
+                  }
+                  versionNameGenerator = VersionCatalogGeneratorPluginExtension.DEFAULT_VERSION_NAME_GENERATOR
                 }
-                
               }
             }
         """
@@ -66,7 +70,7 @@ class VersionCatalogGeneratorPluginTest {
               java
             }
             dependencies {
-              implementation(jsonLibs.core.jackson.databind)
+              implementation(jsonLibs.jackson.databind)
               implementation(jsonLibs.bundles.jackson.module)
             }
             """
@@ -86,9 +90,7 @@ class VersionCatalogGeneratorPluginTest {
     fun `groovy dsl usage succeeds`() {
         // Set up the test build
         groovySettingsFile.writeText(
-            """
-            import static dev.aga.gradle.versioncatalogs.Generator.INSTANCE as Generator
-            
+            """ 
             buildscript {
               dependencies {
                 classpath(files($classpathString))
@@ -103,14 +105,24 @@ class VersionCatalogGeneratorPluginTest {
                 mavenCentral()
               }
               versionCatalogs {
-                Generator.generate(this.settings, "jsonLibs") {
+                generator.generate("jsonLibs") {
                   it.from("com.fasterxml.jackson:jackson-bom:2.15.2")
-                  it.libraryAliasGenerator = dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR
-                  it.versionNameGenerator = dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.DEFAULT_VERSION_NAME_GENERATOR
+                  it.libraryAliasGenerator = { groupId, artifactId -> 
+                   def prefix = aliasPrefixGenerator.invoke(groupId, artifactId)
+                   def suffix = aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
+                   DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
+                  }
+                  it.versionNameGenerator = it.DEFAULT_VERSION_NAME_GENERATOR
                 }
                 
                 generator.generate("mockitoLibs") {
                     it.from("org.mockito:mockito-bom:5.5.0")
+                    it.libraryAliasGenerator = { groupId, artifactId -> 
+                      def prefix = aliasPrefixGenerator.invoke(groupId, artifactId)
+                      def suffix = aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
+                      DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
+                    }
+                    it.versionNameGenerator = it.DEFAULT_VERSION_NAME_GENERATOR
                 }
               }
             }
@@ -123,9 +135,9 @@ class VersionCatalogGeneratorPluginTest {
               java
             }
             dependencies {
-              implementation(jsonLibs.core.jackson.databind)
+              implementation(jsonLibs.jackson.databind)
               implementation(jsonLibs.bundles.jackson.module)
-              testImplementation(mockitoLibs.mockito.mockito.core)
+              testImplementation(mockitoLibs.mockito.core)
             }
             """
                 .trimIndent(),

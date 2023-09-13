@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        gradle-version: [wrapper, release-candidate]
+        gradle-version: [wrapper, release-nightly, release-candidate]
     steps:
       - uses: actions/checkout@v4
         name: Checkout
@@ -36,7 +36,7 @@ jobs:
 
       - name: Upload Test Report
         uses: actions/upload-artifact@v3
-        if: always() # always run even if the previous step fails
+        if: ${{ always() && matrix.gradle-version == 'wrapper' }} # always run even if the previous step fails
         with:
           name: junit-test-results
           path: '**/build/test-results/test/TEST-*.xml'
@@ -44,5 +44,6 @@ jobs:
 
       - name: Upload Coverage Report
         uses: codecov/codecov-action@v3
+        if: ${{ always() && matrix.gradle-version == 'wrapper' }}
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
