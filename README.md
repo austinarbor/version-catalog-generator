@@ -51,7 +51,7 @@ dependencyResolutionManagement {
             // for example if you prefer no prefix and camelCase library names you can do:
             aliasPrefixGenerator = VersionCatalogGeneratorPluginExtension.NO_ALIAS_PREFIX
             aliasSuffixGenerator = (prefix, group, name) -> {
-                VersionCatalogGeneratorPluginExtension.caseChange(name, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.CAMEL_CASE)
+                VersionCatalogGeneratorPluginExtension.caseChange(name, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.CAMEL)
             }
             // or use the convenience function
             libraryAliasGenerator = VersionCatalogPluginExtension.CAMEL_CASE_NAME_LIBRARY_ALIAS_GENERATOR

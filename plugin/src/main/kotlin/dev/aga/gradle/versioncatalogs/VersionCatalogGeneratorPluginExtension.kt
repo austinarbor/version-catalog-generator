@@ -265,7 +265,7 @@ constructor(
          * ```kotlin
          * aliasPrefixGenerator = NO_ALIAS_PREFIX
          * aliasSuffixGenerator = { prefix, group, artifact ->
-         *  caseChange(artifact, CaseFormat.LOWER_HYPHEN, CaseFormat.CAMEL_CASE)
+         *  caseChange(artifact, CaseFormat.LOWER_HYPHEN, CaseFormat.CAMEL)
          * }
          * ```
          *
