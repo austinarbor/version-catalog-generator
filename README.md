@@ -48,6 +48,14 @@ dependencyResolutionManagement {
                 val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
                 VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR(prefix,suffix)
             }
+            // for example if you prefer no prefix and camelCase library names you can do:
+            aliasPrefixGenerator = VersionCatalogGeneratorPluginExtension.NO_ALIAS_PREFIX
+            aliasSuffixGenerator = (prefix, group, name) -> {
+                VersionCatalogGeneratorPluginExtension.caseChange(name, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.CAMEL_CASE)
+            }
+            // or use the convenience function
+            libraryAliasGenerator = VersionCatalogPluginExtension.CAMEL_CASE_NAME_LIBRARY_ALIAS_GENERATOR
+            
             // you can optionally change the version alias generation behavior by
             // providing your own algorithm below. check the javadoc for more 
             // information
