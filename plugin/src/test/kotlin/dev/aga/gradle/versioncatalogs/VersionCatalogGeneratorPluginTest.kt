@@ -52,12 +52,23 @@ class VersionCatalogGeneratorPluginTest {
               versionCatalogs {
                 generate("jsonLibs") {
                   from("com.fasterxml.jackson:jackson-bom:2.15.2")
-                  libraryAliasGenerator = {groupId, artifactId -> 
+                  libraryAliasGenerator = { groupId, artifactId -> 
                     val prefix = aliasPrefixGenerator(groupId, artifactId)
                     val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
                     VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR(prefix,suffix)
                   }
                   versionNameGenerator = VersionCatalogGeneratorPluginExtension.DEFAULT_VERSION_NAME_GENERATOR
+                }
+                generate("mockitoLibs") {
+                  from("org.mockito:mockito-bom:5.5.0")
+                  aliasPrefixGenerator = VersionCatalogGeneratorPluginExtension.NO_ALIAS_PREFIX
+                  aliasSuffixGenerator = { _, _, artifact ->
+                    VersionCatalogGeneratorPluginExtension.caseChange(artifact, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.CAMEL)
+                  }
+                }
+                generate("junitLibs") {
+                  from("org.junit:junit-bom:5.10.0")
+                  libraryAliasGenerator = VersionCatalogGeneratorPluginExtension.CAMEL_CASE_NAME_LIBRARY_ALIAS_GENERATOR
                 }
               }
             }
@@ -72,6 +83,10 @@ class VersionCatalogGeneratorPluginTest {
             dependencies {
               implementation(jsonLibs.jackson.databind)
               implementation(jsonLibs.bundles.jackson.module)
+              testImplementation(mockitoLibs.mockitoCore)
+              testImplementation(mockitoLibs.mockitoJunitJupiter)
+              testImplementation(junitLibs.junitJupiter)
+              testImplementation(junitLibs.junitJupiterParams)
             }
             """
                 .trimIndent(),

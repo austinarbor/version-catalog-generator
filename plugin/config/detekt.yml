@@ -1,4 +1,7 @@
 complexity:
+  LongMethod:
+    excludes:
+      - '**/test/**'
   LongParameterList:
     constructorThreshold: 7
     functionThreshold: 7

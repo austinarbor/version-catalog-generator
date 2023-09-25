@@ -4,6 +4,8 @@ import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.service.FileCatalogParser
 import java.nio.file.Paths
 import javax.inject.Inject
+import net.pearx.kasechange.CaseFormat
+import net.pearx.kasechange.formatter.format
 import org.gradle.api.Action
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
@@ -240,6 +242,41 @@ constructor(
                 .replace(versionRegEx, "")
                 .replace(dotRegex, ".") // replace 2 or more consecutive periods with a single one
                 .trim('.') // trim leading and trailing periods
+        }
+
+        /**
+         * Function to easily change the case of a string from one format to another
+         *
+         * @param str the string to change the casing of
+         * @param from the starting format
+         * @param to the desired format
+         * @return the reformatted string
+         */
+        @JvmStatic
+        fun caseChange(str: String, from: CaseFormat, to: CaseFormat): String {
+            val split = from.splitToWords(str)
+            return to.format(split)
+        }
+
+        /**
+         * Convenience lambda to generate library aliases just using the artifact name and
+         * converting it to camelCase. This is a shortcut for
+         *
+         * ```kotlin
+         * aliasPrefixGenerator = NO_ALIAS_PREFIX
+         * aliasSuffixGenerator = { prefix, group, artifact ->
+         *  caseChange(artifact, CaseFormat.LOWER_HYPHEN, CaseFormat.CAMEL)
+         * }
+         * ```
+         *
+         * @see caseChange
+         * @see libraryAliasGenerator
+         * @see aliasPrefixGenerator
+         * @see aliasSuffixGenerator
+         */
+        @JvmStatic
+        val CAMEL_CASE_NAME_LIBRARY_ALIAS_GENERATOR = { _: String, artifact: String ->
+            caseChange(str = artifact, from = CaseFormat.LOWER_HYPHEN, to = CaseFormat.CAMEL)
         }
     }
 }

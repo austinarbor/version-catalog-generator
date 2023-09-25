@@ -31,6 +31,7 @@ repositories {
 dependencies {
     implementation(libs.maven.model)
     implementation(libs.tomlj)
+    implementation(libs.kasechange)
 
     detektPlugins(libs.detekt.formatting)
 

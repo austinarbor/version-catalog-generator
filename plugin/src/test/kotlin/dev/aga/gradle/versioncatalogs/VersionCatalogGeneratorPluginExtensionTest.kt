@@ -4,6 +4,7 @@ import dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.Com
 import dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.Companion.DEFAULT_ALIAS_SUFFIX_GENERATOR
 import dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.Companion.DEFAULT_VERSION_NAME_GENERATOR
 import dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.Companion.NO_ALIAS_PREFIX
+import net.pearx.kasechange.CaseFormat
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
@@ -57,6 +58,13 @@ internal class VersionCatalogGeneratorPluginExtensionTest {
     @MethodSource("defaultVersionNameProvider")
     fun `default version name generator`(version: String, expected: String) {
         val actual = DEFAULT_VERSION_NAME_GENERATOR(version)
+        assertThat(actual).isEqualTo(expected)
+    }
+
+    @ParameterizedTest
+    @MethodSource("caseChangeProvider")
+    fun `case change`(source: String, from: CaseFormat, to: CaseFormat, expected: String) {
+        val actual = VersionCatalogGeneratorPluginExtension.caseChange(source, from, to)
         assertThat(actual).isEqualTo(expected)
     }
 
@@ -117,6 +125,14 @@ internal class VersionCatalogGeneratorPluginExtensionTest {
                 arguments("activemq.version", "activemq"),
                 arguments("jackson.version.modules", "jackson.modules"),
                 arguments("devVersion", "dev"),
+            )
+        }
+
+        @JvmStatic
+        private fun caseChangeProvider(): List<Arguments> {
+            return listOf(
+                arguments("my-module", CaseFormat.LOWER_HYPHEN, CaseFormat.CAMEL, "myModule"),
+                arguments("my.group", CaseFormat.LOWER_DOT, CaseFormat.CAMEL, "myGroup"),
             )
         }
     }
