@@ -172,7 +172,7 @@ constructor(
             if (prefix.isBlank()) {
                 suffix
             } else {
-                "${prefix}.${suffix}"
+                "${prefix}-${suffix}"
             }
         }
 
@@ -196,7 +196,7 @@ constructor(
                     require(split.size >= 2) {
                         "Cannot generate alias for ${group}:${artifact}, please provide custom generator"
                     }
-                    "${split[split.size - 2]}.${split.last()}"
+                    "${split[split.size - 2]}-${split.last()}"
                 } else {
                     split.last()
                 }

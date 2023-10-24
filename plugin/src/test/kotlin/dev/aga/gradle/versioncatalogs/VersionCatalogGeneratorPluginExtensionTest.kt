@@ -80,7 +80,7 @@ internal class VersionCatalogGeneratorPluginExtensionTest {
                 arguments(
                     "prefix",
                     "suffix",
-                    "prefix.suffix",
+                    "prefix-suffix",
                 ),
             )
         }
@@ -90,7 +90,7 @@ internal class VersionCatalogGeneratorPluginExtensionTest {
             return listOf(
                 arguments("com.fasterxml.jackson", "any-thing", "jackson"),
                 arguments("dev.aga", "version-catalog-generator", "aga"),
-                arguments("dev.plugins", "anything", "dev.plugins"),
+                arguments("dev.plugins", "anything", "dev-plugins"),
                 arguments("plugins", "anything", "error"),
             )
         }
