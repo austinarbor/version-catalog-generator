@@ -23,7 +23,7 @@ import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension
 
 plugins {
-    id("dev.aga.gradle.version-catalog-generator") version("0.0.6-alpha")
+    id("dev.aga.gradle.version-catalog-generator") version("0.0.7")
 }
 
 dependencyResolutionManagement {
@@ -70,7 +70,7 @@ dependencyResolutionManagement {
 
 ```groovy
 plugins {
-    id('dev.aga.gradle.version-catalog-generator') version '0.0.6-alpha'
+    id('dev.aga.gradle.version-catalog-generator') version '0.0.7'
 }
 
 dependencyResolutionManagement {
