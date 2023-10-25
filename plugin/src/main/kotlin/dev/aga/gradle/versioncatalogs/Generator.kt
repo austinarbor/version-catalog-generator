@@ -186,7 +186,8 @@ object Generator {
                     }
                 }
                 if (aliases.isNotEmpty()) {
-                    bundle(version, aliases)
+                    val bundleName = version.replace('.', '-')
+                    bundle(bundleName, aliases)
                 }
             }
     }

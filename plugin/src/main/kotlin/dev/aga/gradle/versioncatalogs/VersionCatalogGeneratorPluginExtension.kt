@@ -36,7 +36,7 @@ constructor(
     /**
      * Function to generate the name of the library in the generated catalog. The default behavior
      * takes the output of the [aliasPrefixGenerator] and the output of the [aliasSuffixGenerator]
-     * and concatenates them together with a `.`. If the `prefix` is blank, only the `suffix` is
+     * and concatenates them together with a `-`. If the `prefix` is blank, only the `suffix` is
      * used. Alias generation can be customized by overriding the [aliasPrefixGenerator] and the
      * [aliasSuffixGenerator]. If this function itself is overridden, those two functions will not
      * be used unless explicitly invoked by the overridden function.
@@ -165,38 +165,41 @@ constructor(
         /**
          * Default function to generate the alias from the provided prefix and suffix. If the prefix
          * is blank, the suffix is simply returned. Otherwise, the prefix is concatenated with the
-         * suffix by a `.`.
+         * suffix by a `-`.
          */
         @JvmStatic
         val DEFAULT_ALIAS_GENERATOR: (String, String) -> String = { prefix, suffix ->
             if (prefix.isBlank()) {
                 suffix
             } else {
-                "${prefix}.${suffix}"
+                "${prefix}-${suffix}"
             }
         }
 
         /**
          * Default function to generate the prefix of the library's alias. If the `groupId` starts
-         * with `com.fasterxml.jackson`, we return `jackson`, otherwise the below logic applies:
+         * with `com.fasterxml.jackson`, we return `jackson`. If the `groupId` starts with
+         * `org.springframework`, we return `spring`. Otherwise, the below logic applies:
          * 1. The `groupId` is split by `.`
          * 2. If the split only returns a list of one item and the value is any one of
          *    [INVALID_PREFIXES], an [IllegalArgumentException] is thrown.
          * 3. Otherwise if the split returns a list of more than one item and the last value is any
-         *    one of [INVALID_PREFIXES], the last two values are turned concatenated with a `.`
+         *    one of [INVALID_PREFIXES], the last two values are turned concatenated with a `-`
          * 4. In any other scenario, the last item in the list is returned
          */
         @JvmStatic
         val DEFAULT_ALIAS_PREFIX_GENERATOR: (String, String) -> String = { group, artifact ->
             if (group.startsWith("com.fasterxml.jackson")) {
                 "jackson"
+            } else if (group.startsWith("org.springframework")) {
+                "spring"
             } else {
                 val split = group.split(".")
                 if (INVALID_PREFIXES.contains(split.last())) {
                     require(split.size >= 2) {
                         "Cannot generate alias for ${group}:${artifact}, please provide custom generator"
                     }
-                    "${split[split.size - 2]}.${split.last()}"
+                    "${split[split.size - 2]}-${split.last()}"
                 } else {
                     split.last()
                 }
@@ -215,9 +218,13 @@ constructor(
         @JvmStatic
         val DEFAULT_ALIAS_SUFFIX_GENERATOR: (String, String, String) -> String =
             { prefix, _, artifact ->
-                val split = artifact.split("-")
+                var art = artifact
+                if (prefix == "spring") {
+                    art = art.replace("spring-", "")
+                }
+                val split = art.split("-")
                 if (split.size == 1 || prefix != split[0]) {
-                    artifact
+                    art
                 } else {
                     split.subList(1, split.size).joinToString("-")
                 }

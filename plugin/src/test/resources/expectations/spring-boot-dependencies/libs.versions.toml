@@ -30,64 +30,64 @@ zipkin-proto3 = "1.0.0"
 zipkin-reporter = "2.16.3"
 
 [libraries]
-activemq.broker = { group = "org.apache.activemq", name = "activemq-broker", version.ref = "activemq" }
-activemq.client = { group = "org.apache.activemq", name = "activemq-client", version.ref = "activemq" }
-activemq.jdbc-store = { group = "org.apache.activemq", name = "activemq-jdbc-store", version.ref = "activemq" }
-activemq.spring = { group = "org.apache.activemq", name = "activemq-spring", version.ref = "activemq" }
-assertj.bom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
-assertj.core = { group = "org.assertj", name = "assertj-core", version = "3.24.2" }
-assertj.guava = { group = "org.assertj", name = "assertj-guava", version = "3.24.2" }
-boot.spring-boot = { group = "org.springframework.boot", name = "spring-boot", version = "3.1.2" }
-boot.spring-boot-devtools = { group = "org.springframework.boot", name = "spring-boot-devtools", version = "3.1.2" }
-boot.spring-boot-starter-actuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator", version = "3.1.2" }
-boot.spring-boot-starter-aop = { group = "org.springframework.boot", name = "spring-boot-starter-aop", version = "3.1.2" }
-boot.spring-boot-starter-jdbc = { group = "org.springframework.boot", name = "spring-boot-starter-jdbc", version = "3.1.2" }
-boot.spring-boot-starter-web = { group = "org.springframework.boot", name = "spring-boot-starter-web", version = "3.1.2" }
-brave.bom = { group = "io.zipkin.brave", name = "brave-bom", version.ref = "brave" }
-brave.brave = { group = "io.zipkin.brave", name = "brave", version = "5.15.1" }
-brave.tests = { group = "io.zipkin.brave", name = "brave-tests", version = "5.15.1" }
-brave.spring-beans = { group = "io.zipkin.brave", name = "brave-spring-beans", version = "5.15.1" }
-caffeine.caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
-caffeine.guava = { group = "com.github.ben-manes.caffeine", name = "guava", version.ref = "caffeine" }
-caffeine.jcache = { group = "com.github.ben-manes.caffeine", name = "jcache", version.ref = "caffeine" }
-jackson.bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson-bom" }
-jackson.annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson.annotations" }
-jackson.core = { group = "com.fasterxml.jackson.core", name = "jackson-core", version.ref = "jackson.core" }
-jackson.databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson.databind" }
-jackson.dataformat-avro = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-avro", version.ref = "jackson.dataformat" }
-jackson.datatype-jdk8 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jdk8", version.ref = "jackson.datatype" }
-jackson.datatype-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jackson.datatype" }
-jackson.jaxrs-base = { group = "com.fasterxml.jackson.jaxrs", name = "jackson-jaxrs-base", version.ref = "jackson.jaxrs" }
-jackson.jakarta-rs-base = { group = "com.fasterxml.jackson.jakarta.rs", name = "jackson-jakarta-rs-base", version.ref = "jackson.jakarta.rs" }
-jackson.jr-all = { group = "com.fasterxml.jackson.jr", name = "jackson-jr-all", version.ref = "jackson.jacksonjr" }
-jackson.module-blackbird = { group = "com.fasterxml.jackson.module", name = "jackson-module-blackbird", version.ref = "jackson.module" }
-jackson.module-kotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson.module.kotlin" }
-jackson.module-scala_2.11 = { group = "com.fasterxml.jackson.module", name = "jackson-module-scala_2.11", version.ref = "jackson.module.scala" }
-metrics.bom = { group = "io.dropwizard.metrics", name = "metrics-bom", version.ref = "dropwizard-metrics" }
-metrics.annotation = { group = "io.dropwizard.metrics", name = "metrics-annotation", version = "4.2.19" }
-metrics.caffeine = { group = "io.dropwizard.metrics", name = "metrics-caffeine", version = "4.2.19" }
-metrics.caffeine3 = { group = "io.dropwizard.metrics", name = "metrics-caffeine3", version = "4.2.19" }
-metrics.core = { group = "io.dropwizard.metrics", name = "metrics-core", version = "4.2.19" }
-reporter2.zipkin-reporter-bom = { group = "io.zipkin.reporter2", name = "zipkin-reporter-bom", version.ref = "zipkin-reporter" }
-zipkin2.zipkin = { group = "io.zipkin.zipkin2", name = "zipkin", version.ref = "zipkin" }
-proto3.zipkin-proto3 = { group = "io.zipkin.proto3", name = "zipkin-proto3", version.ref = "zipkin-proto3" }
-reporter2.zipkin-reporter = { group = "io.zipkin.reporter2", name = "zipkin-reporter", version = "2.16.3" }
-reporter2.zipkin-reporter-brave = { group = "io.zipkin.reporter2", name = "zipkin-reporter-brave", version = "2.16.3" }
+activemq-broker = { group = "org.apache.activemq", name = "activemq-broker", version.ref = "activemq" }
+activemq-client = { group = "org.apache.activemq", name = "activemq-client", version.ref = "activemq" }
+activemq-jdbc-store = { group = "org.apache.activemq", name = "activemq-jdbc-store", version.ref = "activemq" }
+activemq-spring = { group = "org.apache.activemq", name = "activemq-spring", version.ref = "activemq" }
+assertj-bom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
+assertj-core = { group = "org.assertj", name = "assertj-core", version = "3.24.2" }
+assertj-guava = { group = "org.assertj", name = "assertj-guava", version = "3.24.2" }
+spring-boot = { group = "org.springframework.boot", name = "spring-boot", version = "3.1.2" }
+spring-boot-devtools = { group = "org.springframework.boot", name = "spring-boot-devtools", version = "3.1.2" }
+spring-boot-starter-actuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator", version = "3.1.2" }
+spring-boot-starter-aop = { group = "org.springframework.boot", name = "spring-boot-starter-aop", version = "3.1.2" }
+spring-boot-starter-jdbc = { group = "org.springframework.boot", name = "spring-boot-starter-jdbc", version = "3.1.2" }
+spring-boot-starter-web = { group = "org.springframework.boot", name = "spring-boot-starter-web", version = "3.1.2" }
+brave-bom = { group = "io.zipkin.brave", name = "brave-bom", version.ref = "brave" }
+brave-brave = { group = "io.zipkin.brave", name = "brave", version = "5.15.1" }
+brave-tests = { group = "io.zipkin.brave", name = "brave-tests", version = "5.15.1" }
+brave-spring-beans = { group = "io.zipkin.brave", name = "brave-spring-beans", version = "5.15.1" }
+caffeine-caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
+caffeine-guava = { group = "com.github.ben-manes.caffeine", name = "guava", version.ref = "caffeine" }
+caffeine-jcache = { group = "com.github.ben-manes.caffeine", name = "jcache", version.ref = "caffeine" }
+jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson-bom" }
+jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson.annotations" }
+jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-core", version.ref = "jackson.core" }
+jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson.databind" }
+jackson-dataformat-avro = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-avro", version.ref = "jackson.dataformat" }
+jackson-datatype-jdk8 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jdk8", version.ref = "jackson.datatype" }
+jackson-datatype-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jackson.datatype" }
+jackson-jaxrs-base = { group = "com.fasterxml.jackson.jaxrs", name = "jackson-jaxrs-base", version.ref = "jackson.jaxrs" }
+jackson-jakarta-rs-base = { group = "com.fasterxml.jackson.jakarta.rs", name = "jackson-jakarta-rs-base", version.ref = "jackson.jakarta.rs" }
+jackson-jr-all = { group = "com.fasterxml.jackson.jr", name = "jackson-jr-all", version.ref = "jackson.jacksonjr" }
+jackson-module-blackbird = { group = "com.fasterxml.jackson.module", name = "jackson-module-blackbird", version.ref = "jackson.module" }
+jackson-module-kotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson.module.kotlin" }
+jackson-module-scala_2.11 = { group = "com.fasterxml.jackson.module", name = "jackson-module-scala_2.11", version.ref = "jackson.module.scala" }
+metrics-bom = { group = "io.dropwizard.metrics", name = "metrics-bom", version.ref = "dropwizard-metrics" }
+metrics-annotation = { group = "io.dropwizard.metrics", name = "metrics-annotation", version = "4.2.19" }
+metrics-caffeine = { group = "io.dropwizard.metrics", name = "metrics-caffeine", version = "4.2.19" }
+metrics-caffeine3 = { group = "io.dropwizard.metrics", name = "metrics-caffeine3", version = "4.2.19" }
+metrics-core = { group = "io.dropwizard.metrics", name = "metrics-core", version = "4.2.19" }
+reporter2-zipkin-reporter-bom = { group = "io.zipkin.reporter2", name = "zipkin-reporter-bom", version.ref = "zipkin-reporter" }
+zipkin2-zipkin = { group = "io.zipkin.zipkin2", name = "zipkin", version.ref = "zipkin" }
+proto3-zipkin-proto3 = { group = "io.zipkin.proto3", name = "zipkin-proto3", version.ref = "zipkin-proto3" }
+reporter2-zipkin-reporter = { group = "io.zipkin.reporter2", name = "zipkin-reporter", version = "2.16.3" }
+reporter2-zipkin-reporter-brave = { group = "io.zipkin.reporter2", name = "zipkin-reporter-brave", version = "2.16.3" }
 
 
 [bundles]
-activemq = ["activemq.broker", "activemq.client", "activemq.jdbc-store", "activemq.spring"]
-caffeine = ["caffeine.caffeine", "caffeine.guava", "caffeine.jcache"]
-jackson.annotations = ["jackson.annotations"]
-jackson.core = ["jackson.core"]
-jackson.databind = ["jackson.databind"]
-jackson.dataformat = ["jackson.dataformat-avro"]
-jackson.datatype = ["jackson.datatype-jdk8", "jackson.datatype-jsr310"]
-jackson.jacksonjr = ["jackson.jr-all"]
-jackson.jakarta.rs = ["jackson.jakarta-rs-base"]
-jackson.jaxrs = ["jackson.jaxrs-base"]
-jackson.module = ["jackson.module-blackbird"]
-jackson.module.kotlin = ["jackson.module-kotlin"]
-jackson.module.scala = ["jackson.module-scala_2.11"]
-zipkin = ["zipkin2.zipkin"]
-zipkin-proto3 = ["proto3.zipkin-proto3"]
+activemq = ["activemq-broker", "activemq-client", "activemq-jdbc-store", "activemq-spring"]
+caffeine = ["caffeine-caffeine", "caffeine-guava", "caffeine-jcache"]
+jackson-annotations = ["jackson-annotations"]
+jackson-core = ["jackson-core"]
+jackson-databind = ["jackson-databind"]
+jackson-dataformat = ["jackson-dataformat-avro"]
+jackson-datatype = ["jackson-datatype-jdk8", "jackson-datatype-jsr310"]
+jackson-jacksonjr = ["jackson-jr-all"]
+jackson-jakarta-rs = ["jackson-jakarta-rs-base"]
+jackson-jaxrs = ["jackson-jaxrs-base"]
+jackson-module = ["jackson-module-blackbird"]
+jackson-module-kotlin = ["jackson-module-kotlin"]
+jackson-module-scala = ["jackson-module-scala_2.11"]
+zipkin = ["zipkin2-zipkin"]
+zipkin-proto3 = ["proto3-zipkin-proto3"]
