@@ -190,6 +190,8 @@ constructor(
         val DEFAULT_ALIAS_PREFIX_GENERATOR: (String, String) -> String = { group, artifact ->
             if (group.startsWith("com.fasterxml.jackson")) {
                 "jackson"
+            } else if (group.startsWith("org.springframework")) {
+                "spring"
             } else {
                 val split = group.split(".")
                 if (INVALID_PREFIXES.contains(split.last())) {
@@ -215,9 +217,13 @@ constructor(
         @JvmStatic
         val DEFAULT_ALIAS_SUFFIX_GENERATOR: (String, String, String) -> String =
             { prefix, _, artifact ->
-                val split = artifact.split("-")
+                var art = artifact
+                if (prefix == "spring") {
+                    art = art.replace("spring-", "")
+                }
+                val split = art.split("-")
                 if (split.size == 1 || prefix != split[0]) {
-                    artifact
+                    art
                 } else {
                     split.subList(1, split.size).joinToString("-")
                 }

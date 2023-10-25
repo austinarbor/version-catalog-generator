@@ -89,6 +89,7 @@ internal class VersionCatalogGeneratorPluginExtensionTest {
         private fun defaultAliasPrefixProvider(): List<Arguments> {
             return listOf(
                 arguments("com.fasterxml.jackson", "any-thing", "jackson"),
+                arguments("org.springframework.boot", "spring-boot-starter-web", "spring"),
                 arguments("dev.aga", "version-catalog-generator", "aga"),
                 arguments("dev.plugins", "anything", "dev-plugins"),
                 arguments("plugins", "anything", "error"),
@@ -116,6 +117,13 @@ internal class VersionCatalogGeneratorPluginExtensionTest {
                     "aga",
                     "aga",
                 ),
+                arguments(
+                    "spring",
+                    "org.springframework.boot",
+                    "spring-boot-starter-web",
+                    "boot-starter-web",
+                ),
+                arguments("spring", "org.springframework", "spring-web", "web"),
             )
         }
 
