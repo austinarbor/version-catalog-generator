@@ -74,7 +74,7 @@ gradlePlugin {
         implementationClass = "dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPlugin"
         displayName = PLUGIN_DISPLAY_NAME
         description = PLUGIN_DESCRIPTION
-        tags = listOf("version", "catalog", "bom", "generate", "pom")
+        tags = listOf("version", "catalog", "generate", "bom", "pom", "dependencies", "dependency-management")
     }
 }
 
