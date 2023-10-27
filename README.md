@@ -103,7 +103,7 @@ dependencyResolutionManagement {
 ```kotlin
 // add your dependencies from the generated catalog
 dependencies {
-    implementation(springLibs.boot.spring.boot.starter.jdbc)
+    implementation(springLibs.spring.boot.starter.jdbc)
 }
 ```
 </details>
