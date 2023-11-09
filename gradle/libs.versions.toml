@@ -1,5 +1,6 @@
 [versions]
 assertj = "3.24.2"
+commons-text = "1.11.0"
 detekt = "1.23.1"
 gradle-publish = "1.2.1"
 jacoco = "0.8.11"
@@ -15,6 +16,7 @@ tomlj = "1.1.0"
 
 [libraries]
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
+commons-text = { group = "org.apache.commons", name = "commons-text", version.ref = "commons-text" }
 detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt" }
 jacoco-agent = { group = "org.jacoco", name = "org.jacoco.agent", version.ref = "jacoco" }
 kasechange = { group = "net.pearx.kasechange", name = "kasechange", version.ref = "kasechange" }
