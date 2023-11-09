@@ -177,7 +177,7 @@ object Generator {
             .forEach { (version, deps) ->
                 val aliases = mutableListOf<String>()
                 deps.forEach { dep ->
-                    val (alias, _) = createLibrary(dep, version, substitutor, config)
+                    val alias = createLibrary(dep, version, substitutor, config)
                     if (version.isRef) {
                         aliases += alias
                     }
@@ -205,16 +205,16 @@ object Generator {
         version: Version,
         substitutor: StringSubstitutor,
         config: VersionCatalogGeneratorPluginExtension,
-    ): Pair<String, Boolean> {
+    ): String {
         val alias = config.libraryAliasGenerator(dep.groupId, dep.artifactId)
         val library = library(alias, dep.groupId, dep.artifactId)
         return if (version.isRef) {
             // aliases += alias
             library.versionRef(substitutor.unwrap(version.value))
-            alias to true
+            alias
         } else {
             library.version(version.value)
-            alias to false
+            alias
         }
     }
 
