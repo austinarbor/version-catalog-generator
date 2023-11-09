@@ -173,7 +173,7 @@ object Generator {
         }
 
         getNewDependencies(model, config, seenModules, substitutor, jarFilter)
-            .filter { skipAndLogExcluded(model, it, excludedProps) }
+            .filter { skipAndLogExcluded(model, it, substitutor, excludedProps) }
             .forEach { (version, deps) ->
                 val aliases = mutableListOf<String>()
                 deps.forEach { dep ->
@@ -282,10 +282,11 @@ object Generator {
     private fun skipAndLogExcluded(
         source: Model,
         e: Map.Entry<Version, List<Dependency>>,
+        substitutor: StringSubstitutor,
         excludedProps: Set<String>,
     ): Boolean {
         val (version, deps) = e
-        if (excludedProps.contains(version.value)) {
+        if (excludedProps.contains(substitutor.unwrap(version.value))) {
             deps.forEach {
                 logger.warn(
                     "excluding {}:{}:{} found in {}:{}:{}",
