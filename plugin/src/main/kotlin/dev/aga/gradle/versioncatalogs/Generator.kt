@@ -208,14 +208,12 @@ object Generator {
     ): String {
         val alias = config.libraryAliasGenerator(dep.groupId, dep.artifactId)
         val library = library(alias, dep.groupId, dep.artifactId)
-        return if (version.isRef) {
-            // aliases += alias
+        if (version.isRef) {
             library.versionRef(substitutor.unwrap(version.value))
-            alias
         } else {
             library.version(version.value)
-            alias
         }
+        return alias
     }
 
     internal fun getNewDependencies(
