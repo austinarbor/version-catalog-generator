@@ -1,8 +1,10 @@
 package dev.aga.gradle.versioncatalogs
 
+import dev.aga.gradle.versioncatalogs.model.Version
 import dev.aga.gradle.versioncatalogs.service.DependencyResolver
 import dev.aga.gradle.versioncatalogs.service.GradleDependencyResolver
 import java.util.function.Supplier
+import org.apache.commons.text.StringSubstitutor
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
 import org.gradle.api.Action
@@ -125,17 +127,9 @@ object Generator {
             )
         }
 
-        val finalProps = HashMap<String, String>(newProps)
-        for ((k, v) in newProps) {
-            var mappedValue = mapVersion(model, v, config.versionNameGenerator)
-            if (newProps.containsKey(mappedValue)) {
-                while (newProps.containsKey(mappedValue)) {
-                    val x = newProps[mappedValue]!!
-                    mappedValue = mapVersion(model, x, config.versionNameGenerator)
-                }
-                finalProps[k] = mappedValue
-            }
-        }
+        val subst = newProps.toSubstitutor()
+
+        val finalProps = newProps.map { (k, v) -> subst.replace(k) to subst.replace(v) }.toMap()
 
         finalProps.forEach { (key, value) -> version(key, value) }
         props.putAll(finalProps)
@@ -162,31 +156,34 @@ object Generator {
         excludedProps: Set<String>,
         seenModules: MutableSet<String>,
     ) {
-        getNewDependencies(model, config, seenModules, importFilter).forEach { (version, boms) ->
+        val substitutor = props.toSubstitutor()
+
+        getNewDependencies(model, config, seenModules, substitutor, importFilter).forEach {
+            (version, boms) ->
             boms.forEach { bom ->
-                logger.info("${model.groupId}:${model.artifactId} contains other boms")
-                val (_, isRef) = createLibrary(bom, version, props, config)
+                logger.info("${model.groupId}:${model.artifactId} contains other BOMs")
+                createLibrary(bom, version, substitutor, config)
                 // if the version is a property, replace it with the
                 // actual version value
-                if (isRef) {
-                    bom.version = props[version]
+                if (version.isRef) {
+                    bom.version = substitutor.replace(version.value)
                 }
                 queue.add(bom)
             }
         }
 
-        getNewDependencies(model, config, seenModules, jarFilter)
+        getNewDependencies(model, config, seenModules, substitutor, jarFilter)
             .filter { skipAndLogExcluded(model, it, excludedProps) }
             .forEach { (version, deps) ->
                 val aliases = mutableListOf<String>()
                 deps.forEach { dep ->
-                    val (alias, isRef) = createLibrary(dep, version, props, config)
-                    if (isRef) {
+                    val (alias, _) = createLibrary(dep, version, substitutor, config)
+                    if (version.isRef) {
                         aliases += alias
                     }
                 }
                 if (aliases.isNotEmpty()) {
-                    val bundleName = version.replace('.', '-')
+                    val bundleName = substitutor.unwrap(version.value).replace('.', '-')
                     bundle(bundleName, aliases)
                 }
             }
@@ -205,18 +202,18 @@ object Generator {
      */
     internal fun VersionCatalogBuilder.createLibrary(
         dep: Dependency,
-        version: String,
-        props: Map<String, String>,
+        version: Version,
+        substitutor: StringSubstitutor,
         config: VersionCatalogGeneratorPluginExtension,
     ): Pair<String, Boolean> {
         val alias = config.libraryAliasGenerator(dep.groupId, dep.artifactId)
         val library = library(alias, dep.groupId, dep.artifactId)
-        return if (props.containsKey(version)) {
+        return if (version.isRef) {
             // aliases += alias
-            library.versionRef(version)
+            library.versionRef(substitutor.unwrap(version.value))
             alias to true
         } else {
-            library.version(version)
+            library.version(version.value)
             alias to false
         }
     }
@@ -225,8 +222,9 @@ object Generator {
         model: Model,
         config: VersionCatalogGeneratorPluginExtension,
         seenModules: MutableSet<String> = mutableSetOf(),
+        substitutor: StringSubstitutor,
         filter: (Dependency) -> Boolean,
-    ): Map<String, List<Dependency>> {
+    ): Map<Version, List<Dependency>> {
         val deps = model.dependencyManagement?.dependencies ?: listOf<Dependency>()
         if (deps.isEmpty()) {
             logger.warn(
@@ -240,7 +238,7 @@ object Generator {
             .filter(filter)
             .filter { seenModules.add("${it.groupId}:${it.artifactId}") }
             .onEach { it.version = mapVersion(model, it.version, config.versionNameGenerator) }
-            .groupBy { it.version }
+            .groupBy { Version(it.version, substitutor.hasReplacement(it.version)) }
     }
 
     internal fun getProperties(
@@ -278,18 +276,16 @@ object Generator {
         if ("\${project.version}" == version) {
             return model.version
         }
-        // remove leading ${ and ending } if they exist
-        val v = version.removePrefix("\${").trimEnd('}')
-        return versionMapper(v)
+        return versionMapper(version)
     }
 
     private fun skipAndLogExcluded(
         source: Model,
-        e: Map.Entry<String, List<Dependency>>,
+        e: Map.Entry<Version, List<Dependency>>,
         excludedProps: Set<String>,
     ): Boolean {
         val (version, deps) = e
-        if (excludedProps.contains(version)) {
+        if (excludedProps.contains(version.value)) {
             deps.forEach {
                 logger.warn(
                     "excluding {}:{}:{} found in {}:{}:{}",
