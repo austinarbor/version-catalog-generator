@@ -1,6 +1,6 @@
 [versions]
 assertj = "3.24.2"
-detekt = "1.23.1"
+detekt = "1.23.3"
 gradle-publish = "1.2.1"
 jacoco = "0.8.11"
 junit = "5.10.0"
