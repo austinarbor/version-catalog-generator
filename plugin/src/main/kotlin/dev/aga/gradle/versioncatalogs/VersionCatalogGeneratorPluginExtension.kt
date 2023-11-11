@@ -248,6 +248,8 @@ constructor(
             version
                 .replace(versionRegEx, "")
                 .replace(dotRegex, ".") // replace 2 or more consecutive periods with a single one
+                .replace("\${.", "\${")
+                .replace(".}", "}")
                 .trim('.') // trim leading and trailing periods
         }
 

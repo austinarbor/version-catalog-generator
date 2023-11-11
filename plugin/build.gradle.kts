@@ -32,7 +32,7 @@ dependencies {
     implementation(libs.maven.model)
     implementation(libs.tomlj)
     implementation(libs.kasechange)
-
+    implementation(libs.commons.text)
     detektPlugins(libs.detekt.formatting)
 
     testImplementation(libs.bundles.testing)
