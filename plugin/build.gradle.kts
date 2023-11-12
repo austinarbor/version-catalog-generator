@@ -134,7 +134,7 @@ publishing {
 // coverage output
 val createTestkitFiles by
     tasks.registering {
-        val outputDir = file("${buildDir}/testkit")
+        val outputDir = file(layout.buildDirectory.dir("testkit"))
         inputs.files(sourceSets.main.get().runtimeClasspath)
         inputs.files(jacocoRuntime)
         outputs.dir(outputDir)
