@@ -69,10 +69,10 @@ internal class GeneratorTest {
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
         val (versions, libraries, bundles) = getExpectedCatalog(dep)
         // validate the versions
-        verify(builder, times(20)).version(any<String>(), any<String>())
+        verify(builder, times(21)).version(any<String>(), any<String>())
         versions.dottedKeySet().forEach { v -> verify(builder).version(v, versions.getString(v)!!) }
 
-        verify(builder, times(43)).library(any<String>(), any<String>(), any<String>())
+        verify(builder, times(48)).library(any<String>(), any<String>(), any<String>())
         // sort the keys and split into groups of 3, which should give us
         // the group, name, and version properties
         libraries.dottedKeySet().sorted().chunked(3).forEach { libProps ->
@@ -92,7 +92,7 @@ internal class GeneratorTest {
             }
         }
 
-        verify(builder, times(15)).bundle(any<String>(), any<List<String>>())
+        verify(builder, times(16)).bundle(any<String>(), any<List<String>>())
         bundles.dottedKeySet().forEach {
             assertThat(generatedBundles.containsKey(it))
             val expectedLibraries = bundles.getArrayOrEmpty(it).toList()

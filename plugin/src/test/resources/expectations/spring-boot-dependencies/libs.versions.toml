@@ -1,6 +1,7 @@
 [versions]
 activemq = "5.18.2"
 assertj = "3.24.2"
+awsjavasdk = "2.21.21"
 brave = "5.15.1"
 caffeine = "3.1.6"
 dropwizard-metrics = "4.2.19"
@@ -28,6 +29,11 @@ activemq-spring = { group = "org.apache.activemq", name = "activemq-spring", ver
 assertj-bom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
 assertj-core = { group = "org.assertj", name = "assertj-core", version = "3.24.2" }
 assertj-guava = { group = "org.assertj", name = "assertj-guava", version = "3.24.2" }
+awssdk-bom = { group = "software.amazon.awssdk", name = "bom", version = "2.21.21" }
+awssdk-sdk-core = { group = "software.amazon.awssdk", name = "sdk-core", version.ref = "awsjavasdk" }
+awssdk-s3 = { group = "software.amazon.awssdk", name = "s3", version.ref = "awsjavasdk" }
+awssdk-sqs = { group = "software.amazon.awssdk", name = "sqs", version.ref = "awsjavasdk" }
+awssdk-sts = { group = "software.amazon.awssdk", name = "sts", version.ref = "awsjavasdk" }
 spring-boot = { group = "org.springframework.boot", name = "spring-boot", version = "3.1.2" }
 spring-boot-devtools = { group = "org.springframework.boot", name = "spring-boot-devtools", version = "3.1.2" }
 spring-boot-starter-actuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator", version = "3.1.2" }
@@ -68,6 +74,7 @@ reporter2-zipkin-reporter-brave = { group = "io.zipkin.reporter2", name = "zipki
 
 [bundles]
 activemq = ["activemq-broker", "activemq-client", "activemq-jdbc-store", "activemq-spring"]
+awsjavasdk = ["awssdk-sdk-core", "awssdk-s3", "awssdk-sqs", "awssdk-sts"]
 caffeine = ["caffeine-caffeine", "caffeine-guava", "caffeine-jcache"]
 jackson-annotations = ["jackson-annotations"]
 jackson-core = ["jackson-core"]
