@@ -166,7 +166,7 @@ object Generator {
                 // if the version is a property, replace it with the
                 // actual version value
                 if (version.isRef) {
-                    bom.version = substitutor.replace(version.value)
+                    bom.version = version.resolvedValue
                 }
                 queue.add(bom)
             }
