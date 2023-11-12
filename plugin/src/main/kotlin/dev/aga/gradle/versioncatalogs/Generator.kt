@@ -76,14 +76,16 @@ object Generator {
         // improvement as well
         val bomDep =
             when (val src = config.source()) {
-                is Dependency -> resolver.resolve(src)
-                else -> resolver.resolve(src)
-            }.let {
-                Dependency().apply {
-                    this.groupId = it.groupId ?: it.parent?.groupId
-                    this.artifactId = it.artifactId
-                    this.version = it.version
+                is Dependency -> src
+                is String -> {
+                    val parts = src.split(":")
+                    Dependency().apply {
+                        groupId = parts[0]
+                        artifactId = parts[1]
+                        version = parts[2]
+                    }
                 }
+                else -> throw IllegalArgumentException("Unable to resolve notation ${src}")
             }
 
         return create(name) {
@@ -92,8 +94,8 @@ object Generator {
             val queue = ArrayDeque(listOf(bomDep))
             while (queue.isNotEmpty()) {
                 val dep = queue.removeFirst()
-                val pom = resolver.resolve(dep)
-                loadBom(pom, config, queue, props, seenModules)
+                val (model, _) = resolver.resolve(dep)
+                loadBom(model, config, queue, props, seenModules)
             }
         }
     }
@@ -223,7 +225,7 @@ object Generator {
         substitutor: StringSubstitutor,
         filter: (Dependency) -> Boolean,
     ): Map<Version, List<Dependency>> {
-        val deps = model.dependencyManagement?.dependencies ?: listOf<Dependency>()
+        val deps = model.dependencyManagement?.dependencies.orEmpty()
         if (deps.isEmpty()) {
             logger.warn(
                 "${model.groupId}:${model.artifactId}:${model.version} does not have any dependencies defined " +

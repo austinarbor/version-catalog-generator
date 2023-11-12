@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import io.gitlab.arturbosch.detekt.Detekt
 
 plugins {
     alias(libs.plugins.kotlin)
@@ -20,13 +21,12 @@ val PLUGIN_DISPLAY_NAME: String by project
 val PLUGIN_DESCRIPTION: String by project
 
 group = GROUP_ID
+
 version = VERSION
 
 val jacocoRuntime by configurations.creating
 
-repositories {
-    mavenCentral()
-}
+repositories { mavenCentral() }
 
 dependencies {
     implementation(libs.maven.model)
@@ -39,17 +39,17 @@ dependencies {
     testImplementation(libs.bundles.mockito)
     testImplementation(gradleTestKit())
     testRuntimeOnly(files("$buildDir/testkit"))
-    jacocoRuntime(variantOf(libs.jacoco.agent) {
-        classifier("runtime")
-    })
+    jacocoRuntime(variantOf(libs.jacoco.agent) { classifier("runtime") })
 }
 
-jacoco {
-    toolVersion = libs.versions.jacoco.get()
-}
+jacoco { toolVersion = libs.versions.jacoco.get() }
 
 spotless {
     kotlin {
+        ktfmt().dropboxStyle()
+        endWithNewline()
+    }
+    kotlinGradle {
         ktfmt().dropboxStyle()
         endWithNewline()
     }
@@ -61,21 +61,34 @@ detekt {
     baseline = file("$projectDir/config/detekt-baseline.xml")
 }
 
-
-tasks.withType<ShadowJar> {
-    archiveClassifier = ""
+tasks {
+    withType<Detekt>().configureEach {
+        // exclude the mock classes from detekt
+        exclude("dev/aga/gradle/versioncatalogs/mock/**")
+    }
+    withType<ShadowJar> { archiveClassifier = "" }
 }
 
 gradlePlugin {
     website = SCM_URL
     vcsUrl = SCM_URL
-    val generator by plugins.creating {
-        id = "dev.aga.gradle.version-catalog-generator"
-        implementationClass = "dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPlugin"
-        displayName = PLUGIN_DISPLAY_NAME
-        description = PLUGIN_DESCRIPTION
-        tags = listOf("version", "catalog", "generate", "bom", "pom", "dependencies", "dependency-management")
-    }
+    val generator by
+        plugins.creating {
+            id = "dev.aga.gradle.version-catalog-generator"
+            implementationClass = "dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPlugin"
+            displayName = PLUGIN_DISPLAY_NAME
+            description = PLUGIN_DESCRIPTION
+            tags =
+                listOf(
+                    "version",
+                    "catalog",
+                    "generate",
+                    "bom",
+                    "pom",
+                    "dependencies",
+                    "dependency-management",
+                )
+        }
 }
 
 val projectProps = project.properties
@@ -119,41 +132,31 @@ publishing {
 // VersionCatalogGeneratorPluginTest to instrument
 // the Testkit runner with jacoco so we get test
 // coverage output
-val createTestkitFiles by tasks.registering {
-    val outputDir = file("${buildDir}/testkit")
-    inputs.files(sourceSets.main.get().runtimeClasspath)
-    inputs.files(jacocoRuntime)
-    outputs.dir(outputDir)
-    doLast {
-        outputDir.mkdirs()
-        val jacocoPath = jacocoRuntime.asPath.replace('\\', '/')
-        file("$outputDir/testkit-classpath.txt")
-            .writeText(
-                sourceSets.main.get().runtimeClasspath.joinToString("\n")
-            )
-        file("$outputDir/testkit-gradle.properties").writeText(
-            "org.gradle.jvmargs=-javaagent:${jacocoPath}=destfile=$buildDir/jacoco/test.exec"
-        )
+val createTestkitFiles by
+    tasks.registering {
+        val outputDir = file("${buildDir}/testkit")
+        inputs.files(sourceSets.main.get().runtimeClasspath)
+        inputs.files(jacocoRuntime)
+        outputs.dir(outputDir)
+        doLast {
+            outputDir.mkdirs()
+            val jacocoPath = jacocoRuntime.asPath.replace('\\', '/')
+            file("$outputDir/testkit-classpath.txt")
+                .writeText(sourceSets.main.get().runtimeClasspath.joinToString("\n"))
+            file("$outputDir/testkit-gradle.properties")
+                .writeText(
+                    "org.gradle.jvmargs=-javaagent:${jacocoPath}=destfile=$buildDir/jacoco/test.exec")
+        }
     }
-}
 
 tasks {
     test {
         dependsOn(createTestkitFiles)
         finalizedBy(jacocoTestReport) // report is always generated after tests run
+        useJUnitPlatform { version = libs.versions.junit.get() }
     }
     jacocoTestReport {
         dependsOn(test)
-        reports {
-            xml.required = true
-        }
-    }
-}
-
-testing {
-    suites {
-        val test by getting(JvmTestSuite::class) {
-            useJUnitJupiter(libs.versions.junit)
-        }
+        reports { xml.required = true }
     }
 }

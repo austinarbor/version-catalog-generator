@@ -2,6 +2,7 @@ package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.service.FileCatalogParser
+import java.io.File
 import java.nio.file.Paths
 import javax.inject.Inject
 import net.pearx.kasechange.CaseFormat
@@ -150,7 +151,7 @@ constructor(
         lateinit var libraryAlias: String
 
         /** The catalog file containing the BOM library entry */
-        var file =
+        var file: File =
             settings.rootDir.toPath().resolve(Paths.get("gradle", "libs.versions.toml")).toFile()
 
         internal fun isInitialized(): Boolean {

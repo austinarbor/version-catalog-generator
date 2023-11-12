@@ -169,7 +169,9 @@ class VersionCatalogGeneratorPluginTest {
 
     companion object {
         private fun getResourceAsText(name: String): String {
-            return VersionCatalogGeneratorPluginTest.javaClass.classLoader
+            return VersionCatalogGeneratorPluginTest::class
+                .java
+                .classLoader
                 .getResource(name)
                 .readText()
         }

@@ -1,7 +1,7 @@
 package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.Generator.generate
-import dev.aga.gradle.versioncatalogs.service.LocalDependencyResolver
+import dev.aga.gradle.versioncatalogs.service.MockGradleDependencyResolver
 import java.nio.file.Paths
 import org.apache.maven.model.Dependency
 import org.assertj.core.api.Assertions.assertThat
@@ -36,7 +36,7 @@ internal class GeneratorTest {
     @Test
     fun testGenerate() {
         val dep = dep("org.springframework.boot", "spring-boot-dependencies", "3.1.2")
-        val resolver = LocalDependencyResolver(resourceRoot.resolve("poms"))
+        val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
         val settings = mock<Settings>()
         val objects = mock<ObjectFactory>()
         val config =
