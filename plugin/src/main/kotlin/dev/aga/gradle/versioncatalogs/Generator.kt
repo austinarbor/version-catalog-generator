@@ -104,7 +104,8 @@ object Generator {
      * dependencies mapped to that version.
      *
      * @param model the BOM
-     * @param config [VersionCatalogGeneratorPluginExtension]
+     * @param parentModel the parent of the BOM
+     * @param config [GeneratorConfig]
      * @param queue the BFS queue to add more BOMs into
      * @param props the version properties
      * @param seenModules the set of modules we have already created libraries for
@@ -139,9 +140,9 @@ object Generator {
      * BOM that have `type == "pom" && scope == "import"` will be added to the [queue].
      *
      * @param model the BOM
-     * @param config [VersionCatalogGeneratorPluginExtension]
+     * @param config the [GeneratorConfig]
      * @param queue the BFS queue to add more BOMs into
-     * @param props the version properties
+     * @param substitutor the [StringSubstitutor] for variable resolution
      * @param excludedProps the set of version properties to ignore
      * @param seenModules the set of modules we have already created libraries for
      */
@@ -216,8 +217,7 @@ object Generator {
      *
      * @param dep the dependency
      * @param version the version of the dependency, may be a property of actual version
-     * @param props the version properties
-     * @param config the [VersionCatalogGeneratorPluginExtension]
+     * @param config the [GeneratorConfig]
      * @return the library's alias and true if the version was a reference, or false if it was not
      */
     internal fun VersionCatalogBuilder.createLibrary(
