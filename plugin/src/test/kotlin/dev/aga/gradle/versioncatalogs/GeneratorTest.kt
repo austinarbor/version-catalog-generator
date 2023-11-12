@@ -10,7 +10,6 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder.LibraryAliasBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
-import org.gradle.api.model.ObjectFactory
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -38,7 +37,6 @@ internal class GeneratorTest {
         val dep = dep("org.springframework.boot", "spring-boot-dependencies", "3.1.2")
         val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
         val settings = mock<Settings>()
-        val objects = mock<ObjectFactory>()
         val config = GeneratorConfig(settings).apply { source = { dep } }
 
         val builder =
@@ -71,7 +69,7 @@ internal class GeneratorTest {
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
         val (versions, libraries, bundles) = getExpectedCatalog(dep)
         // validate the versions
-        verify(builder, times(29)).version(any<String>(), any<String>())
+        verify(builder, times(20)).version(any<String>(), any<String>())
         versions.dottedKeySet().forEach { v -> verify(builder).version(v, versions.getString(v)!!) }
 
         verify(builder, times(43)).library(any<String>(), any<String>(), any<String>())
