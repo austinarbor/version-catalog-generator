@@ -153,7 +153,7 @@ tasks {
     test {
         dependsOn(createTestkitFiles)
         finalizedBy(jacocoTestReport) // report is always generated after tests run
-        useJUnitPlatform { version = libs.versions.junit.get() }
+        useJUnitPlatform()
     }
     jacocoTestReport {
         dependsOn(test)
