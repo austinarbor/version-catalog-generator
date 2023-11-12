@@ -1,38 +1,34 @@
 package dev.aga.gradle.versioncatalogs
 
-import dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.Companion.DEFAULT_ALIAS_PREFIX_GENERATOR
-import dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.Companion.DEFAULT_ALIAS_SUFFIX_GENERATOR
-import dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.Companion.DEFAULT_VERSION_NAME_GENERATOR
-import dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension.Companion.NO_ALIAS_PREFIX
+import dev.aga.gradle.versioncatalogs.GeneratorConfig.Companion.DEFAULT_ALIAS_GENERATOR
 import net.pearx.kasechange.CaseFormat
-import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatExceptionOfType
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 
-internal class VersionCatalogGeneratorPluginExtensionTest {
+class GeneratorConfigTest {
     @ParameterizedTest
     @MethodSource("defaultLibraryNameProvider")
     fun `default library alias generator`(group: String, name: String, expected: String) {
-        val actual = VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR(group, name)
-        assertThat(actual).isEqualTo(expected)
+        val actual = DEFAULT_ALIAS_GENERATOR(group, name)
+        Assertions.assertThat(actual).isEqualTo(expected)
     }
 
     @ParameterizedTest
     @MethodSource("defaultAliasPrefixProvider")
     fun `default alias prefix generator`(groupId: String, artifactId: String, expected: String) {
         if (expected == "error") {
-            assertThatExceptionOfType(IllegalArgumentException::class.java)
-                .isThrownBy { DEFAULT_ALIAS_PREFIX_GENERATOR(groupId, artifactId) }
+            Assertions.assertThatExceptionOfType(IllegalArgumentException::class.java)
+                .isThrownBy { GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR(groupId, artifactId) }
                 .withMessage(
                     "Cannot generate alias for ${groupId}:${artifactId}, please provide custom generator",
                 )
         } else {
-            val actual = DEFAULT_ALIAS_PREFIX_GENERATOR(groupId, artifactId)
-            assertThat(actual).isEqualTo(expected)
+            val actual = GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR(groupId, artifactId)
+            Assertions.assertThat(actual).isEqualTo(expected)
         }
     }
 
@@ -44,28 +40,28 @@ internal class VersionCatalogGeneratorPluginExtensionTest {
         artifactId: String,
         expected: String,
     ) {
-        val actual = DEFAULT_ALIAS_SUFFIX_GENERATOR(prefix, groupId, artifactId)
-        assertThat(actual).isEqualTo(expected)
+        val actual = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR(prefix, groupId, artifactId)
+        Assertions.assertThat(actual).isEqualTo(expected)
     }
 
     @Test
     fun testNoAliasPrefix() {
-        val actual = NO_ALIAS_PREFIX("whatever", "whatever")
-        assertThat(actual).isBlank()
+        val actual = GeneratorConfig.NO_ALIAS_PREFIX("whatever", "whatever")
+        Assertions.assertThat(actual).isBlank()
     }
 
     @ParameterizedTest
     @MethodSource("defaultVersionNameProvider")
     fun `default version name generator`(version: String, expected: String) {
-        val actual = DEFAULT_VERSION_NAME_GENERATOR(version)
-        assertThat(actual).isEqualTo(expected)
+        val actual = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR(version)
+        Assertions.assertThat(actual).isEqualTo(expected)
     }
 
     @ParameterizedTest
     @MethodSource("caseChangeProvider")
     fun `case change`(source: String, from: CaseFormat, to: CaseFormat, expected: String) {
-        val actual = VersionCatalogGeneratorPluginExtension.caseChange(source, from, to)
-        assertThat(actual).isEqualTo(expected)
+        val actual = GeneratorConfig.caseChange(source, from, to)
+        Assertions.assertThat(actual).isEqualTo(expected)
     }
 
     companion object {

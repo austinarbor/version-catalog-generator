@@ -36,9 +36,14 @@ object Generator {
      */
     fun Settings.generate(
         name: String,
-        conf: Action<VersionCatalogGeneratorPluginExtension>,
+        conf: Action<GeneratorConfig>,
     ): VersionCatalogBuilder {
-        (this as ExtensionAware).extensions.configure("generator", conf)
+        val action: Action<VersionCatalogGeneratorPluginExtension> = Action {
+            val cfg = GeneratorConfig(settings)
+            conf.execute(cfg)
+            this.config = cfg
+        }
+        (this as ExtensionAware).extensions.configure("generator", action)
 
         return this.dependencyResolutionManagement.versionCatalogs.generate(name, generatorExt)
     }
@@ -55,7 +60,7 @@ object Generator {
         conf: VersionCatalogGeneratorPluginExtension,
     ): VersionCatalogBuilder {
         val resolver = GradleDependencyResolver(conf.objects, dependencyResolutionServices)
-        return generate(name, conf, resolver)
+        return generate(name, conf.config, resolver)
     }
 
     /**
@@ -68,7 +73,7 @@ object Generator {
      */
     internal fun MutableVersionCatalogContainer.generate(
         name: String,
-        config: VersionCatalogGeneratorPluginExtension,
+        config: GeneratorConfig,
         resolver: DependencyResolver,
     ): VersionCatalogBuilder {
         // need to clean up this logic so that we don't double-resolve the first
@@ -107,7 +112,7 @@ object Generator {
     internal fun VersionCatalogBuilder.loadBom(
         model: Model,
         parentModel: Model?,
-        config: VersionCatalogGeneratorPluginExtension,
+        config: GeneratorConfig,
         queue: MutableList<Dependency>,
         props: MutableMap<String, String>,
         seenModules: MutableSet<String>,
@@ -142,7 +147,7 @@ object Generator {
      */
     internal fun VersionCatalogBuilder.loadDependencies(
         model: Model,
-        config: VersionCatalogGeneratorPluginExtension,
+        config: GeneratorConfig,
         queue: MutableList<Dependency>,
         substitutor: StringSubstitutor,
         excludedProps: Set<String>,
@@ -218,7 +223,7 @@ object Generator {
     internal fun VersionCatalogBuilder.createLibrary(
         dep: Dependency,
         version: Version,
-        config: VersionCatalogGeneratorPluginExtension,
+        config: GeneratorConfig,
     ): String {
         val alias = config.libraryAliasGenerator(dep.groupId, dep.artifactId)
         val library = library(alias, dep.groupId, dep.artifactId)

@@ -39,8 +39,7 @@ internal class GeneratorTest {
         val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
         val settings = mock<Settings>()
         val objects = mock<ObjectFactory>()
-        val config =
-            VersionCatalogGeneratorPluginExtension(settings, objects).apply { source = { dep } }
+        val config = GeneratorConfig(settings).apply { source = { dep } }
 
         val builder =
             mock<VersionCatalogBuilder> {
