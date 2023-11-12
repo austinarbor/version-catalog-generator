@@ -66,12 +66,12 @@ class GradleDependencyResolver(
 
     private fun decorate(source: Dependency, target: Model) {
         target.apply {
-            if (groupId == "\${project.groupId}") {
-                groupId = source.groupId
-            }
-            groupId = groupId ?: parent?.groupId ?: source.groupId
-            artifactId = artifactId ?: source.artifactId
-            version = version ?: parent?.version ?: source.version
+            // sometimes the POM files will not be fully populated or will have properties set like
+            // ${project.groupId}. Since we have the exact values from the original lookup, set them
+            // directly to prevent any complications further down the line
+            groupId = source.groupId
+            artifactId = source.artifactId
+            version = source.version
         }
     }
 
