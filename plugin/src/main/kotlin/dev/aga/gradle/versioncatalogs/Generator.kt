@@ -159,9 +159,7 @@ object Generator {
         deps.forEach { (version, boms) ->
             boms.forEach { bom ->
                 logger.info("${model.groupId}:${model.artifactId} contains other BOMs")
-                if (version.isRef && usedVersions.add(version.unwrapped)) {
-                    registerVersion(version, config.versionNameGenerator)
-                }
+                maybeRegisterVersion(version, config.versionNameGenerator, usedVersions)
                 createLibrary(bom, version, config)
                 // if the version is a property, replace it with the
                 // actual version value
@@ -175,9 +173,7 @@ object Generator {
         getNewDependencies(model, seenModules, substitutor, jarFilter)
             .filter { skipAndLogExcluded(model, it, excludedProps) }
             .forEach { (version, deps) ->
-                if (version.isRef && usedVersions.add(version.unwrapped)) {
-                    registerVersion(version, config.versionNameGenerator)
-                }
+                maybeRegisterVersion(version, config.versionNameGenerator, usedVersions)
                 val aliases = mutableListOf<String>()
                 deps.forEach { dep ->
                     val alias = createLibrary(dep, version, config)
@@ -193,12 +189,15 @@ object Generator {
         return usedVersions
     }
 
-    internal fun VersionCatalogBuilder.registerVersion(
+    internal fun VersionCatalogBuilder.maybeRegisterVersion(
         version: Version,
         versionNameGenerator: (String) -> String,
+        usedVersions: MutableSet<String>
     ) {
-        val versionAlias = versionNameGenerator(version.unwrapped)
-        version(versionAlias, version.resolvedValue)
+        if (version.isRef && usedVersions.add(version.unwrapped)) {
+            val versionAlias = versionNameGenerator(version.unwrapped)
+            version(versionAlias, version.resolvedValue)
+        }
     }
 
     internal fun VersionCatalogBuilder.registerBundle(
