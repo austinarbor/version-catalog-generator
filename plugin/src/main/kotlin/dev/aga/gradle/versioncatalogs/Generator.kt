@@ -87,8 +87,8 @@ object Generator {
             val queue = ArrayDeque(listOf(bomDep))
             while (queue.isNotEmpty()) {
                 val dep = queue.removeFirst()
-                val (model, _) = resolver.resolve(dep)
-                loadBom(model, config, queue, props, seenModules)
+                val (model, parentModel) = resolver.resolve(dep)
+                loadBom(model, parentModel, config, queue, props, seenModules)
             }
         }
     }
@@ -106,12 +106,13 @@ object Generator {
      */
     internal fun VersionCatalogBuilder.loadBom(
         model: Model,
+        parentModel: Model?,
         config: VersionCatalogGeneratorPluginExtension,
         queue: MutableList<Dependency>,
         props: MutableMap<String, String>,
         seenModules: MutableSet<String>,
     ) {
-        val (newProps, dupes) = getProperties(model, config.versionNameGenerator, props.keys)
+        val (newProps, dupes) = getProperties(model, parentModel, props.keys)
         if (dupes.isNotEmpty()) {
             logger.warn(
                 "found {} duplicate version keys while loading bom {}:{}:{}",
@@ -122,13 +123,9 @@ object Generator {
             )
         }
 
-        val subst = newProps.toSubstitutor()
-
-        val finalProps = newProps.map { (k, v) -> subst.replace(k) to subst.replace(v) }.toMap()
-
-        finalProps.forEach { (key, value) -> version(key, value) }
-        props.putAll(finalProps)
-        loadDependencies(model, config, queue, props, dupes, seenModules)
+        val substitutor = newProps.toSubstitutor()
+        val usedVersions = loadDependencies(model, config, queue, substitutor, dupes, seenModules)
+        newProps.filterKeys { k -> usedVersions.contains(k) }.forEach { (k, v) -> props[k] = v }
     }
 
     /**
@@ -147,17 +144,19 @@ object Generator {
         model: Model,
         config: VersionCatalogGeneratorPluginExtension,
         queue: MutableList<Dependency>,
-        props: Map<String, String>,
+        substitutor: StringSubstitutor,
         excludedProps: Set<String>,
         seenModules: MutableSet<String>,
-    ) {
-        val substitutor = props.toSubstitutor()
-
-        getNewDependencies(model, config, seenModules, substitutor, importFilter).forEach {
-            (version, boms) ->
+    ): Set<String> {
+        val usedVersions = mutableSetOf<String>()
+        val deps = getNewDependencies(model, seenModules, substitutor, importFilter)
+        deps.forEach { (version, boms) ->
             boms.forEach { bom ->
                 logger.info("${model.groupId}:${model.artifactId} contains other BOMs")
-                createLibrary(bom, version, substitutor, config)
+                if (version.isRef && usedVersions.add(version.unwrapped)) {
+                    registerVersion(version, config.versionNameGenerator)
+                }
+                createLibrary(bom, version, config)
                 // if the version is a property, replace it with the
                 // actual version value
                 if (version.isRef) {
@@ -167,21 +166,42 @@ object Generator {
             }
         }
 
-        getNewDependencies(model, config, seenModules, substitutor, jarFilter)
-            .filter { skipAndLogExcluded(model, it, substitutor, excludedProps) }
+        getNewDependencies(model, seenModules, substitutor, jarFilter)
+            .filter { skipAndLogExcluded(model, it, excludedProps) }
             .forEach { (version, deps) ->
+                if (version.isRef && usedVersions.add(version.unwrapped)) {
+                    registerVersion(version, config.versionNameGenerator)
+                }
                 val aliases = mutableListOf<String>()
                 deps.forEach { dep ->
-                    val alias = createLibrary(dep, version, substitutor, config)
+                    val alias = createLibrary(dep, version, config)
                     if (version.isRef) {
                         aliases += alias
                     }
                 }
                 if (aliases.isNotEmpty()) {
-                    val bundleName = substitutor.unwrap(version.value).replace('.', '-')
-                    bundle(bundleName, aliases)
+                    registerBundle(version, aliases, config.versionNameGenerator)
                 }
             }
+
+        return usedVersions
+    }
+
+    internal fun VersionCatalogBuilder.registerVersion(
+        version: Version,
+        versionNameGenerator: (String) -> String,
+    ) {
+        val versionAlias = versionNameGenerator(version.unwrapped)
+        version(versionAlias, version.resolvedValue)
+    }
+
+    internal fun VersionCatalogBuilder.registerBundle(
+        version: Version,
+        aliases: List<String>,
+        versionNameGenerator: (String) -> String,
+    ) {
+        val bundleName = versionNameGenerator(version.unwrapped).replace('.', '-')
+        bundle(bundleName, aliases)
     }
 
     /**
@@ -198,13 +218,13 @@ object Generator {
     internal fun VersionCatalogBuilder.createLibrary(
         dep: Dependency,
         version: Version,
-        substitutor: StringSubstitutor,
         config: VersionCatalogGeneratorPluginExtension,
     ): String {
         val alias = config.libraryAliasGenerator(dep.groupId, dep.artifactId)
         val library = library(alias, dep.groupId, dep.artifactId)
         if (version.isRef) {
-            library.versionRef(substitutor.unwrap(version.value))
+            val versionAlias = config.versionNameGenerator(version.unwrapped)
+            library.versionRef(versionAlias)
         } else {
             library.version(version.value)
         }
@@ -213,7 +233,6 @@ object Generator {
 
     internal fun getNewDependencies(
         model: Model,
-        config: VersionCatalogGeneratorPluginExtension,
         seenModules: MutableSet<String> = mutableSetOf(),
         substitutor: StringSubstitutor,
         filter: (Dependency) -> Boolean,
@@ -230,28 +249,50 @@ object Generator {
             .onEach { it.groupId = mapGroup(model, it.groupId) }
             .filter(filter)
             .filter { seenModules.add("${it.groupId}:${it.artifactId}") }
-            .onEach { it.version = mapVersion(model, it.version, config.versionNameGenerator) }
-            .groupBy { Version(it.version, substitutor.hasReplacement(it.version)) }
+            .onEach { it.version = mapVersion(model, it.version) }
+            .groupBy {
+                Version(it.version, substitutor.unwrap(it.version), substitutor.replace(it.version))
+            }
     }
 
     internal fun getProperties(
         model: Model,
-        versionMapper: (String) -> String,
+        parentModel: Model?,
         existingProperties: Set<String> = setOf(),
     ): Pair<Map<String, String>, Set<String>> {
-        val props = model.properties
-        val (newProps, dupes) =
-            props
-                .propertyNames()
-                .asSequence()
-                .mapNotNull { it as? String }
-                .map { mapVersion(model, it, versionMapper) to props.getProperty(it) }
-                .partition { !existingProperties.contains(it.first) }
-
+        val (parentProps, parentDupes) = getModelProperties(parentModel, existingProperties)
+        val (modelProps, modelDupes) =
+            getModelProperties(model, existingProperties, parentProps.toMutableMap())
         // turn the dupes into a set of strings
-        val dupeVersions = dupes.asSequence().map { it.first }.toSet()
+        val dupeVersions =
+            (parentDupes.asSequence() + modelDupes.asSequence()).map { it.key }.toSet()
 
-        return newProps.toMap() to dupeVersions
+        val newProps = HashMap(parentProps).apply { putAll(modelProps) }
+
+        return newProps to dupeVersions
+    }
+
+    fun getModelProperties(
+        model: Model?,
+        existingProperties: Set<String>,
+        extraProperties: MutableMap<String, String> = mutableMapOf(),
+    ): Pair<Map<String, String>, Map<String, String>> {
+        if (model == null) {
+            return emptyMap<String, String>() to emptyMap()
+        }
+        val (newProps, dupes) =
+            with(model.properties) {
+                propertyNames()
+                    .asSequence()
+                    .mapNotNull { it as? String }
+                    .map { mapVersion(model, it) to getProperty(it) }
+                    .partition { !existingProperties.contains(it.first) }
+            }
+        extraProperties["project.version"] = model.version
+        val substitutor = newProps.toMap(extraProperties).toSubstitutor()
+        val final =
+            newProps.associate { (k, v) -> substitutor.replace(k) to substitutor.replace(v) }
+        return final to dupes.toMap()
     }
 
     internal fun mapGroup(model: Model, group: String): String {
@@ -259,6 +300,13 @@ object Generator {
             return model.groupId
         }
         return group
+    }
+
+    internal fun mapVersion(model: Model, version: String): String {
+        if ("\${project.version}" == version) {
+            return model.version
+        }
+        return version
     }
 
     internal fun mapVersion(
@@ -275,11 +323,10 @@ object Generator {
     private fun skipAndLogExcluded(
         source: Model,
         e: Map.Entry<Version, List<Dependency>>,
-        substitutor: StringSubstitutor,
         excludedProps: Set<String>,
     ): Boolean {
         val (version, deps) = e
-        if (excludedProps.contains(substitutor.unwrap(version.value))) {
+        if (excludedProps.contains(version.unwrapped)) {
             deps.forEach {
                 logger.warn(
                     "excluding {}:{}:{} found in {}:{}:{}",
