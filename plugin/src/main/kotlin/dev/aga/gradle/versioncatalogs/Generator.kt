@@ -77,14 +77,7 @@ object Generator {
         val bomDep =
             when (val src = config.source()) {
                 is Dependency -> src
-                is String -> {
-                    val parts = src.split(":")
-                    Dependency().apply {
-                        groupId = parts[0]
-                        artifactId = parts[1]
-                        version = parts[2]
-                    }
-                }
+                is String -> src.toDependency()
                 else -> throw IllegalArgumentException("Unable to resolve notation ${src}")
             }
 
