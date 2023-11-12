@@ -38,7 +38,7 @@ dependencies {
     testImplementation(libs.bundles.testing)
     testImplementation(libs.bundles.mockito)
     testImplementation(gradleTestKit())
-    testRuntimeOnly(files("$buildDir/testkit"))
+    testRuntimeOnly(files(layout.buildDirectory.dir("testkit")))
     jacocoRuntime(variantOf(libs.jacoco.agent) { classifier("runtime") })
 }
 
