@@ -127,7 +127,7 @@ class GeneratorConfigTest {
         private fun defaultVersionNameProvider(): List<Arguments> {
             return listOf(
                 arguments("activemq.version", "activemq"),
-                arguments("jackson.version.modules", "jackson.modules"),
+                arguments("jackson.version.modules", "jackson-modules"),
                 arguments("devVersion", "dev"),
             )
         }

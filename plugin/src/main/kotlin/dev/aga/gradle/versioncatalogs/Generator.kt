@@ -192,7 +192,7 @@ object Generator {
     internal fun VersionCatalogBuilder.maybeRegisterVersion(
         version: Version,
         versionNameGenerator: (String) -> String,
-        usedVersions: MutableSet<String>
+        usedVersions: MutableSet<String>,
     ) {
         if (version.isRef && usedVersions.add(version.unwrapped)) {
             val versionAlias = versionNameGenerator(version.unwrapped)

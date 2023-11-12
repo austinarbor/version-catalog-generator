@@ -212,8 +212,8 @@ class GeneratorConfig(val settings: Settings) {
          * Default function to generate the alias for the version, based on the version in the
          * version string. This function will first replace all case-insensitive instances of the
          * string *version* with an empty string. Then, all instances of two or more consecutive
-         * periods are replaced with a single period. Finally, any leading or trailing periods are
-         * trimmed.
+         * periods are replaced with a single period. Then, any leading or trailing periods are
+         * trimmed. Finally, all periods are replaced with a hyphen.
          */
         @JvmStatic
         val DEFAULT_VERSION_NAME_GENERATOR: (String) -> String = { version ->
@@ -223,9 +223,8 @@ class GeneratorConfig(val settings: Settings) {
             version
                 .replace(versionRegEx, "")
                 .replace(dotRegex, ".") // replace 2 or more consecutive periods with a single one
-                .replace("\${.", "\${")
-                .replace(".}", "}")
                 .trim('.') // trim leading and trailing periods
+                .replace('.', '-') // replace dots with hyphens
         }
 
         /**

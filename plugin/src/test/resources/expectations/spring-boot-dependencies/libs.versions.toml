@@ -5,18 +5,18 @@ awsjavasdk = "2.21.21"
 brave = "5.15.1"
 caffeine = "3.1.6"
 dropwizard-metrics = "4.2.19"
-jackson.annotations = "2.15.2"
+jackson-annotations = "2.15.2"
 jackson-bom = "2.15.2"
-jackson.core = "2.15.2"
-jackson.databind = "2.15.2"
-jackson.dataformat = "2.15.2"
-jackson.datatype = "2.15.2"
-jackson.jaxrs = "2.15.2"
-jackson.jacksonjr = "2.15.2"
-jackson.jakarta.rs = "2.15.2"
-jackson.module = "2.15.2"
-jackson.module.kotlin = "2.15.2"
-jackson.module.scala = "2.15.2"
+jackson-core = "2.15.2"
+jackson-databind = "2.15.2"
+jackson-dataformat = "2.15.2"
+jackson-datatype = "2.15.2"
+jackson-jaxrs = "2.15.2"
+jackson-jacksonjr = "2.15.2"
+jackson-jakarta-rs = "2.15.2"
+jackson-module = "2.15.2"
+jackson-module-kotlin = "2.15.2"
+jackson-module-scala = "2.15.2"
 zipkin = "2.23.2"
 zipkin-proto3 = "1.0.0"
 zipkin-reporter = "2.16.3"
@@ -48,18 +48,18 @@ caffeine-caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine"
 caffeine-guava = { group = "com.github.ben-manes.caffeine", name = "guava", version.ref = "caffeine" }
 caffeine-jcache = { group = "com.github.ben-manes.caffeine", name = "jcache", version.ref = "caffeine" }
 jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson-bom" }
-jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson.annotations" }
-jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-core", version.ref = "jackson.core" }
-jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson.databind" }
-jackson-dataformat-avro = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-avro", version.ref = "jackson.dataformat" }
-jackson-datatype-jdk8 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jdk8", version.ref = "jackson.datatype" }
-jackson-datatype-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jackson.datatype" }
-jackson-jaxrs-base = { group = "com.fasterxml.jackson.jaxrs", name = "jackson-jaxrs-base", version.ref = "jackson.jaxrs" }
-jackson-jakarta-rs-base = { group = "com.fasterxml.jackson.jakarta.rs", name = "jackson-jakarta-rs-base", version.ref = "jackson.jakarta.rs" }
-jackson-jr-all = { group = "com.fasterxml.jackson.jr", name = "jackson-jr-all", version.ref = "jackson.jacksonjr" }
-jackson-module-blackbird = { group = "com.fasterxml.jackson.module", name = "jackson-module-blackbird", version.ref = "jackson.module" }
-jackson-module-kotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson.module.kotlin" }
-jackson-module-scala_2.11 = { group = "com.fasterxml.jackson.module", name = "jackson-module-scala_2.11", version.ref = "jackson.module.scala" }
+jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson-annotations" }
+jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-core", version.ref = "jackson-core" }
+jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson-databind" }
+jackson-dataformat-avro = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-avro", version.ref = "jackson-dataformat" }
+jackson-datatype-jdk8 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jdk8", version.ref = "jackson-datatype" }
+jackson-datatype-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jackson-datatype" }
+jackson-jaxrs-base = { group = "com.fasterxml.jackson.jaxrs", name = "jackson-jaxrs-base", version.ref = "jackson-jaxrs" }
+jackson-jakarta-rs-base = { group = "com.fasterxml.jackson.jakarta.rs", name = "jackson-jakarta-rs-base", version.ref = "jackson-jakarta-rs" }
+jackson-jr-all = { group = "com.fasterxml.jackson.jr", name = "jackson-jr-all", version.ref = "jackson-jacksonjr" }
+jackson-module-blackbird = { group = "com.fasterxml.jackson.module", name = "jackson-module-blackbird", version.ref = "jackson-module" }
+jackson-module-kotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson-module-kotlin" }
+jackson-module-scala_2.11 = { group = "com.fasterxml.jackson.module", name = "jackson-module-scala_2.11", version.ref = "jackson-module-scala" }
 metrics-bom = { group = "io.dropwizard.metrics", name = "metrics-bom", version.ref = "dropwizard-metrics" }
 metrics-annotation = { group = "io.dropwizard.metrics", name = "metrics-annotation", version = "4.2.19" }
 metrics-caffeine = { group = "io.dropwizard.metrics", name = "metrics-caffeine", version = "4.2.19" }
