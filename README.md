@@ -20,7 +20,7 @@ This plugin is in alpha! Expect breaking changes until we reach a more stable st
 
 ```kotlin
 import dev.aga.gradle.versioncatalogs.Generator.generate
-import dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension
+import dev.aga.gradle.versioncatalogs.GeneratorConfig
 
 plugins {
     id("dev.aga.gradle.version-catalog-generator") version("0.0.7")
@@ -46,20 +46,20 @@ dependencyResolutionManagement {
             libraryAliasGenerator = {groupId, artifactId ->
                 val prefix = aliasPrefixGenerator(groupId, artifactId)
                 val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
-                VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR(prefix,suffix)
+                GeneratorConfig.DEFAULT_ALIAS_GENERATOR(prefix,suffix)
             }
             // for example if you prefer no prefix and camelCase library names you can do:
-            aliasPrefixGenerator = VersionCatalogGeneratorPluginExtension.NO_ALIAS_PREFIX
+            aliasPrefixGenerator = GeneratorConfig.NO_ALIAS_PREFIX
             aliasSuffixGenerator = (prefix, group, name) -> {
-                VersionCatalogGeneratorPluginExtension.caseChange(name, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.CAMEL)
+                GeneratorConfig.caseChange(name, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.CAMEL)
             }
             // or use the convenience function
-            libraryAliasGenerator = VersionCatalogPluginExtension.CAMEL_CASE_NAME_LIBRARY_ALIAS_GENERATOR
+            libraryAliasGenerator = GeneratorConfig.CAMEL_CASE_NAME_LIBRARY_ALIAS_GENERATOR
             
             // you can optionally change the version alias generation behavior by
             // providing your own algorithm below. check the javadoc for more 
             // information
-            versionNameGenerator = VersionCatalogGeneratorPluginExtension.DEFAULT_VERSION_NAME_GENERATOR
+            versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
         }
     }
 }

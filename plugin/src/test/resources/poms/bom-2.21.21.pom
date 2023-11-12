@@ -1,0 +1,43 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>aws-sdk-java-pom</artifactId>
+        <version>2.21.21</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>bom</artifactId>
+    <packaging>pom</packaging>
+    <name>AWS Java SDK :: Bill of Materials</name>
+    <description>The AWS SDK for Java - BOM module holds the dependency managements for individual java clients.</description>
+    <url>https://aws.amazon.com/sdkforjava</url>
+    <properties>
+        <sonar.skip>true</sonar.skip>
+    </properties>
+    <dependencyManagement>
+        <dependencies>
+            <!--  Codegen  -->
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>sdk-core</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <!--  Services  -->
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>s3</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>sqs</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>sts</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

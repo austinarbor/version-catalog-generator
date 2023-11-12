@@ -36,7 +36,7 @@ class VersionCatalogGeneratorPluginTest {
         settingsFile.writeText(
             """
             import dev.aga.gradle.versioncatalogs.Generator.generate
-            import dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPluginExtension
+            import dev.aga.gradle.versioncatalogs.GeneratorConfig
             buildscript {
               dependencies {
                 classpath(files($classpathString))
@@ -55,20 +55,23 @@ class VersionCatalogGeneratorPluginTest {
                   libraryAliasGenerator = { groupId, artifactId -> 
                     val prefix = aliasPrefixGenerator(groupId, artifactId)
                     val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
-                    VersionCatalogGeneratorPluginExtension.DEFAULT_ALIAS_GENERATOR(prefix,suffix)
+                    GeneratorConfig.DEFAULT_ALIAS_GENERATOR(prefix,suffix)
                   }
-                  versionNameGenerator = VersionCatalogGeneratorPluginExtension.DEFAULT_VERSION_NAME_GENERATOR
+                  versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
                 }
                 generate("mockitoLibs") {
                   from("org.mockito:mockito-bom:5.5.0")
-                  aliasPrefixGenerator = VersionCatalogGeneratorPluginExtension.NO_ALIAS_PREFIX
+                  aliasPrefixGenerator = GeneratorConfig.NO_ALIAS_PREFIX
                   aliasSuffixGenerator = { _, _, artifact ->
-                    VersionCatalogGeneratorPluginExtension.caseChange(artifact, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.CAMEL)
+                    GeneratorConfig.caseChange(artifact, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.CAMEL)
                   }
                 }
                 generate("junitLibs") {
                   from("org.junit:junit-bom:5.10.0")
-                  libraryAliasGenerator = VersionCatalogGeneratorPluginExtension.CAMEL_CASE_NAME_LIBRARY_ALIAS_GENERATOR
+                  libraryAliasGenerator = GeneratorConfig.CAMEL_CASE_NAME_LIBRARY_ALIAS_GENERATOR
+                }
+                generate("awsLibs") {
+                  from("software.amazon.awssdk:bom:2.21.15")
                 }
               }
             }
@@ -83,6 +86,7 @@ class VersionCatalogGeneratorPluginTest {
             dependencies {
               implementation(jsonLibs.jackson.databind)
               implementation(jsonLibs.bundles.jackson.module)
+              implementation(awsLibs.awssdk.s3.asProvider())
               testImplementation(mockitoLibs.mockitoCore)
               testImplementation(mockitoLibs.mockitoJunitJupiter)
               testImplementation(junitLibs.junitJupiter)
@@ -169,7 +173,9 @@ class VersionCatalogGeneratorPluginTest {
 
     companion object {
         private fun getResourceAsText(name: String): String {
-            return VersionCatalogGeneratorPluginTest.javaClass.classLoader
+            return VersionCatalogGeneratorPluginTest::class
+                .java
+                .classLoader
                 .getResource(name)
                 .readText()
         }

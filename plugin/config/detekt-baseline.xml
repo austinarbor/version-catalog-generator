@@ -2,11 +2,17 @@
 <SmellBaseline>
   <ManuallySuppressedIssues></ManuallySuppressedIssues>
   <CurrentIssues>
-    <ID>LongMethod:GeneratorTest.kt$GeneratorTest$@Test fun testGenerate()</ID>
-    <ID>MagicNumber:LocalDependencyResolver.kt$LocalDependencyResolver$3</ID>
-    <ID>TooGenericExceptionThrown:LocalDependencyResolver.kt$LocalDependencyResolver$throw RuntimeException( "LocalDependencyResolver can only resolve File, Path, or Dependency notations", )</ID>
-    <ID>TooGenericExceptionThrown:LocalDependencyResolver.kt$LocalDependencyResolver$throw RuntimeException("Path ${filePath} does not exist")</ID>
-    <ID>TooGenericExceptionThrown:LocalDependencyResolver.kt$LocalDependencyResolver$throw RuntimeException("Unable to parse notation '${notation}")</ID>
+    <ID>FunctionReturnTypeSpacing:ResolutionStrategy.kt$ResolutionStrategy$override fun getDependencySubstitutionRule(): ImmutableActionSet&lt;DependencySubstitutionInternal&gt;</ID>
     <ID>TooManyFunctions:Generator.kt$Generator</ID>
+    <ID>TrailingCommaOnDeclarationSite:DependencyHandler.kt$DependencyHandler$( configurationName: String, dependencyNotation: Any )</ID>
+    <ID>TrailingCommaOnDeclarationSite:DependencyHandler.kt$DependencyHandler$( configurationName: String, dependencyNotation: Provider&lt;T&gt; )</ID>
+    <ID>TrailingCommaOnDeclarationSite:DependencyHandler.kt$DependencyHandler$( dependencyProvider: Provider&lt;MinimalExternalModuleDependency&gt; )</ID>
+    <ID>TrailingCommaOnDeclarationSite:DependencyHandler.kt$DependencyHandler$( notation: Any, configureClosure: Closure&lt;*&gt; )</ID>
+    <ID>TrailingCommaOnDeclarationSite:ResolutionStrategy.kt$ResolutionStrategy$( action: Action&lt;in CapabilitiesResolution&gt; )</ID>
+    <ID>TrailingCommaOnDeclarationSite:ResolutionStrategy.kt$ResolutionStrategy$( action: Action&lt;in ComponentSelectionRules&gt; )</ID>
+    <ID>TrailingCommaOnDeclarationSite:ResolutionStrategy.kt$ResolutionStrategy$( action: Action&lt;in DependencySubstitutions&gt; )</ID>
+    <ID>TrailingCommaOnDeclarationSite:ResolutionStrategy.kt$ResolutionStrategy$( rule: Action&lt;in DependencyResolveDetails&gt; )</ID>
+    <ID>TrailingCommaOnDeclarationSite:ResolutionStrategy.kt$ResolutionStrategy$( vararg moduleVersionSelectorNotations: Any? )</ID>
+    <ID>UnnecessaryParenthesesBeforeTrailingLambda:DependencyHandler.kt$DependencyHandler$()</ID>
   </CurrentIssues>
 </SmellBaseline>

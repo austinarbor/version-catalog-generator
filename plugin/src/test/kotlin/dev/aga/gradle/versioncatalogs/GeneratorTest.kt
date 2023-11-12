@@ -1,7 +1,7 @@
 package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.Generator.generate
-import dev.aga.gradle.versioncatalogs.service.LocalDependencyResolver
+import dev.aga.gradle.versioncatalogs.service.MockGradleDependencyResolver
 import java.nio.file.Paths
 import org.apache.maven.model.Dependency
 import org.assertj.core.api.Assertions.assertThat
@@ -10,7 +10,6 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder.LibraryAliasBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
-import org.gradle.api.model.ObjectFactory
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -36,11 +35,9 @@ internal class GeneratorTest {
     @Test
     fun testGenerate() {
         val dep = dep("org.springframework.boot", "spring-boot-dependencies", "3.1.2")
-        val resolver = LocalDependencyResolver(resourceRoot.resolve("poms"))
+        val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
         val settings = mock<Settings>()
-        val objects = mock<ObjectFactory>()
-        val config =
-            VersionCatalogGeneratorPluginExtension(settings, objects).apply { source = { dep } }
+        val config = GeneratorConfig(settings).apply { source = { dep } }
 
         val builder =
             mock<VersionCatalogBuilder> {
@@ -72,10 +69,10 @@ internal class GeneratorTest {
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
         val (versions, libraries, bundles) = getExpectedCatalog(dep)
         // validate the versions
-        verify(builder, times(29)).version(any<String>(), any<String>())
+        verify(builder, times(21)).version(any<String>(), any<String>())
         versions.dottedKeySet().forEach { v -> verify(builder).version(v, versions.getString(v)!!) }
 
-        verify(builder, times(43)).library(any<String>(), any<String>(), any<String>())
+        verify(builder, times(48)).library(any<String>(), any<String>(), any<String>())
         // sort the keys and split into groups of 3, which should give us
         // the group, name, and version properties
         libraries.dottedKeySet().sorted().chunked(3).forEach { libProps ->
@@ -95,7 +92,7 @@ internal class GeneratorTest {
             }
         }
 
-        verify(builder, times(15)).bundle(any<String>(), any<List<String>>())
+        verify(builder, times(16)).bundle(any<String>(), any<List<String>>())
         bundles.dottedKeySet().forEach {
             assertThat(generatedBundles.containsKey(it))
             val expectedLibraries = bundles.getArrayOrEmpty(it).toList()
