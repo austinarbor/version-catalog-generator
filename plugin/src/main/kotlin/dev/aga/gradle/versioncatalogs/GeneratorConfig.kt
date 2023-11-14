@@ -63,6 +63,25 @@ class GeneratorConfig(val settings: Settings) {
     }
 
     /**
+     * Use the library with the given alias from `gradle/libs.versions.toml` as the source of the
+     * generated catalog. This is a shortcut for
+     *
+     * ```kotlin
+     * toml {
+     *  libraryAlias = "the-bom"
+     * }
+     * ```
+     *
+     * And is meant to be used as such:
+     * ```kotlin
+     * from(toml("my-bom"))
+     * ```
+     */
+    fun toml(libraryAliasName: String): SourceConfig.() -> Unit {
+        return { toml { libraryAlias = libraryAliasName } }
+    }
+
+    /**
      * Specify the source BOM to generate the version catalog from. BOMs can be specified by using a
      * reference to a library in a toml file, or by using regular dependency notation. To use a toml
      *
