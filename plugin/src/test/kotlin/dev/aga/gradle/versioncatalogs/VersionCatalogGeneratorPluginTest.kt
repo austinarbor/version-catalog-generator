@@ -14,6 +14,9 @@ class VersionCatalogGeneratorPluginTest {
     private val settingsFile by lazy { projectDir.resolve("settings.gradle.kts") }
     private val groovySettingsFile by lazy { projectDir.resolve("settings.gradle") }
     private val propertiesFile by lazy { projectDir.resolve("gradle.properties") }
+    private val versionCatalogFile by lazy {
+        projectDir.resolve("gradle").resolve("libs.versions.toml")
+    }
 
     private lateinit var classpathString: String
 
@@ -28,6 +31,8 @@ class VersionCatalogGeneratorPluginTest {
                 .joinToString(",") { "\"$it\"" }
         // copy the generated properties file into the runner's directory
         propertiesFile.writeText(getResourceAsText("testkit-gradle.properties"))
+
+        versionCatalogFile.parentFile.mkdirs()
     }
 
     @Test
@@ -71,7 +76,7 @@ class VersionCatalogGeneratorPluginTest {
                   libraryAliasGenerator = GeneratorConfig.CAMEL_CASE_NAME_LIBRARY_ALIAS_GENERATOR
                 }
                 generate("awsLibs") {
-                  from("software.amazon.awssdk:bom:2.21.15")
+                  from(toml("aws-bom"))
                 }
               }
             }
@@ -92,6 +97,16 @@ class VersionCatalogGeneratorPluginTest {
               testImplementation(junitLibs.junitJupiter)
               testImplementation(junitLibs.junitJupiterParams)
             }
+            """
+                .trimIndent(),
+        )
+
+        versionCatalogFile.writeText(
+            """
+                [versions]
+                aws = "2.21.15"
+                [libraries]
+                aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
             """
                 .trimIndent(),
         )
