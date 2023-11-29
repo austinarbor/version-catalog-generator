@@ -87,7 +87,7 @@ class GeneratorConfigTest {
                 arguments("com.fasterxml.jackson", "any-thing", "jackson"),
                 arguments("org.springframework.boot", "spring-boot-starter-web", "spring"),
                 arguments("dev.aga", "version-catalog-generator", "aga"),
-                arguments("dev.plugins", "anything", "dev-plugins"),
+                arguments("dev.plugins", "anything", "devPlugins"),
                 arguments("plugins", "anything", "error"),
             )
         }
