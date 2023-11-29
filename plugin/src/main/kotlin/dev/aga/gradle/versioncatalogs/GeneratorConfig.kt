@@ -47,7 +47,7 @@ class GeneratorConfig(val settings: Settings) {
     /**
      * Function to generate the version reference to use in the generated catalog. The default
      * function removes the string 'version' from the name (in any case) and then replaces multiple
-     * occurrences of '.' with a single one.
+     * occurrences of '.' with a single one. It then converts the string to camelCase.
      */
     var versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
 
@@ -178,7 +178,8 @@ class GeneratorConfig(val settings: Settings) {
          * 2. If the split only returns a list of one item and the value is any one of
          *    [INVALID_PREFIXES], an [IllegalArgumentException] is thrown.
          * 3. Otherwise if the split returns a list of more than one item and the last value is any
-         *    one of [INVALID_PREFIXES], the last two values are turned concatenated with a `-`
+         *    one of [INVALID_PREFIXES], the last two values are concatenated with a `-` and then
+         *    the entirety of the string is converted to camelCase
          * 4. In any other scenario, the last item in the list is returned
          */
         @JvmStatic
@@ -193,7 +194,11 @@ class GeneratorConfig(val settings: Settings) {
                     require(split.size >= 2) {
                         "Cannot generate alias for ${group}:${artifact}, please provide custom generator"
                     }
-                    "${split[split.size - 2]}-${split.last()}"
+                    caseChange(
+                        "${split[split.size - 2]}-${split.last()}",
+                        CaseFormat.LOWER_HYPHEN,
+                        CaseFormat.CAMEL,
+                    )
                 } else {
                     split.last()
                 }
@@ -202,12 +207,8 @@ class GeneratorConfig(val settings: Settings) {
 
         /**
          * Default function to generate the suffix of the library's alias. The logic is as follows:
-         * 1. Split the `artifactId` by `-`
-         * 2. If the resulting list has a size of one, return the `artifactId`
-         * 3. Otherwise, if the first item in the list does not match the `prefix`, return the
-         *    `artifactId`
-         * 4. Otherwise, if the first item in the list matches the prefix, return every item in the
-         *    list after the first item concatenated together with `-`.
+         * 1. Replace any '.' characters with a '-'
+         * 2. Convert the entirety of the string to camelCase
          */
         @JvmStatic
         val DEFAULT_ALIAS_SUFFIX_GENERATOR: (String, String, String) -> String = { _, _, artifact ->
@@ -223,7 +224,8 @@ class GeneratorConfig(val settings: Settings) {
          * version string. This function will first replace all case-insensitive instances of the
          * string *version* with an empty string. Then, all instances of two or more consecutive
          * periods are replaced with a single period. Then, any leading or trailing periods are
-         * trimmed. Finally, all periods are replaced with a hyphen.
+         * trimmed. Finally, all periods are replaced with a hyphen, and the entire string is
+         * converted to camelCase.
          */
         @JvmStatic
         val DEFAULT_VERSION_NAME_GENERATOR: (String) -> String = { version ->
@@ -233,8 +235,7 @@ class GeneratorConfig(val settings: Settings) {
             val mapped =
                 version
                     .replace(versionRegEx, "")
-                    .replace(
-                        dotRegex, ".") // replace 2 or more consecutive periods with a single one
+                    .replace(dotRegex, ".") // 2 or more consecutive become 1
                     .trim('.') // trim leading and trailing periods
                     .replace('.', '-') // replace dots with hyphens
 
