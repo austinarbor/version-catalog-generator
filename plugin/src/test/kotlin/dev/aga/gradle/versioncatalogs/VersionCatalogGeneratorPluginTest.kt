@@ -66,18 +66,18 @@ class VersionCatalogGeneratorPluginTest {
                 }
                 generate("mockitoLibs") {
                   from("org.mockito:mockito-bom:5.5.0")
-                  aliasPrefixGenerator = GeneratorConfig.NO_ALIAS_PREFIX
+                  aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
                   aliasSuffixGenerator = { _, _, artifact ->
                     GeneratorConfig.caseChange(artifact, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.LOWER_UNDERSCORE)
                   }
                 }
                 generate("junitLibs") {
                   from("org.junit:junit-bom:5.10.0")
-                  aliasPrefixGenerator = GeneratorConfig.NO_ALIAS_PREFIX
+                  aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
                 }
                 generate("awsLibs") {
                   from(toml("aws-bom"))
-                  aliasPrefixGenerator = GeneratorConfig.NO_ALIAS_PREFIX
+                  aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
                 }
               }
             }
