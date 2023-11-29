@@ -46,7 +46,7 @@ class GeneratorConfigTest {
 
     @Test
     fun testNoAliasPrefix() {
-        val actual = GeneratorConfig.NO_ALIAS_PREFIX("whatever", "whatever")
+        val actual = GeneratorConfig.NO_PREFIX("whatever", "whatever")
         Assertions.assertThat(actual).isBlank()
     }
 

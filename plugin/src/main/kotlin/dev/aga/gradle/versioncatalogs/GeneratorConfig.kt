@@ -217,7 +217,7 @@ class GeneratorConfig(val settings: Settings) {
         }
 
         /** Alias prefix generator function to always return an empty string. */
-        @JvmStatic val NO_ALIAS_PREFIX: (String, String) -> String = { _, _ -> "" }
+        @JvmStatic val NO_PREFIX: (String, String) -> String = { _, _ -> "" }
 
         /**
          * Default function to generate the alias for the version, based on the version in the

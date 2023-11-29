@@ -49,7 +49,7 @@ dependencyResolutionManagement {
                 GeneratorConfig.DEFAULT_ALIAS_GENERATOR(prefix,suffix)
             }
             // for example if you prefer no prefix and camelCase library names you can do:
-            aliasPrefixGenerator = GeneratorConfig.NO_ALIAS_PREFIX
+            aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
             
             // you can optionally change the version alias generation behavior by
             // providing your own algorithm below. check the javadoc for more 
