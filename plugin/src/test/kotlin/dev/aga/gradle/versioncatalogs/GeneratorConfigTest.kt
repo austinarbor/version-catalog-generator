@@ -87,7 +87,7 @@ class GeneratorConfigTest {
                 arguments("com.fasterxml.jackson", "any-thing", "jackson"),
                 arguments("org.springframework.boot", "spring-boot-starter-web", "spring"),
                 arguments("dev.aga", "version-catalog-generator", "aga"),
-                arguments("dev.plugins", "anything", "dev-plugins"),
+                arguments("dev.plugins", "anything", "devPlugins"),
                 arguments("plugins", "anything", "error"),
             )
         }
@@ -99,13 +99,13 @@ class GeneratorConfigTest {
                     "aga",
                     "dev.aga",
                     "version-catalog-generator",
-                    "version-catalog-generator",
+                    "versionCatalogGenerator",
                 ),
                 arguments(
                     "aga",
                     "dev.aga",
                     "aga-version-catalog-generator",
-                    "version-catalog-generator",
+                    "agaVersionCatalogGenerator",
                 ),
                 arguments(
                     "aga",
@@ -117,9 +117,9 @@ class GeneratorConfigTest {
                     "spring",
                     "org.springframework.boot",
                     "spring-boot-starter-web",
-                    "boot-starter-web",
+                    "springBootStarterWeb",
                 ),
-                arguments("spring", "org.springframework", "spring-web", "web"),
+                arguments("spring", "org.springframework", "spring-web", "springWeb"),
             )
         }
 
@@ -127,7 +127,7 @@ class GeneratorConfigTest {
         private fun defaultVersionNameProvider(): List<Arguments> {
             return listOf(
                 arguments("activemq.version", "activemq"),
-                arguments("jackson.version.modules", "jackson-modules"),
+                arguments("jackson.version.modules", "jacksonModules"),
                 arguments("devVersion", "dev"),
             )
         }
