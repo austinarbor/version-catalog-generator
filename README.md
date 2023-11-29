@@ -10,10 +10,6 @@ with `platform` and `BOM` concepts. The Version Catalog Generator plugin attempt
 generating
 a version catalog from an external BOM.
 
-## Note
-
-This plugin is in alpha! Expect breaking changes until we reach a more stable state.
-
 ## Usage
 <details>
   <summary>settings.gradle.kts</summary>
