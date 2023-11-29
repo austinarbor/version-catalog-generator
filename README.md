@@ -50,11 +50,6 @@ dependencyResolutionManagement {
             }
             // for example if you prefer no prefix and camelCase library names you can do:
             aliasPrefixGenerator = GeneratorConfig.NO_ALIAS_PREFIX
-            aliasSuffixGenerator = (prefix, group, name) -> {
-                GeneratorConfig.caseChange(name, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.CAMEL)
-            }
-            // or use the convenience function
-            libraryAliasGenerator = GeneratorConfig.CAMEL_CASE_NAME_LIBRARY_ALIAS_GENERATOR
             
             // you can optionally change the version alias generation behavior by
             // providing your own algorithm below. check the javadoc for more 

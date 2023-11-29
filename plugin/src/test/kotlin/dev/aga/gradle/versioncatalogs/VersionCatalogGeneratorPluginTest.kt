@@ -68,15 +68,16 @@ class VersionCatalogGeneratorPluginTest {
                   from("org.mockito:mockito-bom:5.5.0")
                   aliasPrefixGenerator = GeneratorConfig.NO_ALIAS_PREFIX
                   aliasSuffixGenerator = { _, _, artifact ->
-                    GeneratorConfig.caseChange(artifact, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.CAMEL)
+                    GeneratorConfig.caseChange(artifact, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.LOWER_UNDERSCORE)
                   }
                 }
                 generate("junitLibs") {
                   from("org.junit:junit-bom:5.10.0")
-                  libraryAliasGenerator = GeneratorConfig.CAMEL_CASE_NAME_LIBRARY_ALIAS_GENERATOR
+                  aliasPrefixGenerator = GeneratorConfig.NO_ALIAS_PREFIX
                 }
                 generate("awsLibs") {
                   from(toml("aws-bom"))
+                  aliasPrefixGenerator = GeneratorConfig.NO_ALIAS_PREFIX
                 }
               }
             }
@@ -91,9 +92,9 @@ class VersionCatalogGeneratorPluginTest {
             dependencies {
               implementation(jsonLibs.jackson.jacksonDatabind)
               implementation(jsonLibs.bundles.jacksonModule)
-              implementation(awsLibs.awssdk.s3)
-              testImplementation(mockitoLibs.mockitoCore)
-              testImplementation(mockitoLibs.mockitoJunitJupiter)
+              implementation(awsLibs.s3)
+              testImplementation(mockitoLibs.mockito.core)
+              testImplementation(mockitoLibs.mockito.junit.jupiter)
               testImplementation(junitLibs.junitJupiter)
               testImplementation(junitLibs.junitJupiterParams)
             }

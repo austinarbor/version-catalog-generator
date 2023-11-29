@@ -255,26 +255,5 @@ class GeneratorConfig(val settings: Settings) {
             val split = from.splitToWords(str)
             return to.format(split)
         }
-
-        /**
-         * Convenience lambda to generate library aliases just using the artifact name and
-         * converting it to camelCase. This is a shortcut for
-         *
-         * ```kotlin
-         * aliasPrefixGenerator = NO_ALIAS_PREFIX
-         * aliasSuffixGenerator = { prefix, group, artifact ->
-         *  caseChange(artifact, CaseFormat.LOWER_HYPHEN, CaseFormat.CAMEL)
-         * }
-         * ```
-         *
-         * @see caseChange
-         * @see libraryAliasGenerator
-         * @see aliasPrefixGenerator
-         * @see aliasSuffixGenerator
-         */
-        @JvmStatic
-        val CAMEL_CASE_NAME_LIBRARY_ALIAS_GENERATOR = { _: String, artifact: String ->
-            caseChange(str = artifact, from = CaseFormat.LOWER_HYPHEN, to = CaseFormat.CAMEL)
-        }
     }
 }
