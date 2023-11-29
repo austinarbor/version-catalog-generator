@@ -89,9 +89,9 @@ class VersionCatalogGeneratorPluginTest {
               java
             }
             dependencies {
-              implementation(jsonLibs.jackson.databind)
-              implementation(jsonLibs.bundles.jackson.module)
-              implementation(awsLibs.awssdk.s3.asProvider())
+              implementation(jsonLibs.jackson.jacksonDatabind)
+              implementation(jsonLibs.bundles.jacksonModule)
+              implementation(awsLibs.awssdk.s3)
               testImplementation(mockitoLibs.mockitoCore)
               testImplementation(mockitoLibs.mockitoJunitJupiter)
               testImplementation(junitLibs.junitJupiter)
@@ -169,9 +169,9 @@ class VersionCatalogGeneratorPluginTest {
               java
             }
             dependencies {
-              implementation(jsonLibs.jackson.databind)
-              implementation(jsonLibs.bundles.jackson.module)
-              testImplementation(mockitoLibs.mockito.core)
+              implementation(jsonLibs.jackson.jacksonDatabind)
+              implementation(jsonLibs.bundles.jacksonModule)
+              testImplementation(mockitoLibs.mockito.mockitoCore)
             }
             """
                 .trimIndent(),

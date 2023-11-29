@@ -210,19 +210,10 @@ class GeneratorConfig(val settings: Settings) {
          *    list after the first item concatenated together with `-`.
          */
         @JvmStatic
-        val DEFAULT_ALIAS_SUFFIX_GENERATOR: (String, String, String) -> String =
-            { prefix, _, artifact ->
-                var art = artifact
-                if (prefix == "spring") {
-                    art = art.replace("spring-", "")
-                }
-                val split = art.split("-")
-                if (split.size == 1 || prefix != split[0]) {
-                    art
-                } else {
-                    split.subList(1, split.size).joinToString("-")
-                }
-            }
+        val DEFAULT_ALIAS_SUFFIX_GENERATOR: (String, String, String) -> String = { _, _, artifact ->
+            val replaced = artifact.replace('.', '-')
+            caseChange(replaced, CaseFormat.LOWER_HYPHEN, CaseFormat.CAMEL)
+        }
 
         /** Alias prefix generator function to always return an empty string. */
         @JvmStatic val NO_ALIAS_PREFIX: (String, String) -> String = { _, _ -> "" }
@@ -239,11 +230,15 @@ class GeneratorConfig(val settings: Settings) {
             val versionRegEx = "version".toRegex(RegexOption.IGNORE_CASE)
             val dotRegex = """\.{2,}""".toRegex()
             // replace all instances (case insensitively) of the string 'version' with empty string
-            version
-                .replace(versionRegEx, "")
-                .replace(dotRegex, ".") // replace 2 or more consecutive periods with a single one
-                .trim('.') // trim leading and trailing periods
-                .replace('.', '-') // replace dots with hyphens
+            val mapped =
+                version
+                    .replace(versionRegEx, "")
+                    .replace(
+                        dotRegex, ".") // replace 2 or more consecutive periods with a single one
+                    .trim('.') // trim leading and trailing periods
+                    .replace('.', '-') // replace dots with hyphens
+
+            caseChange(mapped, CaseFormat.LOWER_HYPHEN, CaseFormat.CAMEL)
         }
 
         /**
