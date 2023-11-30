@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        gradle-version: [wrapper, release-nightly, release-candidate]
+        gradle-version: [7.6, 8.4, wrapper, release-nightly, release-candidate]
     steps:
       - uses: actions/checkout@v4
         name: Checkout
