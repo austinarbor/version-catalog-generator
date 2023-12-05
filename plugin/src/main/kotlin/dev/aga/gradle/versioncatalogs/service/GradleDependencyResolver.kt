@@ -42,8 +42,7 @@ class GradleDependencyResolver(
             val parentModel = parentDep?.let { pd -> parentModelResolver.resolve(pd) }
 
             model to parentModel?.first
-        }
-            ?: throw ResolutionException("Unable to resolve ${source}")
+        } ?: throw ResolutionException("Unable to resolve ${source}")
     }
 
     private fun registerDependency(config: Configuration, source: Dependency) {
