@@ -43,7 +43,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         generate("springLibs") { // the name of the generated catalog
-            from(toml("springBootDependencies")) // name of the bom library in the versin catalog
+            from(toml("springBootDependencies")) // name of the bom library in the version catalog
         }
         generate("awsLibs") { 
             from(toml("awsBom"))
