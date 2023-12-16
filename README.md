@@ -13,7 +13,61 @@ a version catalog from an external BOM.
 ## Compatibility
 Works on Gradle 7.6+
 
-## Usage
+## Quick Start
+<details>
+  <summary>libs.versions.toml</summary>
+
+```toml
+[versions]
+spring = "3.2.0"
+aws = "2.22.0"
+
+[libraries]
+awsBom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws" }
+springBootDependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
+```
+</details>
+<details>
+  <summary>settings.gradle.kts</summary>
+
+```kotlin
+import dev.aga.gradle.versioncatalogs.Generator.generate
+
+plugins {
+  id("dev.aga.gradle.version-catalog-generator") version("1.0.0")
+}
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral() // must include repositories here for dependency resolution to work from settings
+    }
+    versionCatalogs {
+        generate("springLibs") { // the name of the generated catalog
+            from(toml("springBootDependencies")) // name of the bom library in the versin catalog
+        }
+        generate("awsLibs") { 
+            from(toml("awsBom"))
+            // all dependencies in the aws bom are for aws so we can skip the prefix
+            aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+        }
+    }
+}
+```
+</details>
+<details>
+ <summary>build.gradle.kts</summary>
+
+```kotlin
+dependencies {
+    implementation(awsLibs.s3)
+    implementation(awsLibs.dynamodb)
+    implementation(springLibs.spring.springBootStarterWeb)
+    implementation(springLibs.jackson.jacksonDatabind)
+}
+```
+</details>
+
+## Detailed Usage
 <details>
   <summary>settings.gradle.kts</summary>
 
