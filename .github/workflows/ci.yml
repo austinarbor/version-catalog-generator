@@ -35,7 +35,7 @@ jobs:
           arguments: check
 
       - name: Upload Test Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ always() && matrix.gradle-version == 'wrapper' }} # always run even if the previous step fails
         with:
           name: junit-test-results
