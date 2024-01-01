@@ -1,5 +1,5 @@
 [versions]
-assertj = "3.24.2"
+assertj = "3.25.0"
 commons-text = "1.11.0"
 detekt = "1.23.4"
 gradle-publish = "1.2.1"
