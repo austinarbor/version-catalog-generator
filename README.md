@@ -108,6 +108,11 @@ dependencyResolutionManagement {
             // providing your own algorithm below. check the javadoc for more 
             // information
             versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
+            
+            // you can optionally provide regex patterns to exclude dependencies
+            // by their group or name
+            excludeGroups = "some\\.group"
+            excludeNames = ".*pattern"
         }
     }
 }
@@ -140,6 +145,11 @@ dependencyResolutionManagement {
             // providing your own algorithm below. check the javadoc for more 
             // information
             it.versionNameGenerator = it.DEFAULT_VERSION_NAME_GENERATOR
+            
+            // you can optionally provide regex patterns to exclude dependencies
+            // by their group or name
+            excludeGroups = "some\\.group"
+            excludeNames = ".*pattern"
         }
     }
 }
