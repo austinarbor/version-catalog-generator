@@ -1,0 +1,2 @@
+[libraries]
+assertj-assertjGuava = { group = "org.assertj", name = "assertj-guava", version = "3.24.2" }

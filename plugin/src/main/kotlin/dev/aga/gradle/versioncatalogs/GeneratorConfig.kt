@@ -5,6 +5,7 @@ import java.io.File
 import java.nio.file.Paths
 import net.pearx.kasechange.CaseFormat
 import net.pearx.kasechange.formatter.format
+import org.apache.maven.model.Dependency
 import org.gradle.api.initialization.Settings
 
 class GeneratorConfig(val settings: Settings) {
@@ -50,6 +51,36 @@ class GeneratorConfig(val settings: Settings) {
      * occurrences of '.' with a single one. It then converts the string to camelCase.
      */
     var versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
+
+    /**
+     * Regex to filter the groups (groupId) of dependencies which should be included in the
+     * generated catalog. The dependencies which match the regex will be excluded. The default value
+     * is `null`.
+     */
+    var excludeGroups: String? = null
+
+    /**
+     * Regex to filter the name (artifactId) of dependencies which should be included in the
+     * generated catalog. Dependency names which match the regex will be excluded. The default value
+     * is `null`.
+     */
+    var excludeNames: String? = null
+
+    internal val excludeFilter: (Dependency) -> Boolean by lazy {
+        {
+            val eg = excludeGroups
+            val en = excludeNames
+            if (eg == null && en == null) {
+                false
+            } else {
+                // default to true because if one of the regexes is non-null, then
+                // the null value should basically be equivalent to always matching
+                val excludeGroup = eg?.toRegex()?.matches(it.groupId) ?: true
+                val excludeName = en?.toRegex()?.matches(it.artifactId) ?: true
+                excludeGroup && excludeName
+            }
+        }
+    }
 
     /** The provider for the source BOM to generate the dependency from. */
     lateinit var source: () -> Any

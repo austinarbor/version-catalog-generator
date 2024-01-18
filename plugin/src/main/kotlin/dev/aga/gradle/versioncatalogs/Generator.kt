@@ -155,7 +155,7 @@ object Generator {
         seenModules: MutableSet<String>,
     ): Set<String> {
         val usedVersions = mutableSetOf<String>()
-        val deps = getNewDependencies(model, seenModules, substitutor, importFilter)
+        val deps = getNewDependencies(model, seenModules, substitutor, importFilter, config)
         deps.forEach { (version, boms) ->
             boms.forEach { bom ->
                 logger.info("${model.groupId}:${model.artifactId} contains other BOMs")
@@ -170,7 +170,7 @@ object Generator {
             }
         }
 
-        getNewDependencies(model, seenModules, substitutor, jarFilter)
+        getNewDependencies(model, seenModules, substitutor, jarFilter, config)
             .filter { skipAndLogExcluded(model, it, excludedProps) }
             .forEach { (version, deps) ->
                 maybeRegisterVersion(version, config.versionNameGenerator, usedVersions)
@@ -240,6 +240,7 @@ object Generator {
         seenModules: MutableSet<String> = mutableSetOf(),
         substitutor: StringSubstitutor,
         filter: (Dependency) -> Boolean,
+        config: GeneratorConfig,
     ): Map<Version, List<Dependency>> {
         val deps = model.dependencyManagement?.dependencies.orEmpty()
         if (deps.isEmpty()) {
@@ -248,10 +249,12 @@ object Generator {
                     "in dependencyManagement",
             )
         }
+
         return deps
             .asSequence()
             .onEach { it.groupId = mapGroup(model, it.groupId) }
             .filter(filter)
+            .filterNot(config.excludeFilter)
             .filter { seenModules.add("${it.groupId}:${it.artifactId}") }
             .onEach { it.version = mapVersion(model, it.version) }
             .groupBy {
