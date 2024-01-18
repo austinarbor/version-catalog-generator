@@ -34,7 +34,7 @@ springBootDependencies = { group = "org.springframework.boot", name = "spring-bo
 import dev.aga.gradle.versioncatalogs.Generator.generate
 
 plugins {
-  id("dev.aga.gradle.version-catalog-generator") version("1.0.0")
+  id("dev.aga.gradle.version-catalog-generator") version("1.1.0")
 }
 
 dependencyResolutionManagement {
@@ -76,7 +76,7 @@ import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.GeneratorConfig
 
 plugins {
-    id("dev.aga.gradle.version-catalog-generator") version("1.0.0")
+    id("dev.aga.gradle.version-catalog-generator") version("1.1.0")
 }
 
 dependencyResolutionManagement {
@@ -123,7 +123,7 @@ dependencyResolutionManagement {
 
 ```groovy
 plugins {
-    id('dev.aga.gradle.version-catalog-generator') version '1.0.0'
+    id('dev.aga.gradle.version-catalog-generator') version '1.1.0'
 }
 
 dependencyResolutionManagement {
