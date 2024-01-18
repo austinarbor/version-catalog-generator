@@ -2,6 +2,7 @@ package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.service.MockGradleDependencyResolver
+import java.nio.file.Path
 import java.nio.file.Paths
 import org.apache.maven.model.Dependency
 import org.assertj.core.api.Assertions.assertThat
@@ -27,19 +28,17 @@ internal class GeneratorTest {
     private val generatedLibraries = mutableMapOf<String, LibraryAliasBuilder>()
     private val generatedBundles = mutableMapOf<String, List<String>>()
 
+    private lateinit var settings: Settings
+    private lateinit var builder: VersionCatalogBuilder
+    private lateinit var container: MutableVersionCatalogContainer
+
     @BeforeEach
     fun beforeEach() {
         generatedLibraries.clear()
-    }
+        generatedBundles.clear()
 
-    @Test
-    fun testGenerate() {
-        val dep = dep("org.springframework.boot", "spring-boot-dependencies", "3.1.2")
-        val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
-        val settings = mock<Settings>()
-        val config = GeneratorConfig(settings).apply { source = { dep } }
-
-        val builder =
+        settings = mock<Settings>()
+        builder =
             mock<VersionCatalogBuilder> {
                 on { library(any<String>(), any<String>(), any<String>()) } doAnswer
                     { mock ->
@@ -56,8 +55,7 @@ internal class GeneratorTest {
                         null
                     }
             }
-
-        val container =
+        container =
             mock<MutableVersionCatalogContainer> {
                 on { create(any<String>(), any<Action<VersionCatalogBuilder>>()) }
                     .then { mock ->
@@ -65,14 +63,117 @@ internal class GeneratorTest {
                         builder
                     }
             }
+    }
+
+    @Test
+    fun testGenerate() {
+        val dep = dep("org.springframework.boot", "spring-boot-dependencies", "3.1.2")
+        val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+        val config = GeneratorConfig(settings).apply { source = { dep } }
+
         container.generate("myLibs", config, resolver)
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
         val (versions, libraries, bundles) = getExpectedCatalog(dep)
         // validate the versions
         verify(builder, times(21)).version(any<String>(), any<String>())
-        versions.dottedKeySet().forEach { v -> verify(builder).version(v, versions.getString(v)!!) }
+        versions!!.dottedKeySet().forEach { v ->
+            verify(builder).version(v, versions.getString(v)!!)
+        }
 
         verify(builder, times(48)).library(any<String>(), any<String>(), any<String>())
+        verifyLibraries(libraries)
+
+        verify(builder, times(16)).bundle(any<String>(), any<List<String>>())
+        bundles!!.dottedKeySet().forEach {
+            assertThat(generatedBundles.containsKey(it))
+            val expectedLibraries = bundles.getArrayOrEmpty(it).toList()
+            assertThat(expectedLibraries).containsExactlyInAnyOrderElementsOf(generatedBundles[it])
+        }
+    }
+
+    @Test
+    fun testGenerate_ExcludeByName() {
+        val dep = dep("org.assertj", "assertj-bom", "3.24.2")
+        val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+        val config =
+            GeneratorConfig(settings).apply {
+                source = { dep }
+                excludeNames = "^assertj-guava$"
+            }
+
+        container.generate("myLibs", config, resolver)
+        verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
+        val (_, libraries, bundles) =
+            getExpectedCatalog(Paths.get("expectations", "assertj-bom", "name-exclusion-test.toml"))
+
+        verify(builder, times(0)).version(any<String>(), any<String>())
+        verify(builder, times(1)).library(any<String>(), any<String>(), any<String>())
+        verifyLibraries(libraries)
+        verify(builder, times(0)).bundle(any<String>(), any<List<String>>())
+    }
+
+    @Test
+    fun testGenerate_ExcludeByGroup() {
+        val dep = dep("org.assertj", "assertj-bom", "3.24.2")
+        val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+        val config =
+            GeneratorConfig(settings).apply {
+                source = { dep }
+                excludeGroups = "org\\.assertj"
+            }
+
+        container.generate("myLibs", config, resolver)
+        verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
+        verify(builder, times(0)).version(any<String>(), any<String>())
+        verify(builder, times(0)).library(any<String>(), any<String>(), any<String>())
+        verify(builder, times(0)).bundle(any<String>(), any<List<String>>())
+    }
+
+    @Test
+    fun testGenerate_ExcludeByBoth_Negative() {
+        val dep = dep("org.assertj", "assertj-bom", "3.24.2")
+        val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+        val config =
+            GeneratorConfig(settings).apply {
+                source = { dep }
+                excludeGroups = "org\\.assertj"
+                excludeNames = "xyz"
+            }
+
+        container.generate("myLibs", config, resolver)
+        verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
+        val (_, libraries, bundles) =
+            getExpectedCatalog(
+                Paths.get("expectations", "assertj-bom", "exclusion-negative-test.toml"),
+            )
+        verify(builder, times(0)).version(any<String>(), any<String>())
+        verify(builder, times(2)).library(any<String>(), any<String>(), any<String>())
+        verifyLibraries(libraries)
+        verify(builder, times(0)).bundle(any<String>(), any<List<String>>())
+    }
+
+    @Test
+    fun testGenerate_ExcludeByBoth_Positive() {
+        val dep = dep("org.assertj", "assertj-bom", "3.24.2")
+        val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+        val config =
+            GeneratorConfig(settings).apply {
+                source = { dep }
+                excludeGroups = "org\\.assertj"
+                excludeNames = "assertj-core"
+            }
+
+        container.generate("myLibs", config, resolver)
+        verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
+        val (_, libraries, bundles) =
+            getExpectedCatalog(Paths.get("expectations", "assertj-bom", "both-exclusion-test.toml"))
+        verify(builder, times(0)).version(any<String>(), any<String>())
+        verify(builder, times(1)).library(any<String>(), any<String>(), any<String>())
+        verifyLibraries(libraries)
+        verify(builder, times(0)).bundle(any<String>(), any<List<String>>())
+    }
+
+    private fun verifyLibraries(libraries: TomlTable) {
         // sort the keys and split into groups of 3, which should give us
         // the group, name, and version properties
         libraries.dottedKeySet().sorted().chunked(3).forEach { libProps ->
@@ -90,13 +191,6 @@ internal class GeneratorTest {
                 versionProp.endsWith(".version") -> verify(mock).version(versionValue)
                 else -> throw RuntimeException("Unexpected property: ${versionProp}")
             }
-        }
-
-        verify(builder, times(16)).bundle(any<String>(), any<List<String>>())
-        bundles.dottedKeySet().forEach {
-            assertThat(generatedBundles.containsKey(it))
-            val expectedLibraries = bundles.getArrayOrEmpty(it).toList()
-            assertThat(expectedLibraries).containsExactlyInAnyOrderElementsOf(generatedBundles[it])
         }
     }
 
@@ -122,12 +216,16 @@ internal class GeneratorTest {
         }
     }
 
-    private fun getExpectedCatalog(dep: Dependency): Triple<TomlTable, TomlTable, TomlTable> {
+    private fun getExpectedCatalog(dep: Dependency): Triple<TomlTable?, TomlTable, TomlTable?> {
         val expectations = Paths.get("expectations", "${dep.artifactId}", "libs.versions.toml")
-        val parseResult = Toml.parse(resourceRoot.resolve(expectations))
-        val versions = parseResult.getTable("versions")!!
+        return getExpectedCatalog(expectations)
+    }
+
+    private fun getExpectedCatalog(tomlPath: Path): Triple<TomlTable?, TomlTable, TomlTable?> {
+        val parseResult = Toml.parse(resourceRoot.resolve(tomlPath))
+        val versions = parseResult.getTable("versions")
         val libraries = parseResult.getTable("libraries")!!
-        val bundles = parseResult.getTable("bundles")!!
+        val bundles = parseResult.getTable("bundles")
         return Triple(versions, libraries, bundles)
     }
 }
