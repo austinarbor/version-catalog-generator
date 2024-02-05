@@ -69,7 +69,7 @@ jobs:
           retention-days: 1
 
       - name: Upload Coverage Report
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         if: ${{ always() && matrix.gradle-version == 'wrapper' }}
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
