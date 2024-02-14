@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        gradle-version: [7.6, 8.4, wrapper, release-nightly, release-candidate]
+        gradle-version: [8.4, 8.5, wrapper, release-nightly, release-candidate]
     steps:
       - uses: actions/checkout@v4
         name: Checkout
@@ -50,14 +50,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Gradle
+      - name: Run Tests
         uses: gradle/gradle-build-action@v3
         with:
           gradle-version: ${{ matrix.gradle-version }}
-
-      - name: Run Checks
-        uses: gradle/gradle-build-action@v3
-        with:
           arguments: clean test
 
       - name: Upload Test Report

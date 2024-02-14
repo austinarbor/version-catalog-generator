@@ -3,7 +3,6 @@ package dev.aga.gradle.versioncatalogs.service
 import dev.aga.gradle.versioncatalogs.mock.ArtifactCollection
 import dev.aga.gradle.versioncatalogs.mock.ArtifactResult
 import dev.aga.gradle.versioncatalogs.mock.DependencyHandler
-import dev.aga.gradle.versioncatalogs.mock.ResolutionStrategy
 import java.nio.file.Path
 import java.util.function.Supplier
 import org.apache.maven.model.Dependency
@@ -11,6 +10,7 @@ import org.apache.maven.model.Model
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.dsl.DependencyHandler as GradleDependencyHandler
 import org.gradle.api.attributes.AttributeContainer
@@ -27,7 +27,7 @@ class MockGradleDependencyResolver(val rootDir: Path) : DependencyResolver {
     private val incoming = mock<ResolvableDependencies>()
     private val configuration =
         mock<Configuration> {
-            on { resolutionStrategy } doReturn ResolutionStrategy()
+            on { resolutionStrategy } doReturn mock<ResolutionStrategy>()
             on { attributes } doReturn mock<AttributeContainer>()
             on { dependencies } doReturn mock<DependencySet>()
             on { incoming } doReturn incoming
