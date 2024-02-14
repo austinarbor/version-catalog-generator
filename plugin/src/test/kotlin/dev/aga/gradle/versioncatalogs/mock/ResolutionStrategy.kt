@@ -132,7 +132,13 @@ internal class ResolutionStrategy : ResolutionStrategyInternal {
         TODO("Not yet implemented")
     }
 
-    override fun discardStateRequiredForGraphResolution() {
+    override fun maybeDiscardStateRequiredForGraphResolution() {
+        TODO("Not yet implemented")
+    }
+
+    override fun setKeepStateRequiredForGraphResolution(
+        keepStateRequiredForGraphResolution: Boolean
+    ) {
         TODO("Not yet implemented")
     }
 
