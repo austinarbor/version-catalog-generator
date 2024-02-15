@@ -14,6 +14,7 @@ import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.plugins.ExtensionAware
 import org.slf4j.LoggerFactory
+import org.tomlj.TomlContainer
 
 object Generator {
 
@@ -43,6 +44,7 @@ object Generator {
             conf.execute(cfg)
             this.config = cfg
         }
+
         (this as ExtensionAware).extensions.configure("generator", action)
 
         return this.dependencyResolutionManagement.versionCatalogs.generate(name, generatorExt)
@@ -90,10 +92,11 @@ object Generator {
             val props = mutableMapOf<String, String>()
             val seenModules = mutableSetOf<String>()
             val queue = ArrayDeque(listOf(bomDep))
+            val container = TomlContainer()
             while (queue.isNotEmpty()) {
                 val dep = queue.removeFirst()
                 val (model, parentModel) = resolver.resolve(dep)
-                loadBom(model, parentModel, config, queue, props, seenModules)
+                loadBom(model, parentModel, config, queue, props, seenModules, container)
             }
         }
     }
@@ -117,6 +120,7 @@ object Generator {
         queue: MutableList<Dependency>,
         props: MutableMap<String, String>,
         seenModules: MutableSet<String>,
+        container: TomlContainer,
     ) {
         val (newProps, dupes) = getProperties(model, parentModel, props.keys)
         if (dupes.isNotEmpty()) {
@@ -130,7 +134,8 @@ object Generator {
         }
 
         val substitutor = newProps.toSubstitutor()
-        val usedVersions = loadDependencies(model, config, queue, substitutor, dupes, seenModules)
+        val usedVersions =
+            loadDependencies(model, config, queue, substitutor, dupes, seenModules, container)
         newProps.filterKeys { k -> usedVersions.contains(k) }.forEach { (k, v) -> props[k] = v }
     }
 
@@ -153,14 +158,15 @@ object Generator {
         substitutor: StringSubstitutor,
         excludedProps: Set<String>,
         seenModules: MutableSet<String>,
+        container: TomlContainer
     ): Set<String> {
         val usedVersions = mutableSetOf<String>()
         val deps = getNewDependencies(model, seenModules, substitutor, importFilter, config)
         deps.forEach { (version, boms) ->
             boms.forEach { bom ->
                 logger.info("${model.groupId}:${model.artifactId} contains other BOMs")
-                maybeRegisterVersion(version, config.versionNameGenerator, usedVersions)
-                createLibrary(bom, version, config)
+                maybeRegisterVersion(version, config.versionNameGenerator, usedVersions, container)
+                createLibrary(bom, version, config, container)
                 // if the version is a property, replace it with the
                 // actual version value
                 if (version.isRef) {
@@ -173,16 +179,16 @@ object Generator {
         getNewDependencies(model, seenModules, substitutor, jarFilter, config)
             .filter { skipAndLogExcluded(model, it, excludedProps) }
             .forEach { (version, deps) ->
-                maybeRegisterVersion(version, config.versionNameGenerator, usedVersions)
+                maybeRegisterVersion(version, config.versionNameGenerator, usedVersions, container)
                 val aliases = mutableListOf<String>()
                 deps.forEach { dep ->
-                    val alias = createLibrary(dep, version, config)
+                    val alias = createLibrary(dep, version, config, container)
                     if (version.isRef) {
                         aliases += alias
                     }
                 }
                 if (aliases.isNotEmpty()) {
-                    registerBundle(version, aliases, config.versionNameGenerator)
+                    registerBundle(version, aliases, config.versionNameGenerator, container)
                 }
             }
 
@@ -193,10 +199,12 @@ object Generator {
         version: Version,
         versionNameGenerator: (String) -> String,
         usedVersions: MutableSet<String>,
+        container: TomlContainer
     ) {
         if (version.isRef && usedVersions.add(version.unwrapped)) {
             val versionAlias = versionNameGenerator(version.unwrapped)
             version(versionAlias, version.resolvedValue)
+            container.addVersion(versionAlias, version.resolvedValue)
         }
     }
 
@@ -204,9 +212,11 @@ object Generator {
         version: Version,
         aliases: List<String>,
         versionNameGenerator: (String) -> String,
+        container: TomlContainer,
     ) {
         val bundleName = versionNameGenerator(version.unwrapped).replace('.', '-')
         bundle(bundleName, aliases)
+        container.addBundle(bundleName, aliases)
     }
 
     /**
@@ -223,14 +233,17 @@ object Generator {
         dep: Dependency,
         version: Version,
         config: GeneratorConfig,
+        container: TomlContainer,
     ): String {
         val alias = config.libraryAliasGenerator(dep.groupId, dep.artifactId)
         val library = library(alias, dep.groupId, dep.artifactId)
         if (version.isRef) {
             val versionAlias = config.versionNameGenerator(version.unwrapped)
             library.versionRef(versionAlias)
+            container.addLibrary(alias, dep.groupId, dep.artifactId, versionAlias, true)
         } else {
             library.version(version.value)
+            container.addLibrary(alias, dep.groupId, dep.artifactId, version.value, false)
         }
         return alias
     }
