@@ -75,16 +75,15 @@ internal class GeneratorTest {
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
         val (versions, libraries, bundles) = getExpectedCatalog(dep)
         // validate the versions
-        verify(builder, times(21)).version(any<String>(), any<String>())
-        versions!!.dottedKeySet().forEach { v ->
-            verify(builder).version(v, versions.getString(v)!!)
-        }
+        verify(builder, times(versions.size())).version(any<String>(), any<String>())
+        versions.dottedKeySet().forEach { v -> verify(builder).version(v, versions.getString(v)!!) }
 
-        verify(builder, times(48)).library(any<String>(), any<String>(), any<String>())
+        verify(builder, times(libraries.size()))
+            .library(any<String>(), any<String>(), any<String>())
         verifyLibraries(libraries)
 
-        verify(builder, times(16)).bundle(any<String>(), any<List<String>>())
-        bundles!!.dottedKeySet().forEach {
+        verify(builder, times(bundles.size())).bundle(any<String>(), any<List<String>>())
+        bundles.dottedKeySet().forEach {
             assertThat(generatedBundles.containsKey(it))
             val expectedLibraries = bundles.getArrayOrEmpty(it).toList()
             assertThat(expectedLibraries).containsExactlyInAnyOrderElementsOf(generatedBundles[it])
@@ -103,7 +102,7 @@ internal class GeneratorTest {
 
         container.generate("myLibs", config, resolver)
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
-        val (_, libraries, bundles) =
+        val (_, libraries, _) =
             getExpectedCatalog(Paths.get("expectations", "assertj-bom", "name-exclusion-test.toml"))
 
         verify(builder, times(0)).version(any<String>(), any<String>())
@@ -142,7 +141,7 @@ internal class GeneratorTest {
 
         container.generate("myLibs", config, resolver)
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
-        val (_, libraries, bundles) =
+        val (_, libraries, _) =
             getExpectedCatalog(
                 Paths.get("expectations", "assertj-bom", "exclusion-negative-test.toml"),
             )
@@ -165,7 +164,7 @@ internal class GeneratorTest {
 
         container.generate("myLibs", config, resolver)
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
-        val (_, libraries, bundles) =
+        val (_, libraries, _) =
             getExpectedCatalog(Paths.get("expectations", "assertj-bom", "both-exclusion-test.toml"))
         verify(builder, times(0)).version(any<String>(), any<String>())
         verify(builder, times(1)).library(any<String>(), any<String>(), any<String>())
@@ -216,16 +215,16 @@ internal class GeneratorTest {
         }
     }
 
-    private fun getExpectedCatalog(dep: Dependency): Triple<TomlTable?, TomlTable, TomlTable?> {
+    private fun getExpectedCatalog(dep: Dependency): Triple<TomlTable, TomlTable, TomlTable> {
         val expectations = Paths.get("expectations", "${dep.artifactId}", "libs.versions.toml")
         return getExpectedCatalog(expectations)
     }
 
-    private fun getExpectedCatalog(tomlPath: Path): Triple<TomlTable?, TomlTable, TomlTable?> {
+    private fun getExpectedCatalog(tomlPath: Path): Triple<TomlTable, TomlTable, TomlTable> {
         val parseResult = Toml.parse(resourceRoot.resolve(tomlPath))
-        val versions = parseResult.getTable("versions")
-        val libraries = parseResult.getTable("libraries")!!
-        val bundles = parseResult.getTable("bundles")
+        val versions = parseResult.getTableOrEmpty("versions")
+        val libraries = parseResult.getTableOrEmpty("libraries")
+        val bundles = parseResult.getTableOrEmpty("bundles")
         return Triple(versions, libraries, bundles)
     }
 }
