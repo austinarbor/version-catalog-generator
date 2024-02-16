@@ -1,3 +1,5 @@
+name: Publish Plugin
+
 on:
   workflow_dispatch:
 
