@@ -3,7 +3,11 @@ package dev.aga.gradle.versioncatalogs
 import dev.aga.gradle.versioncatalogs.model.Version
 import dev.aga.gradle.versioncatalogs.service.DependencyResolver
 import dev.aga.gradle.versioncatalogs.service.GradleDependencyResolver
+import java.nio.charset.Charset
+import java.nio.file.Files
 import java.util.function.Supplier
+import kotlin.io.path.createDirectories
+import kotlin.io.path.exists
 import org.apache.commons.text.StringSubstitutor
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
@@ -12,6 +16,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 import org.slf4j.LoggerFactory
 import org.tomlj.TomlContainer
@@ -62,7 +67,7 @@ object Generator {
         conf: VersionCatalogGeneratorPluginExtension,
     ): VersionCatalogBuilder {
         val resolver = GradleDependencyResolver(conf.objects, dependencyResolutionServices)
-        return generate(name, conf.config, resolver)
+        return generate(name, conf.objects, conf.config, resolver)
     }
 
     /**
@@ -75,6 +80,7 @@ object Generator {
      */
     internal fun MutableVersionCatalogContainer.generate(
         name: String,
+        objectFactory: ObjectFactory,
         config: GeneratorConfig,
         resolver: DependencyResolver,
     ): VersionCatalogBuilder {
@@ -88,6 +94,12 @@ object Generator {
                 else -> throw IllegalArgumentException("Unable to resolve notation ${src}")
             }
 
+        val cachedFileName = "libs.${name}-${bomDep.version}.toml"
+        val cachedPath = config.cacheDirectory.resolve(cachedFileName)
+        if (cachedPath.exists()) {
+            return create(name) { from(objectFactory.fileCollection().from(cachedPath)) }
+        }
+
         return create(name) {
             val props = mutableMapOf<String, String>()
             val seenModules = mutableSetOf<String>()
@@ -97,6 +109,12 @@ object Generator {
                 val dep = queue.removeFirst()
                 val (model, parentModel) = resolver.resolve(dep)
                 loadBom(model, parentModel, config, queue, props, seenModules, container)
+            }
+            try {
+                cachedPath.parent.createDirectories()
+                Files.write(cachedPath, container.toToml().toByteArray(Charset.defaultCharset()))
+            } catch (e: Exception) {
+                logger.warn("error creating cached file {}", cachedPath, e)
             }
         }
     }
@@ -201,8 +219,8 @@ object Generator {
         usedVersions: MutableSet<String>,
         container: TomlContainer
     ) {
-        if (version.isRef && usedVersions.add(version.unwrapped)) {
-            val versionAlias = versionNameGenerator(version.unwrapped)
+        val versionAlias = versionNameGenerator(version.unwrapped)
+        if (version.isRef && usedVersions.add(versionAlias)) {
             version(versionAlias, version.resolvedValue)
             container.addVersion(versionAlias, version.resolvedValue)
         }

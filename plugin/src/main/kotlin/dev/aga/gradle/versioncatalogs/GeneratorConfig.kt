@@ -66,6 +66,12 @@ class GeneratorConfig(val settings: Settings) {
      */
     var excludeNames: String? = null
 
+    /** The root directory of the project */
+    internal val rootProjectDir = settings.rootDir.toPath()
+
+    /** The directory to store our cached toml files */
+    internal val cacheDirectory = rootProjectDir.resolve(Paths.get("build", "catalogs"))
+
     internal val excludeFilter: (Dependency) -> Boolean by lazy {
         {
             val eg = excludeGroups
