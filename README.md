@@ -14,7 +14,10 @@ a version catalog from an external BOM.
 Works on Gradle 7.6+
 
 ## Quick Start
-<details>
+
+Add your BOM dependencies to your version catalog
+
+<details open>
   <summary>libs.versions.toml</summary>
 
 ```toml
@@ -27,14 +30,17 @@ awsBom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws" }
 springBootDependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
 ```
 </details>
-<details>
+
+Add the plugin to your settings with the catalogs you want to generate
+
+<details open>
   <summary>settings.gradle.kts</summary>
 
 ```kotlin
 import dev.aga.gradle.versioncatalogs.Generator.generate
 
 plugins {
-  id("dev.aga.gradle.version-catalog-generator") version("1.1.0")
+  id("dev.aga.gradle.version-catalog-generator") version("1.1.1")
 }
 
 dependencyResolutionManagement {
@@ -54,7 +60,10 @@ dependencyResolutionManagement {
 }
 ```
 </details>
-<details>
+
+Use the dependencies in your build
+
+<details open>
  <summary>build.gradle.kts</summary>
 
 ```kotlin
@@ -76,7 +85,7 @@ import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.GeneratorConfig
 
 plugins {
-    id("dev.aga.gradle.version-catalog-generator") version("1.1.0")
+    id("dev.aga.gradle.version-catalog-generator") version("1.1.1")
 }
 
 dependencyResolutionManagement {
@@ -123,7 +132,7 @@ dependencyResolutionManagement {
 
 ```groovy
 plugins {
-    id('dev.aga.gradle.version-catalog-generator') version '1.1.0'
+    id('dev.aga.gradle.version-catalog-generator') version '1.1.1'
 }
 
 dependencyResolutionManagement {
