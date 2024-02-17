@@ -3,6 +3,7 @@ package dev.aga.gradle.versioncatalogs
 import dev.aga.gradle.versioncatalogs.model.Version
 import dev.aga.gradle.versioncatalogs.service.DependencyResolver
 import dev.aga.gradle.versioncatalogs.service.GradleDependencyResolver
+import java.io.IOException
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.util.function.Supplier
@@ -114,7 +115,7 @@ object Generator {
             try {
                 cachedPath.parent.createDirectories()
                 Files.write(cachedPath, container.toToml().toByteArray(Charset.defaultCharset()))
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 logger.warn("error creating cached library file {}", cachedPath, e)
             }
         }
@@ -165,7 +166,7 @@ object Generator {
         substitutor: StringSubstitutor,
         seenModules: MutableSet<String>,
         rootDep: Boolean,
-        container: TomlContainer
+        container: TomlContainer,
     ) {
         val registeredVersions = mutableSetOf<String>()
         val deps = getNewDependencies(model, seenModules, substitutor, importFilter, config)
@@ -174,7 +175,11 @@ object Generator {
                 logger.info("${model.groupId}:${model.artifactId} contains other BOMs")
                 if (rootDep) {
                     maybeRegisterVersion(
-                        version, config.versionNameGenerator, registeredVersions, container)
+                        version,
+                        config.versionNameGenerator,
+                        registeredVersions,
+                        container,
+                    )
                 }
                 createLibrary(bom, version, config, rootDep, container)
                 // if the version is a property, replace it with the
@@ -190,7 +195,11 @@ object Generator {
             (version, deps) ->
             if (rootDep) {
                 maybeRegisterVersion(
-                    version, config.versionNameGenerator, registeredVersions, container)
+                    version,
+                    config.versionNameGenerator,
+                    registeredVersions,
+                    container,
+                )
             }
             val aliases = mutableListOf<String>()
             deps.forEach { dep ->

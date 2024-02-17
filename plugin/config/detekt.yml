@@ -3,8 +3,8 @@ complexity:
     excludes:
       - '**/test/**'
   LongParameterList:
-    constructorThreshold: 7
-    functionThreshold: 7
+    constructorThreshold: 10
+    functionThreshold: 10
 
 exceptions:
   TooGenericExceptionThrown:

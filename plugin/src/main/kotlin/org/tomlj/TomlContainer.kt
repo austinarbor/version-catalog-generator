@@ -22,7 +22,7 @@ class TomlContainer {
         group: String,
         name: String,
         version: String,
-        isRef: Boolean = false
+        isRef: Boolean = false,
     ) {
         val lib = MutableTomlTable(TomlVersion.LATEST)
         lib.set("group", group, zeroZero)
