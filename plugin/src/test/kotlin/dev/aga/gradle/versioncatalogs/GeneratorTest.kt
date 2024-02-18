@@ -92,21 +92,12 @@ internal class GeneratorTest {
 
         verify(builder, times(bundles.size())).bundle(any<String>(), any<List<String>>())
         bundles.dottedKeySet().forEach {
-            assertThat(generatedBundles.containsKey(it))
+            assertThat(generatedBundles).containsKey(it)
             val expectedLibraries = bundles.getArrayOrEmpty(it).toList()
             assertThat(expectedLibraries).containsExactlyInAnyOrderElementsOf(generatedBundles[it])
         }
 
-        val cachedLib =
-            settings.rootDir
-                .toPath()
-                .resolve(Paths.get("build", "catalogs", "libs.mylibs-3.1.2.toml"))
-        assertThat(cachedLib).exists()
-
-        val cachedToml = Toml.parse(cachedLib)
-        val expectedToml = getExpectedToml(dep)
-
-        assertTomlTableEquals(cachedToml, expectedToml)
+        assertTomlTableEquals("myLibs", dep)
     }
 
     @Test
@@ -128,6 +119,12 @@ internal class GeneratorTest {
         verify(builder, times(1)).library(any<String>(), any<String>(), any<String>())
         verifyLibraries(libraries)
         verify(builder, times(0)).bundle(any<String>(), any<List<String>>())
+
+        assertTomlTableEquals(
+            "myLibs",
+            "3.24.2",
+            Paths.get("expectations", "assertj-bom", "name-exclusion-test.toml"),
+        )
     }
 
     @Test
@@ -168,6 +165,11 @@ internal class GeneratorTest {
         verify(builder, times(2)).library(any<String>(), any<String>(), any<String>())
         verifyLibraries(libraries)
         verify(builder, times(0)).bundle(any<String>(), any<List<String>>())
+        assertTomlTableEquals(
+            "myLibs",
+            "3.24.2",
+            Paths.get("expectations", "assertj-bom", "exclusion-negative-test.toml"),
+        )
     }
 
     @Test
@@ -189,6 +191,11 @@ internal class GeneratorTest {
         verify(builder, times(1)).library(any<String>(), any<String>(), any<String>())
         verifyLibraries(libraries)
         verify(builder, times(0)).bundle(any<String>(), any<List<String>>())
+        assertTomlTableEquals(
+            "myLibs",
+            "3.24.2",
+            Paths.get("expectations", "assertj-bom", "both-exclusion-test.toml"),
+        )
     }
 
     private fun verifyLibraries(libraries: TomlTable) {
@@ -217,6 +224,30 @@ internal class GeneratorTest {
         for (i in 0 until actual.size()) {
             assertThat(actual[i]).isEqualTo(expected[i])
         }
+    }
+
+    private fun assertTomlTableEquals(name: String, dep: Dependency) {
+        val cachedLib =
+            settings.rootDir
+                .toPath()
+                .resolve(Paths.get("build", "catalogs", "libs.${name}-${dep.version}.toml"))
+        assertThat(cachedLib).exists()
+
+        val cachedToml = Toml.parse(cachedLib)
+        val expectedToml = getExpectedToml(dep)
+        assertTomlTableEquals(cachedToml, expectedToml)
+    }
+
+    private fun assertTomlTableEquals(name: String, version: String, expectedPath: Path) {
+        val cachedLib =
+            settings.rootDir
+                .toPath()
+                .resolve(Paths.get("build", "catalogs", "libs.${name}-${version}.toml"))
+        assertThat(cachedLib).exists()
+
+        val cachedToml = Toml.parse(cachedLib)
+        val expectedToml = getExpectedToml(expectedPath)
+        assertTomlTableEquals(cachedToml, expectedToml)
     }
 
     private fun assertTomlTableEquals(actual: TomlTable, expected: TomlTable) {
@@ -258,6 +289,10 @@ internal class GeneratorTest {
     private fun getExpectedToml(dep: Dependency): TomlParseResult {
         val path = Paths.get("expectations", "${dep.artifactId}", "libs.versions.toml")
         return Toml.parse(resourceRoot.resolve(path))
+    }
+
+    private fun getExpectedToml(tomlPath: Path): TomlParseResult {
+        return Toml.parse(resourceRoot.resolve(tomlPath))
     }
 
     private fun getExpectedCatalog(dep: Dependency): Triple<TomlTable, TomlTable, TomlTable> {

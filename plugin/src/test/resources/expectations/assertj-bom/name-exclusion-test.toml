@@ -1,2 +1,6 @@
+[versions]
+
 [libraries]
 assertj-assertjCore = { group = "org.assertj", name = "assertj-core", version = "3.24.2" }
+
+[bundles]
