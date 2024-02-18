@@ -101,8 +101,7 @@ internal class GeneratorTest {
 
         assertTomlTableEquals("myLibs", dep)
         // reset the mock and regenerate the library to assert that we use the cached file instead
-        // of reprocessing
-        // the whole thing
+        // of reprocessing the whole thing
         reset(builder)
         container.generate("myLibs", objectFactory, config, resolver)
         verify(builder, times(0)).library(any<String>(), any<String>(), any<String>())
