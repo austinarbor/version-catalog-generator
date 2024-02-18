@@ -22,18 +22,18 @@ class TomlContainer {
         group: String,
         name: String,
         version: String,
-        isRef: Boolean = false,
+        isRef: Boolean,
     ) {
         val lib = MutableTomlTable(TomlVersion.LATEST)
         lib.set("group", group, oneOne)
         lib.set("name", name, oneOne)
-        if (isRef) {
-            val v = MutableTomlTable(TomlVersion.LATEST)
-            v.set("ref", version, oneOne)
-            lib.set("version", v, oneOne)
-        } else {
-            lib.set("version", version, oneOne)
-        }
+        val v: Any =
+            if (isRef) {
+                MutableTomlTable(TomlVersion.LATEST).apply { set("ref", version, oneOne) }
+            } else {
+                version
+            }
+        lib.set("version", v, oneOne)
         libraries.set(alias, lib, oneOne)
     }
 
