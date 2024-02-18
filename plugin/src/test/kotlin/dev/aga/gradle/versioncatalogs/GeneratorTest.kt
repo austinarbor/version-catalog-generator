@@ -8,6 +8,7 @@ import java.nio.file.Paths
 import org.apache.maven.model.Dependency
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Action
+import org.gradle.api.file.FileCollection
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder.LibraryAliasBuilder
@@ -22,6 +23,7 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.tomlj.Toml
@@ -98,6 +100,13 @@ internal class GeneratorTest {
         }
 
         assertTomlTableEquals("myLibs", dep)
+        // reset the mock and regenerate the library to assert that we use the cached file instead
+        // of reprocessing
+        // the whole thing
+        reset(builder)
+        container.generate("myLibs", objectFactory, config, resolver)
+        verify(builder, times(0)).library(any<String>(), any<String>(), any<String>())
+        verify(builder).from(any<FileCollection>())
     }
 
     @Test
