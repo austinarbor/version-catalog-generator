@@ -95,8 +95,7 @@ object Generator {
                 else -> throw IllegalArgumentException("Unable to resolve notation ${src}")
             }
 
-        val cachedFileName = "libs.${name}-${bomDep.version}.toml"
-        val cachedPath = config.cacheDirectory.resolve(cachedFileName)
+        val cachedPath = config.cacheDirectory.resolve(cachedCatalogName(name, bomDep))
         if (cachedPath.exists()) {
             return create(name) { from(objectFactory.fileCollection().from(cachedPath)) }
         }
@@ -350,6 +349,9 @@ object Generator {
         }
         return version
     }
+
+    internal fun cachedCatalogName(name: String, dep: Dependency) =
+        "libs.${name}-${dep.artifactId}-${dep.version}.toml"
 
     /*
     Below methods inspired by / taken from
