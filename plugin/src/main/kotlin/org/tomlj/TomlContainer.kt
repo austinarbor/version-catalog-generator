@@ -1,20 +1,20 @@
 package org.tomlj
 
 class TomlContainer {
-    private val zeroZero = TomlPosition.positionAt(1, 1)
+    private val oneOne = TomlPosition.positionAt(1, 1)
     private val toml: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)
     private val versions: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)
     private val libraries: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)
     private val bundles: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)
 
     init {
-        toml.set("versions", versions, zeroZero)
-        toml.set("libraries", libraries, zeroZero)
-        toml.set("bundles", bundles, zeroZero)
+        toml.set("versions", versions, oneOne)
+        toml.set("libraries", libraries, oneOne)
+        toml.set("bundles", bundles, oneOne)
     }
 
     fun addVersion(alias: String, value: String) {
-        versions.set(alias, value, zeroZero)
+        versions.set(alias, value, oneOne)
     }
 
     fun addLibrary(
@@ -25,22 +25,22 @@ class TomlContainer {
         isRef: Boolean = false,
     ) {
         val lib = MutableTomlTable(TomlVersion.LATEST)
-        lib.set("group", group, zeroZero)
-        lib.set("name", name, zeroZero)
+        lib.set("group", group, oneOne)
+        lib.set("name", name, oneOne)
         if (isRef) {
             val v = MutableTomlTable(TomlVersion.LATEST)
-            v.set("ref", version, zeroZero)
-            lib.set("version", v, zeroZero)
+            v.set("ref", version, oneOne)
+            lib.set("version", v, oneOne)
         } else {
-            lib.set("version", version, zeroZero)
+            lib.set("version", version, oneOne)
         }
-        libraries.set(alias, lib, zeroZero)
+        libraries.set(alias, lib, oneOne)
     }
 
     fun addBundle(alias: String, libraries: Iterable<String>) {
         val array = MutableTomlArray(false)
-        libraries.forEach { array.append(it, zeroZero) }
-        bundles.set(alias, array, zeroZero)
+        libraries.forEach { array.append(it, oneOne) }
+        bundles.set(alias, array, oneOne)
     }
 
     fun toToml(): String {
