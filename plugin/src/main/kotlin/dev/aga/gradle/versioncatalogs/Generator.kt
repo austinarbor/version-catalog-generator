@@ -129,8 +129,9 @@ object Generator {
      * @param parentModel the parent of the BOM
      * @param config [GeneratorConfig]
      * @param queue the BFS queue to add more BOMs into
-     * @param props the version properties
      * @param seenModules the set of modules we have already created libraries for
+     * @param rootDep true if this is the very first BOM in the tree, otherwise false
+     * @param container the container for the TOML file we are generating
      */
     internal fun VersionCatalogBuilder.loadBom(
         model: Model,
@@ -155,8 +156,9 @@ object Generator {
      * @param config the [GeneratorConfig]
      * @param queue the BFS queue to add more BOMs into
      * @param substitutor the [StringSubstitutor] for variable resolution
-     * @param excludedProps the set of version properties to ignore
      * @param seenModules the set of modules we have already created libraries for
+     * @param rootDep true if this is the very first BOM in the tree, otherwise false
+     * @param container the container for the TOML file we are generating
      */
     internal fun VersionCatalogBuilder.loadDependencies(
         model: Model,
@@ -245,6 +247,8 @@ object Generator {
      * @param dep the dependency
      * @param version the version of the dependency, may be a property of actual version
      * @param config the [GeneratorConfig]
+     * @param rootDep true if this is the very first BOM in the tree, otherwise false
+     * @param container the container for the TOML file we are generating
      * @return the library's alias and true if the version was a reference, or false if it was not
      */
     internal fun VersionCatalogBuilder.createLibrary(
