@@ -2,17 +2,19 @@ package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.service.MockGradleDependencyResolver
-import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import org.apache.maven.model.Dependency
 import org.assertj.core.api.Assertions.assertThat
+import org.gradle.BuildResult
 import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder.LibraryAliasBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
@@ -37,17 +39,32 @@ internal class GeneratorTest {
     private val generatedLibraries = mutableMapOf<String, LibraryAliasBuilder>()
     private val generatedBundles = mutableMapOf<String, List<String>>()
 
-    @TempDir private lateinit var projectDir: File
+    @TempDir private lateinit var projectDir: Path
     private lateinit var settings: Settings
     private lateinit var builder: VersionCatalogBuilder
     private lateinit var container: MutableVersionCatalogContainer
+    private lateinit var gradle: Gradle
 
     @BeforeEach
     fun beforeEach() {
         generatedLibraries.clear()
         generatedBundles.clear()
 
-        settings = mock<Settings> { on { rootDir } doReturn projectDir }
+        gradle =
+            mock<Gradle> {
+                doAnswer { invocation ->
+                        val a = invocation.arguments[0] as Action<in BuildResult>
+                        a.execute(mock<BuildResult>())
+                        null
+                    }
+                    .`when`(it)
+                    .buildFinished(any<Action<in BuildResult>>())
+            }
+        settings =
+            mock<Settings> {
+                on { rootDir } doReturn projectDir.toFile()
+                on { gradle } doReturn gradle
+            }
         builder =
             mock<VersionCatalogBuilder> {
                 on { library(any<String>(), any<String>(), any<String>()) } doAnswer
@@ -79,7 +96,11 @@ internal class GeneratorTest {
     fun testGenerate() {
         val dep = dep("org.springframework.boot", "spring-boot-dependencies", "3.1.2")
         val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
-        val config = GeneratorConfig(settings).apply { source = { dep } }
+        val config =
+            GeneratorConfig(settings).apply {
+                source = { dep }
+                cacheDirectory = projectDir
+            }
 
         container.generate("myLibs", objectFactory, config, resolver)
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
@@ -116,6 +137,7 @@ internal class GeneratorTest {
             GeneratorConfig(settings).apply {
                 source = { dep }
                 excludeNames = "^assertj-guava$"
+                cacheDirectory = projectDir
             }
 
         container.generate("myLibs", objectFactory, config, resolver)
@@ -143,6 +165,7 @@ internal class GeneratorTest {
             GeneratorConfig(settings).apply {
                 source = { dep }
                 excludeGroups = "org\\.assertj"
+                cacheDirectory = projectDir
             }
 
         container.generate("myLibs", objectFactory, config, resolver)
@@ -161,6 +184,7 @@ internal class GeneratorTest {
                 source = { dep }
                 excludeGroups = "org\\.assertj"
                 excludeNames = "xyz"
+                cacheDirectory = projectDir
             }
 
         container.generate("myLibs", objectFactory, config, resolver)
@@ -189,6 +213,7 @@ internal class GeneratorTest {
                 source = { dep }
                 excludeGroups = "org\\.assertj"
                 excludeNames = "assertj-core"
+                cacheDirectory = projectDir
             }
 
         container.generate("myLibs", objectFactory, config, resolver)
@@ -235,10 +260,7 @@ internal class GeneratorTest {
     }
 
     private fun assertTomlTableEquals(name: String, dep: Dependency) {
-        val cachedLib =
-            settings.rootDir
-                .toPath()
-                .resolve(Paths.get("build", "catalogs", Generator.cachedCatalogName(name, dep)))
+        val cachedLib = projectDir.resolve(Generator.cachedCatalogName(name, dep))
         assertThat(cachedLib).exists()
 
         val cachedToml = Toml.parse(cachedLib)
@@ -247,10 +269,7 @@ internal class GeneratorTest {
     }
 
     private fun assertTomlTableEquals(name: String, dep: Dependency, expectedPath: Path) {
-        val cachedLib =
-            settings.rootDir
-                .toPath()
-                .resolve(Paths.get("build", "catalogs", Generator.cachedCatalogName(name, dep)))
+        val cachedLib = projectDir.resolve(Generator.cachedCatalogName(name, dep))
         assertThat(cachedLib).exists()
 
         val cachedToml = Toml.parse(cachedLib)
@@ -319,5 +338,6 @@ internal class GeneratorTest {
         return Triple(versions, libraries, bundles)
     }
 
-    private val objectFactory: ObjectFactory = ProjectBuilder.builder().build().objects
+    private val project: Project = ProjectBuilder.builder().build()
+    private val objectFactory: ObjectFactory = project.objects
 }

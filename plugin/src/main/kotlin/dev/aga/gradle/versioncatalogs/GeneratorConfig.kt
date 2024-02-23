@@ -2,10 +2,12 @@ package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.service.FileCatalogParser
 import java.io.File
+import java.nio.file.Path
 import java.nio.file.Paths
 import net.pearx.kasechange.CaseFormat
 import net.pearx.kasechange.formatter.format
 import org.apache.maven.model.Dependency
+import org.gradle.api.Incubating
 import org.gradle.api.initialization.Settings
 
 class GeneratorConfig(val settings: Settings) {
@@ -66,11 +68,24 @@ class GeneratorConfig(val settings: Settings) {
      */
     var excludeNames: String? = null
 
-    /** The root directory of the project */
-    internal val rootProjectDir = settings.rootDir.toPath()
-
-    /** The directory to store our cached toml files */
-    internal val cacheDirectory = rootProjectDir.resolve(Paths.get("build", "catalogs"))
+    /**
+     * The directory to store our cached toml file. By default, it will be stored in
+     * `build/catalogs` from the root directory of the project. When customizing the cache
+     * directory, you probably want to make sure it is cleaned up by the `clean` task. If you pass
+     * in a relative path it will be resolved from the root directory. An absolute path will be used
+     * exactly as provided.
+     */
+    @Incubating
+    var cacheDirectory: Path =
+        settings.rootDir.toPath().resolve(Paths.get("build", "version-catalogs"))
+        set(value) {
+            field =
+                if (value.isAbsolute) {
+                    value
+                } else {
+                    settings.rootDir.toPath().resolve(value)
+                }
+        }
 
     internal val excludeFilter: (Dependency) -> Boolean by lazy {
         {

@@ -111,9 +111,15 @@ object Generator {
                 loadBom(model, parentModel, config, queue, seenModules, rootDep, container)
                 rootDep = false
             }
+
             try {
-                cachedPath.parent.createDirectories()
-                Files.write(cachedPath, container.toToml().toByteArray(Charset.defaultCharset()))
+                config.settings.gradle.buildFinished {
+                    cachedPath.parent.createDirectories()
+                    Files.write(
+                        cachedPath,
+                        container.toToml().toByteArray(Charset.defaultCharset()),
+                    )
+                }
             } catch (e: IOException) {
                 logger.warn("error creating cached library file {}", cachedPath, e)
             }
