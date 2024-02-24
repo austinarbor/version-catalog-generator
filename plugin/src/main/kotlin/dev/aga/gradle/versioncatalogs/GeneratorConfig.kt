@@ -69,11 +69,11 @@ class GeneratorConfig(val settings: Settings) {
     var excludeNames: String? = null
 
     /**
-     * The directory to store our cached toml file. By default, it will be stored in
-     * `build/catalogs` from the root directory of the project. When customizing the cache
-     * directory, you probably want to make sure it is cleaned up by the `clean` task. If you pass
-     * in a relative path it will be resolved from the root directory. An absolute path will be used
-     * exactly as provided.
+     * The directory to store our cached TOML file. By default, it will be stored in
+     * `build/catalogs` relative to the directory of where the settings file exists. When
+     * customizing the cache directory, you probably want to make sure it is cleaned up by the
+     * `clean` task. If you pass in a relative path it will be resolved from the root directory. An
+     * absolute path will be used exactly as provided.
      */
     @Incubating
     var cacheDirectory: Path =

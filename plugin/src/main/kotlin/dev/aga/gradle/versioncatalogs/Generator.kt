@@ -3,22 +3,23 @@ package dev.aga.gradle.versioncatalogs
 import dev.aga.gradle.versioncatalogs.model.Version
 import dev.aga.gradle.versioncatalogs.service.DependencyResolver
 import dev.aga.gradle.versioncatalogs.service.GradleDependencyResolver
-import java.io.IOException
-import java.nio.charset.Charset
-import java.nio.file.Files
+import dev.aga.gradle.versioncatalogs.tasks.SaveTask
+import java.nio.file.Path
 import java.util.function.Supplier
-import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 import org.apache.commons.text.StringSubstitutor
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
 import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.register
 import org.slf4j.LoggerFactory
 import org.tomlj.TomlContainer
 
@@ -112,17 +113,37 @@ object Generator {
                 rootDep = false
             }
 
-            try {
-                config.settings.gradle.buildFinished {
-                    cachedPath.parent.createDirectories()
-                    Files.write(
-                        cachedPath,
-                        container.toToml().toByteArray(Charset.defaultCharset()),
-                    )
-                }
-            } catch (e: IOException) {
-                logger.warn("error creating cached library file {}", cachedPath, e)
+            config.settings.gradle.projectsEvaluated {
+                registerSaveTask(rootProject, config.cacheDirectory, name, bomDep, container)
             }
+        }
+    }
+
+    internal fun registerSaveTask(
+        project: Project,
+        cachePath: Path,
+        catalogName: String,
+        bom: Dependency,
+        container: TomlContainer
+    ) {
+        val fileName = cachedCatalogName(catalogName, bom)
+        registerSaveTask(project, cachePath, fileName, container)
+    }
+
+    private fun registerSaveTask(
+        project: Project,
+        cachePath: Path,
+        fileName: String,
+        container: TomlContainer
+    ) {
+        with(project) {
+            val task =
+                tasks.register<SaveTask>("save${fileName}") {
+                    destinationDir.set(cachePath.toFile())
+                    destinationFile.set(project.file(fileName))
+                    contents.set(container.toToml())
+                }
+            project.tasks["assemble"].finalizedBy(task)
         }
     }
 
