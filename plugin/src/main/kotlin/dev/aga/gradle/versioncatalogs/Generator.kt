@@ -124,7 +124,7 @@ object Generator {
         cachePath: Path,
         catalogName: String,
         bom: Dependency,
-        container: TomlContainer
+        container: TomlContainer,
     ) {
         val fileName = cachedCatalogName(catalogName, bom)
         registerSaveTask(project, cachePath, fileName, container)
@@ -134,7 +134,7 @@ object Generator {
         project: Project,
         cachePath: Path,
         fileName: String,
-        container: TomlContainer
+        container: TomlContainer,
     ) {
         with(project) {
             val task =

@@ -30,6 +30,8 @@ formatting:
     active: false
   StringTemplate:
     active: false
+  SpacingBetweenDeclarationsWithAnnotations:
+    active: false
   TrailingCommaOnCallSite:
     active: true
   TrailingCommaOnDeclarationSite:
