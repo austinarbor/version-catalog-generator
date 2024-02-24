@@ -1,13 +1,18 @@
 package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.GeneratorConfig.Companion.DEFAULT_ALIAS_GENERATOR
+import java.nio.file.Paths
 import net.pearx.kasechange.CaseFormat
 import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
+import org.gradle.api.initialization.Settings
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 class GeneratorConfigTest {
     @ParameterizedTest
@@ -62,6 +67,24 @@ class GeneratorConfigTest {
     fun `case change`(source: String, from: CaseFormat, to: CaseFormat, expected: String) {
         val actual = GeneratorConfig.caseChange(source, from, to)
         Assertions.assertThat(actual).isEqualTo(expected)
+    }
+
+    @Test
+    fun `cache dir`() {
+        val rootPath = Paths.get("/path", "to", "root")
+        val settings = mock<Settings> { on { rootDir } doReturn rootPath.toFile() }
+        val config = GeneratorConfig(settings)
+        var expected = rootPath.resolve(Paths.get("build", "version-catalogs"))
+        assertThat(config.cacheDirectory).isEqualTo(expected)
+
+        val absolute = Paths.get("/some/path")
+        config.cacheDirectory = absolute
+        assertThat(config.cacheDirectory).isEqualTo(absolute)
+
+        val relative = Paths.get("some/path")
+        config.cacheDirectory = relative
+        expected = rootPath.resolve(relative)
+        assertThat(config.cacheDirectory).isEqualTo(expected)
     }
 
     companion object {
