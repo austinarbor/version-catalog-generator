@@ -2,7 +2,6 @@ package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.service.FileCatalogParser
 import java.io.File
-import java.nio.file.Path
 import java.nio.file.Paths
 import net.pearx.kasechange.CaseFormat
 import net.pearx.kasechange.formatter.format
@@ -76,14 +75,14 @@ class GeneratorConfig(val settings: Settings) {
      * absolute path will be used exactly as provided.
      */
     @Incubating
-    var cacheDirectory: Path =
-        settings.rootDir.toPath().resolve(Paths.get("build", "version-catalogs"))
+    var cacheDirectory: File =
+        settings.rootDir.resolve(Paths.get("build", "version-catalogs").toFile())
         set(value) {
             field =
                 if (value.isAbsolute) {
                     value
                 } else {
-                    settings.rootDir.toPath().resolve(value)
+                    settings.rootDir.resolve(value)
                 }
         }
 

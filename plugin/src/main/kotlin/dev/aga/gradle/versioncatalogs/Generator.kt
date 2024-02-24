@@ -4,10 +4,9 @@ import dev.aga.gradle.versioncatalogs.model.Version
 import dev.aga.gradle.versioncatalogs.service.DependencyResolver
 import dev.aga.gradle.versioncatalogs.service.GradleDependencyResolver
 import dev.aga.gradle.versioncatalogs.tasks.SaveTask
-import java.nio.file.Path
+import java.io.File
 import java.util.function.Supplier
 import kotlin.collections.set
-import kotlin.io.path.exists
 import org.apache.commons.text.StringSubstitutor
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
@@ -121,7 +120,7 @@ object Generator {
 
     internal fun registerSaveTask(
         project: Project,
-        cachePath: Path,
+        cachePath: File,
         catalogName: String,
         bom: Dependency,
         container: TomlContainer,
@@ -132,14 +131,14 @@ object Generator {
 
     private fun registerSaveTask(
         project: Project,
-        cachePath: Path,
+        cachePath: File,
         fileName: String,
         container: TomlContainer,
     ) {
         with(project) {
             val task =
                 tasks.register<SaveTask>("save${fileName}") {
-                    destinationDir.set(cachePath.toFile())
+                    destinationDir.set(cachePath)
                     destinationFile.set(project.file(fileName))
                     contents.set(container.toToml())
                 }

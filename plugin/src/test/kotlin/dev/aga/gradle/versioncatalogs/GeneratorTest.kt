@@ -2,6 +2,7 @@ package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.service.MockGradleDependencyResolver
+import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import org.apache.maven.model.Dependency
@@ -38,7 +39,7 @@ internal class GeneratorTest {
     private val generatedLibraries = mutableMapOf<String, LibraryAliasBuilder>()
     private val generatedBundles = mutableMapOf<String, List<String>>()
 
-    @TempDir private lateinit var projectDir: Path
+    @TempDir private lateinit var projectDir: File
     private lateinit var settings: Settings
     private lateinit var builder: VersionCatalogBuilder
     private lateinit var container: MutableVersionCatalogContainer
@@ -67,7 +68,7 @@ internal class GeneratorTest {
             }
         settings =
             mock<Settings> {
-                on { rootDir } doReturn projectDir.toFile()
+                on { rootDir } doReturn projectDir
                 on { gradle } doReturn gradle
             }
         builder =
@@ -268,7 +269,7 @@ internal class GeneratorTest {
         val cachedLib = projectDir.resolve(Generator.cachedCatalogName(name, dep))
         assertThat(cachedLib).exists()
 
-        val cachedToml = Toml.parse(cachedLib)
+        val cachedToml = Toml.parse(cachedLib.toPath())
         val expectedToml = getExpectedToml(dep)
         assertTomlTableEquals(cachedToml, expectedToml)
     }
@@ -277,7 +278,7 @@ internal class GeneratorTest {
         val cachedLib = projectDir.resolve(Generator.cachedCatalogName(name, dep))
         assertThat(cachedLib).exists()
 
-        val cachedToml = Toml.parse(cachedLib)
+        val cachedToml = Toml.parse(cachedLib.toPath())
         val expectedToml = getExpectedToml(expectedPath)
         assertTomlTableEquals(cachedToml, expectedToml)
     }
@@ -343,6 +344,5 @@ internal class GeneratorTest {
         return Triple(versions, libraries, bundles)
     }
 
-    private fun newProject(): Project =
-        ProjectBuilder.builder().withProjectDir(projectDir.toFile()).build()
+    private fun newProject(): Project = ProjectBuilder.builder().withProjectDir(projectDir).build()
 }

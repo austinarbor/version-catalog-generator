@@ -1,6 +1,7 @@
 package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.GeneratorConfig.Companion.DEFAULT_ALIAS_GENERATOR
+import java.io.File
 import java.nio.file.Paths
 import net.pearx.kasechange.CaseFormat
 import org.assertj.core.api.Assertions
@@ -74,16 +75,16 @@ class GeneratorConfigTest {
         val rootPath = Paths.get("/path", "to", "root")
         val settings = mock<Settings> { on { rootDir } doReturn rootPath.toFile() }
         val config = GeneratorConfig(settings)
-        var expected = rootPath.resolve(Paths.get("build", "version-catalogs"))
+        var expected = rootPath.resolve(Paths.get("build", "version-catalogs")).toFile()
         assertThat(config.cacheDirectory).isEqualTo(expected)
 
-        val absolute = Paths.get("/some/path")
+        val absolute = File("/some/path")
         config.cacheDirectory = absolute
         assertThat(config.cacheDirectory).isEqualTo(absolute)
 
-        val relative = Paths.get("some/path")
+        val relative = File("some/path")
         config.cacheDirectory = relative
-        expected = rootPath.resolve(relative)
+        expected = rootPath.toFile().resolve(relative)
         assertThat(config.cacheDirectory).isEqualTo(expected)
     }
 
