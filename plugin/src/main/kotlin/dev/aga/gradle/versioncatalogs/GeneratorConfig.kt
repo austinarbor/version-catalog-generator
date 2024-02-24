@@ -6,6 +6,7 @@ import java.nio.file.Paths
 import net.pearx.kasechange.CaseFormat
 import net.pearx.kasechange.formatter.format
 import org.apache.maven.model.Dependency
+import org.gradle.api.Incubating
 import org.gradle.api.initialization.Settings
 
 class GeneratorConfig(val settings: Settings) {
@@ -65,6 +66,25 @@ class GeneratorConfig(val settings: Settings) {
      * is `null`.
      */
     var excludeNames: String? = null
+
+    /**
+     * The directory to store our cached TOML file. By default, it will be stored in
+     * `build/catalogs` relative to the directory of where the settings file exists. When
+     * customizing the cache directory, you probably want to make sure it is cleaned up by the
+     * `clean` task. If you pass in a relative path it will be resolved from the root directory. An
+     * absolute path will be used exactly as provided.
+     */
+    @Incubating
+    var cacheDirectory: File =
+        settings.rootDir.resolve(Paths.get("build", "version-catalogs").toFile())
+        set(value) {
+            field =
+                if (value.isAbsolute) {
+                    value
+                } else {
+                    settings.rootDir.resolve(value)
+                }
+        }
 
     internal val excludeFilter: (Dependency) -> Boolean by lazy {
         {

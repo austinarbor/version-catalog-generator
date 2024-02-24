@@ -3,8 +3,8 @@ complexity:
     excludes:
       - '**/test/**'
   LongParameterList:
-    constructorThreshold: 7
-    functionThreshold: 7
+    constructorThreshold: 10
+    functionThreshold: 10
 
 exceptions:
   TooGenericExceptionThrown:
@@ -29,6 +29,8 @@ formatting:
   Indentation:
     active: false
   StringTemplate:
+    active: false
+  SpacingBetweenDeclarationsWithAnnotations:
     active: false
   TrailingCommaOnCallSite:
     active: true

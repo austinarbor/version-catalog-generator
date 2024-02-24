@@ -3,17 +3,24 @@ package dev.aga.gradle.versioncatalogs
 import dev.aga.gradle.versioncatalogs.model.Version
 import dev.aga.gradle.versioncatalogs.service.DependencyResolver
 import dev.aga.gradle.versioncatalogs.service.GradleDependencyResolver
+import dev.aga.gradle.versioncatalogs.tasks.SaveTask
+import java.io.File
 import java.util.function.Supplier
+import kotlin.collections.set
 import org.apache.commons.text.StringSubstitutor
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
 import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.kotlin.dsl.register
 import org.slf4j.LoggerFactory
+import org.tomlj.TomlContainer
 
 object Generator {
 
@@ -43,6 +50,7 @@ object Generator {
             conf.execute(cfg)
             this.config = cfg
         }
+
         (this as ExtensionAware).extensions.configure("generator", action)
 
         return this.dependencyResolutionManagement.versionCatalogs.generate(name, generatorExt)
@@ -60,7 +68,7 @@ object Generator {
         conf: VersionCatalogGeneratorPluginExtension,
     ): VersionCatalogBuilder {
         val resolver = GradleDependencyResolver(conf.objects, dependencyResolutionServices)
-        return generate(name, conf.config, resolver)
+        return generate(name, conf.objects, conf.config, resolver)
     }
 
     /**
@@ -73,6 +81,7 @@ object Generator {
      */
     internal fun MutableVersionCatalogContainer.generate(
         name: String,
+        objectFactory: ObjectFactory,
         config: GeneratorConfig,
         resolver: DependencyResolver,
     ): VersionCatalogBuilder {
@@ -86,16 +95,56 @@ object Generator {
                 else -> throw IllegalArgumentException("Unable to resolve notation ${src}")
             }
 
+        val cachedPath = config.cacheDirectory.resolve(cachedCatalogName(name, bomDep))
+        if (cachedPath.exists()) {
+            return create(name) { from(objectFactory.fileCollection().from(cachedPath)) }
+        }
+
         return create(name) {
             val seenModules = mutableSetOf<String>()
             val queue = ArrayDeque(listOf(bomDep))
+            val container = TomlContainer()
             var rootDep = true
             while (queue.isNotEmpty()) {
                 val dep = queue.removeFirst()
                 val (model, parentModel) = resolver.resolve(dep)
-                loadBom(model, parentModel, config, queue, seenModules, rootDep)
+                loadBom(model, parentModel, config, queue, seenModules, rootDep, container)
                 rootDep = false
             }
+
+            config.settings.gradle.projectsEvaluated {
+                registerSaveTask(rootProject, config.cacheDirectory, name, bomDep, container)
+            }
+        }
+    }
+
+    internal fun registerSaveTask(
+        project: Project,
+        cachePath: File,
+        catalogName: String,
+        bom: Dependency,
+        container: TomlContainer,
+    ) {
+        val fileName = cachedCatalogName(catalogName, bom)
+        registerSaveTask(project, cachePath, fileName, container)
+    }
+
+    private fun registerSaveTask(
+        project: Project,
+        cachePath: File,
+        fileName: String,
+        container: TomlContainer,
+    ) {
+        with(project) {
+            val task =
+                tasks.register<SaveTask>("save${fileName}") {
+                    destinationDir.set(cachePath)
+                    destinationFile.set(project.file(fileName))
+                    contents.set(container.toToml())
+                }
+            // if we have an assemble task, finalize it by our task
+            // otherwise run our task right away
+            project.tasks.findByName("assemble")?.finalizedBy(task) ?: task.get().save()
         }
     }
 
@@ -108,8 +157,9 @@ object Generator {
      * @param parentModel the parent of the BOM
      * @param config [GeneratorConfig]
      * @param queue the BFS queue to add more BOMs into
-     * @param props the version properties
      * @param seenModules the set of modules we have already created libraries for
+     * @param rootDep true if this is the very first BOM in the tree, otherwise false
+     * @param container the container for the TOML file we are generating
      */
     internal fun VersionCatalogBuilder.loadBom(
         model: Model,
@@ -118,10 +168,11 @@ object Generator {
         queue: MutableList<Dependency>,
         seenModules: MutableSet<String>,
         rootDep: Boolean,
+        container: TomlContainer,
     ) {
         val newProps = getProperties(model, parentModel)
         val substitutor = newProps.toSubstitutor()
-        loadDependencies(model, config, queue, substitutor, seenModules, rootDep)
+        loadDependencies(model, config, queue, substitutor, seenModules, rootDep, container)
     }
 
     /**
@@ -133,8 +184,9 @@ object Generator {
      * @param config the [GeneratorConfig]
      * @param queue the BFS queue to add more BOMs into
      * @param substitutor the [StringSubstitutor] for variable resolution
-     * @param excludedProps the set of version properties to ignore
      * @param seenModules the set of modules we have already created libraries for
+     * @param rootDep true if this is the very first BOM in the tree, otherwise false
+     * @param container the container for the TOML file we are generating
      */
     internal fun VersionCatalogBuilder.loadDependencies(
         model: Model,
@@ -143,6 +195,7 @@ object Generator {
         substitutor: StringSubstitutor,
         seenModules: MutableSet<String>,
         rootDep: Boolean,
+        container: TomlContainer,
     ) {
         val registeredVersions = mutableSetOf<String>()
         val deps = getNewDependencies(model, seenModules, substitutor, importFilter, config)
@@ -150,9 +203,14 @@ object Generator {
             boms.forEach { bom ->
                 logger.info("${model.groupId}:${model.artifactId} contains other BOMs")
                 if (rootDep) {
-                    maybeRegisterVersion(version, config.versionNameGenerator, registeredVersions)
+                    maybeRegisterVersion(
+                        version,
+                        config.versionNameGenerator,
+                        registeredVersions,
+                        container,
+                    )
                 }
-                createLibrary(bom, version, config, rootDep)
+                createLibrary(bom, version, config, rootDep, container)
                 // if the version is a property, replace it with the
                 // actual version value
                 if (version.isRef) {
@@ -165,17 +223,22 @@ object Generator {
         getNewDependencies(model, seenModules, substitutor, jarFilter, config).forEach {
             (version, deps) ->
             if (rootDep) {
-                maybeRegisterVersion(version, config.versionNameGenerator, registeredVersions)
+                maybeRegisterVersion(
+                    version,
+                    config.versionNameGenerator,
+                    registeredVersions,
+                    container,
+                )
             }
             val aliases = mutableListOf<String>()
             deps.forEach { dep ->
-                val alias = createLibrary(dep, version, config, rootDep)
+                val alias = createLibrary(dep, version, config, rootDep, container)
                 if (rootDep && version.isRef) {
                     aliases += alias
                 }
             }
             if (aliases.isNotEmpty()) {
-                registerBundle(version, aliases, config.versionNameGenerator)
+                registerBundle(version, aliases, config.versionNameGenerator, container)
             }
         }
     }
@@ -184,10 +247,12 @@ object Generator {
         version: Version,
         versionNameGenerator: (String) -> String,
         registeredVersions: MutableSet<String>,
+        container: TomlContainer,
     ) {
         val versionAlias = versionNameGenerator(version.unwrapped)
         if (version.isRef && registeredVersions.add(versionAlias)) {
             version(versionAlias, version.resolvedValue)
+            container.addVersion(versionAlias, version.resolvedValue)
         }
     }
 
@@ -195,9 +260,11 @@ object Generator {
         version: Version,
         aliases: List<String>,
         versionNameGenerator: (String) -> String,
+        container: TomlContainer,
     ) {
         val bundleName = versionNameGenerator(version.unwrapped).replace('.', '-')
         bundle(bundleName, aliases)
+        container.addBundle(bundleName, aliases)
     }
 
     /**
@@ -208,6 +275,8 @@ object Generator {
      * @param dep the dependency
      * @param version the version of the dependency, may be a property of actual version
      * @param config the [GeneratorConfig]
+     * @param rootDep true if this is the very first BOM in the tree, otherwise false
+     * @param container the container for the TOML file we are generating
      * @return the library's alias and true if the version was a reference, or false if it was not
      */
     internal fun VersionCatalogBuilder.createLibrary(
@@ -215,6 +284,7 @@ object Generator {
         version: Version,
         config: GeneratorConfig,
         rootDep: Boolean,
+        container: TomlContainer,
     ): String {
         val alias = config.libraryAliasGenerator(dep.groupId, dep.artifactId)
         val library = library(alias, dep.groupId, dep.artifactId)
@@ -222,6 +292,7 @@ object Generator {
         if (rootDep && version.isRef) {
             val versionAlias = config.versionNameGenerator(version.unwrapped)
             library.versionRef(versionAlias)
+            container.addLibrary(alias, dep.groupId, dep.artifactId, versionAlias, true)
         } else {
             val value =
                 if (version.isRef) {
@@ -230,6 +301,7 @@ object Generator {
                     version.value
                 }
             library.version(value)
+            container.addLibrary(alias, dep.groupId, dep.artifactId, value, false)
         }
         return alias
     }
@@ -309,6 +381,9 @@ object Generator {
         }
         return version
     }
+
+    internal fun cachedCatalogName(name: String, dep: Dependency) =
+        "libs.${name}-${dep.artifactId}-${dep.version}.toml"
 
     /*
     Below methods inspired by / taken from

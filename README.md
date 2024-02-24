@@ -122,6 +122,14 @@ dependencyResolutionManagement {
             // by their group or name
             excludeGroups = "some\\.group"
             excludeNames = ".*pattern"
+            // by default, we will store generated catalogs in build/version-catalogs,
+            // relative to the directory in which the settings file is stored. customize that
+            // directory by passing in a new value here. A relative directory will be resolved
+            // relative to the settings file root. An absolute directory will be used as-is.
+            // WARNING: When using a non-standard directory, be cognizant of when this file will
+            // get cleaned up (or rather, when it will _not_ . If the directory you use is not
+            // cleaned by the clean task, your catalogs will not get updated.
+            cacheDirectory = file("build/some-folder")
         }
     }
 }

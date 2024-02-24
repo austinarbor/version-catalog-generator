@@ -2,24 +2,35 @@ package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.service.MockGradleDependencyResolver
+import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import org.apache.maven.model.Dependency
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Action
+import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder.LibraryAliasBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
+import org.gradle.api.invocation.Gradle
+import org.gradle.api.model.ObjectFactory
+import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.tomlj.Toml
+import org.tomlj.TomlArray
+import org.tomlj.TomlParseResult
 import org.tomlj.TomlTable
 
 internal class GeneratorTest {
@@ -28,16 +39,38 @@ internal class GeneratorTest {
     private val generatedLibraries = mutableMapOf<String, LibraryAliasBuilder>()
     private val generatedBundles = mutableMapOf<String, List<String>>()
 
+    @TempDir private lateinit var projectDir: File
     private lateinit var settings: Settings
     private lateinit var builder: VersionCatalogBuilder
     private lateinit var container: MutableVersionCatalogContainer
+    private lateinit var gradle: Gradle
+    private lateinit var project: Project
+    private lateinit var objectFactory: ObjectFactory
 
     @BeforeEach
     fun beforeEach() {
         generatedLibraries.clear()
         generatedBundles.clear()
 
-        settings = mock<Settings>()
+        project = newProject()
+        objectFactory = project.objects
+
+        gradle =
+            mock<Gradle> {
+                doAnswer { invocation ->
+                        val a = invocation.arguments[0] as Action<in Gradle>
+                        a.execute(it)
+                        null
+                    }
+                    .`when`(it)
+                    .projectsEvaluated(any<Action<in Gradle>>())
+                on { rootProject } doReturn newProject()
+            }
+        settings =
+            mock<Settings> {
+                on { rootDir } doReturn projectDir
+                on { gradle } doReturn gradle
+            }
         builder =
             mock<VersionCatalogBuilder> {
                 on { library(any<String>(), any<String>(), any<String>()) } doAnswer
@@ -69,9 +102,13 @@ internal class GeneratorTest {
     fun testGenerate() {
         val dep = dep("org.springframework.boot", "spring-boot-dependencies", "3.1.2")
         val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
-        val config = GeneratorConfig(settings).apply { source = { dep } }
+        val config =
+            GeneratorConfig(settings).apply {
+                source = { dep }
+                cacheDirectory = projectDir
+            }
 
-        container.generate("myLibs", config, resolver)
+        container.generate("myLibs", objectFactory, config, resolver)
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
         val (versions, libraries, bundles) = getExpectedCatalog(dep)
         // validate the versions
@@ -84,10 +121,18 @@ internal class GeneratorTest {
 
         verify(builder, times(bundles.size())).bundle(any<String>(), any<List<String>>())
         bundles.dottedKeySet().forEach {
-            assertThat(generatedBundles.containsKey(it))
+            assertThat(generatedBundles).containsKey(it)
             val expectedLibraries = bundles.getArrayOrEmpty(it).toList()
             assertThat(expectedLibraries).containsExactlyInAnyOrderElementsOf(generatedBundles[it])
         }
+
+        assertTomlTableEquals("myLibs", dep)
+        // reset the mock and regenerate the library to assert that we use the cached file instead
+        // of reprocessing the whole thing
+        reset(builder)
+        container.generate("myLibs", objectFactory, config, resolver)
+        verify(builder, times(0)).library(any<String>(), any<String>(), any<String>())
+        verify(builder).from(any<FileCollection>())
     }
 
     @Test
@@ -98,9 +143,10 @@ internal class GeneratorTest {
             GeneratorConfig(settings).apply {
                 source = { dep }
                 excludeNames = "^assertj-guava$"
+                cacheDirectory = projectDir
             }
 
-        container.generate("myLibs", config, resolver)
+        container.generate("myLibs", objectFactory, config, resolver)
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
         val (_, libraries, _) =
             getExpectedCatalog(Paths.get("expectations", "assertj-bom", "name-exclusion-test.toml"))
@@ -109,6 +155,12 @@ internal class GeneratorTest {
         verify(builder, times(1)).library(any<String>(), any<String>(), any<String>())
         verifyLibraries(libraries)
         verify(builder, times(0)).bundle(any<String>(), any<List<String>>())
+
+        assertTomlTableEquals(
+            "myLibs",
+            dep,
+            Paths.get("expectations", "assertj-bom", "name-exclusion-test.toml"),
+        )
     }
 
     @Test
@@ -119,9 +171,10 @@ internal class GeneratorTest {
             GeneratorConfig(settings).apply {
                 source = { dep }
                 excludeGroups = "org\\.assertj"
+                cacheDirectory = projectDir
             }
 
-        container.generate("myLibs", config, resolver)
+        container.generate("myLibs", objectFactory, config, resolver)
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
         verify(builder, times(0)).version(any<String>(), any<String>())
         verify(builder, times(0)).library(any<String>(), any<String>(), any<String>())
@@ -137,9 +190,10 @@ internal class GeneratorTest {
                 source = { dep }
                 excludeGroups = "org\\.assertj"
                 excludeNames = "xyz"
+                cacheDirectory = projectDir
             }
 
-        container.generate("myLibs", config, resolver)
+        container.generate("myLibs", objectFactory, config, resolver)
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
         val (_, libraries, _) =
             getExpectedCatalog(
@@ -149,6 +203,11 @@ internal class GeneratorTest {
         verify(builder, times(2)).library(any<String>(), any<String>(), any<String>())
         verifyLibraries(libraries)
         verify(builder, times(0)).bundle(any<String>(), any<List<String>>())
+        assertTomlTableEquals(
+            "myLibs",
+            dep,
+            Paths.get("expectations", "assertj-bom", "exclusion-negative-test.toml"),
+        )
     }
 
     @Test
@@ -160,9 +219,10 @@ internal class GeneratorTest {
                 source = { dep }
                 excludeGroups = "org\\.assertj"
                 excludeNames = "assertj-core"
+                cacheDirectory = projectDir
             }
 
-        container.generate("myLibs", config, resolver)
+        container.generate("myLibs", objectFactory, config, resolver)
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
         val (_, libraries, _) =
             getExpectedCatalog(Paths.get("expectations", "assertj-bom", "both-exclusion-test.toml"))
@@ -170,6 +230,11 @@ internal class GeneratorTest {
         verify(builder, times(1)).library(any<String>(), any<String>(), any<String>())
         verifyLibraries(libraries)
         verify(builder, times(0)).bundle(any<String>(), any<List<String>>())
+        assertTomlTableEquals(
+            "myLibs",
+            dep,
+            Paths.get("expectations", "assertj-bom", "both-exclusion-test.toml"),
+        )
     }
 
     private fun verifyLibraries(libraries: TomlTable) {
@@ -189,6 +254,45 @@ internal class GeneratorTest {
                 versionProp.endsWith(".ref") -> verify(mock).versionRef(versionValue)
                 versionProp.endsWith(".version") -> verify(mock).version(versionValue)
                 else -> throw RuntimeException("Unexpected property: ${versionProp}")
+            }
+        }
+    }
+
+    private fun assertTomlArrayEquals(actual: TomlArray, expected: TomlArray) {
+        assertThat(actual.size()).isEqualTo(expected.size())
+        for (i in 0 until actual.size()) {
+            assertThat(actual[i]).isEqualTo(expected[i])
+        }
+    }
+
+    private fun assertTomlTableEquals(name: String, dep: Dependency) {
+        val cachedLib = projectDir.resolve(Generator.cachedCatalogName(name, dep))
+        assertThat(cachedLib).exists()
+
+        val cachedToml = Toml.parse(cachedLib.toPath())
+        val expectedToml = getExpectedToml(dep)
+        assertTomlTableEquals(cachedToml, expectedToml)
+    }
+
+    private fun assertTomlTableEquals(name: String, dep: Dependency, expectedPath: Path) {
+        val cachedLib = projectDir.resolve(Generator.cachedCatalogName(name, dep))
+        assertThat(cachedLib).exists()
+
+        val cachedToml = Toml.parse(cachedLib.toPath())
+        val expectedToml = getExpectedToml(expectedPath)
+        assertTomlTableEquals(cachedToml, expectedToml)
+    }
+
+    private fun assertTomlTableEquals(actual: TomlTable, expected: TomlTable) {
+        assertThat(actual.size()).isEqualTo(expected.size())
+        assertThat(actual.dottedKeySet())
+            .containsExactlyInAnyOrderElementsOf(expected.dottedKeySet())
+
+        actual.dottedKeySet().forEach { key ->
+            when (val value = actual.get(key)) {
+                is TomlArray -> assertTomlArrayEquals(value, expected.getArray(key)!!)
+                is TomlTable -> assertTomlTableEquals(value, expected.getTable(key)!!)
+                else -> assertThat(value).isEqualTo(expected.get(key))
             }
         }
     }
@@ -215,9 +319,21 @@ internal class GeneratorTest {
         }
     }
 
+    private fun getExpectedToml(dep: Dependency): TomlParseResult {
+        val path = Paths.get("expectations", "${dep.artifactId}", "libs.versions.toml")
+        return Toml.parse(resourceRoot.resolve(path))
+    }
+
+    private fun getExpectedToml(tomlPath: Path): TomlParseResult {
+        return Toml.parse(resourceRoot.resolve(tomlPath))
+    }
+
     private fun getExpectedCatalog(dep: Dependency): Triple<TomlTable, TomlTable, TomlTable> {
-        val expectations = Paths.get("expectations", "${dep.artifactId}", "libs.versions.toml")
-        return getExpectedCatalog(expectations)
+        val parseResult = getExpectedToml(dep)
+        val versions = parseResult.getTableOrEmpty("versions")
+        val libraries = parseResult.getTableOrEmpty("libraries")
+        val bundles = parseResult.getTableOrEmpty("bundles")
+        return Triple(versions, libraries, bundles)
     }
 
     private fun getExpectedCatalog(tomlPath: Path): Triple<TomlTable, TomlTable, TomlTable> {
@@ -227,4 +343,6 @@ internal class GeneratorTest {
         val bundles = parseResult.getTableOrEmpty("bundles")
         return Triple(versions, libraries, bundles)
     }
+
+    private fun newProject(): Project = ProjectBuilder.builder().withProjectDir(projectDir).build()
 }
