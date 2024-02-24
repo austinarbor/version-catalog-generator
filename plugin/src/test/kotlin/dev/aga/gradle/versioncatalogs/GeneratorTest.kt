@@ -6,7 +6,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import org.apache.maven.model.Dependency
 import org.assertj.core.api.Assertions.assertThat
-import org.gradle.BuildResult
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
@@ -44,21 +43,27 @@ internal class GeneratorTest {
     private lateinit var builder: VersionCatalogBuilder
     private lateinit var container: MutableVersionCatalogContainer
     private lateinit var gradle: Gradle
+    private lateinit var project: Project
+    private lateinit var objectFactory: ObjectFactory
 
     @BeforeEach
     fun beforeEach() {
         generatedLibraries.clear()
         generatedBundles.clear()
 
+        project = newProject()
+        objectFactory = project.objects
+
         gradle =
             mock<Gradle> {
                 doAnswer { invocation ->
-                        val a = invocation.arguments[0] as Action<in BuildResult>
-                        a.execute(mock<BuildResult>())
+                        val a = invocation.arguments[0] as Action<in Gradle>
+                        a.execute(it)
                         null
                     }
                     .`when`(it)
-                    .buildFinished(any<Action<in BuildResult>>())
+                    .projectsEvaluated(any<Action<in Gradle>>())
+                on { rootProject } doReturn newProject()
             }
         settings =
             mock<Settings> {
@@ -338,6 +343,6 @@ internal class GeneratorTest {
         return Triple(versions, libraries, bundles)
     }
 
-    private val project: Project = ProjectBuilder.builder().build()
-    private val objectFactory: ObjectFactory = project.objects
+    private fun newProject(): Project =
+        ProjectBuilder.builder().withProjectDir(projectDir.toFile()).build()
 }

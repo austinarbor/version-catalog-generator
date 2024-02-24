@@ -6,6 +6,7 @@ import dev.aga.gradle.versioncatalogs.service.GradleDependencyResolver
 import dev.aga.gradle.versioncatalogs.tasks.SaveTask
 import java.nio.file.Path
 import java.util.function.Supplier
+import kotlin.collections.set
 import kotlin.io.path.exists
 import org.apache.commons.text.StringSubstitutor
 import org.apache.maven.model.Dependency
@@ -18,7 +19,6 @@ import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.register
 import org.slf4j.LoggerFactory
 import org.tomlj.TomlContainer
@@ -143,7 +143,9 @@ object Generator {
                     destinationFile.set(project.file(fileName))
                     contents.set(container.toToml())
                 }
-            project.tasks["assemble"].finalizedBy(task)
+            // if we have an assemble task, finalize it by our task
+            // otherwise run our task right away
+            project.tasks.findByName("assemble")?.finalizedBy(task) ?: task.get().save()
         }
     }
 

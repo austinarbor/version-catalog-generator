@@ -1,6 +1,7 @@
 package dev.aga.gradle.versioncatalogs
 
 import java.io.File
+import java.nio.file.Paths
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
@@ -114,11 +115,21 @@ class VersionCatalogGeneratorPluginTest {
 
         // Run the build
         val runner =
-            GradleRunner.create().forwardOutput().withPluginClasspath().withProjectDir(projectDir)
+            GradleRunner.create()
+                .forwardOutput()
+                .withPluginClasspath()
+                .withArguments("clean", "assemble")
+                .withProjectDir(projectDir)
 
         val result = runner.build()
 
         assertThat(result.output).contains("BUILD SUCCESSFUL")
+
+        assertThat(projectDir.resolve(Paths.get("build", "version-catalogs").toString()))
+            .isDirectoryContaining { it.name == "libs.awsLibs-bom-2.21.15.toml" }
+            .isDirectoryContaining { it.name == "libs.jsonLibs-jackson-bom-2.15.2.toml" }
+            .isDirectoryContaining { it.name == "libs.junitLibs-junit-bom-5.10.0.toml" }
+            .isDirectoryContaining { it.name == "libs.mockitoLibs-mockito-bom-5.5.0.toml" }
     }
 
     @Test
