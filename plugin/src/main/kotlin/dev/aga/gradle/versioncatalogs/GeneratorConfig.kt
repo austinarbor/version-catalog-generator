@@ -86,6 +86,15 @@ class GeneratorConfig(val settings: Settings) {
                 }
         }
 
+    /**
+     * Override property values that are set in the root BOM you are generating a catalog for. For
+     * example if the BOM has the property `jackson-bom.version` with the value `2.15.3` but you'd
+     * rather use `2.16.1`, you can pass in values to override the BOM.
+     *
+     * ```kotlin
+     * propertyOverrides = mapOf("jackson-bom" to "2.16.1")
+     * ```
+     */
     var propertyOverrides: Map<String, String> = emptyMap()
 
     internal val excludeFilter: (Dependency) -> Boolean by lazy {

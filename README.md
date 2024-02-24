@@ -50,6 +50,7 @@ dependencyResolutionManagement {
     versionCatalogs {
         generate("springLibs") { // the name of the generated catalog
             from(toml("springBootDependencies")) // name of the bom library in the version catalog
+            propertyOverrides = mapOf("jackson-bom.version" to "2.16.1") // optionally override some version properties
         }
         generate("awsLibs") { 
             from(toml("awsBom"))
@@ -117,6 +118,12 @@ dependencyResolutionManagement {
             // providing your own algorithm below. check the javadoc for more 
             // information
             versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
+            
+            // you can optionally override version properties from the BOM you are
+            // generating a catalog for. for example, if spring-boot-dependencies
+            // specifies jackson 2.15.3 but you want to use 2.16.1 instead, you can
+            // override the version property in their BOM
+            propertyOverrides = mapOf("jackson-bom.version" to "2.16.1")
             
             // you can optionally provide regex patterns to exclude dependencies
             // by their group or name
@@ -187,4 +194,4 @@ dependencies {
 
 - [x] Compatible with Dependabot
 - [x] Nested BOM support (i.e. `spring-boot-dependences` imports `mockito-bom`, etc)
-- [ ] Easy to override versions (similar to `ext["version.property"] = ...` in Spring Boot Dependencies plugin)
+- [x] Easy to override versions (similar to `ext["version.property"] = ...` in Spring Boot Dependencies plugin)
