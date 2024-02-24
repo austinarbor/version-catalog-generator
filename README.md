@@ -40,7 +40,7 @@ Add the plugin to your settings with the catalogs you want to generate
 import dev.aga.gradle.versioncatalogs.Generator.generate
 
 plugins {
-  id("dev.aga.gradle.version-catalog-generator") version("1.1.2")
+  id("dev.aga.gradle.version-catalog-generator") version("1.2.0")
 }
 
 dependencyResolutionManagement {
@@ -85,7 +85,7 @@ import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.GeneratorConfig
 
 plugins {
-    id("dev.aga.gradle.version-catalog-generator") version("1.1.2")
+    id("dev.aga.gradle.version-catalog-generator") version("1.2.0")
 }
 
 dependencyResolutionManagement {
@@ -140,7 +140,7 @@ dependencyResolutionManagement {
 
 ```groovy
 plugins {
-    id('dev.aga.gradle.version-catalog-generator') version '1.1.2'
+    id('dev.aga.gradle.version-catalog-generator') version '1.2.0'
 }
 
 dependencyResolutionManagement {
