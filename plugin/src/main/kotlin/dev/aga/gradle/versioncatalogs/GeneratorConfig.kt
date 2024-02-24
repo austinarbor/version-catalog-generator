@@ -86,6 +86,8 @@ class GeneratorConfig(val settings: Settings) {
                 }
         }
 
+    var propertyOverrides: Map<String, String> = emptyMap()
+
     internal val excludeFilter: (Dependency) -> Boolean by lazy {
         {
             val eg = excludeGroups

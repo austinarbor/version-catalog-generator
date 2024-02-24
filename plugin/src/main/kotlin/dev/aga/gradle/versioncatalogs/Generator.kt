@@ -170,7 +170,7 @@ object Generator {
         rootDep: Boolean,
         container: TomlContainer,
     ) {
-        val newProps = getProperties(model, parentModel)
+        val newProps = getProperties(model, parentModel, config.propertyOverrides)
         val substitutor = newProps.toSubstitutor()
         loadDependencies(model, config, queue, substitutor, seenModules, rootDep, container)
     }
@@ -336,9 +336,10 @@ object Generator {
     internal fun getProperties(
         model: Model,
         parentModel: Model?,
+        propertyOverrides: Map<String, String>,
     ): Map<String, String> {
-        val parentProps = getModelProperties(parentModel, mutableMapOf())
-        val modelProps = getModelProperties(model, parentProps.toMutableMap())
+        val parentProps = getModelProperties(parentModel, mutableMapOf(), propertyOverrides)
+        val modelProps = getModelProperties(model, parentProps.toMutableMap(), propertyOverrides)
         val newProps = HashMap(parentProps).apply { putAll(modelProps) }
 
         return newProps
@@ -347,6 +348,7 @@ object Generator {
     fun getModelProperties(
         model: Model?,
         extraProperties: MutableMap<String, String> = mutableMapOf(),
+        propertyOverrides: Map<String, String>,
     ): Map<String, String> {
         if (model == null) {
             return emptyMap()
@@ -356,7 +358,11 @@ object Generator {
                 propertyNames()
                     .asSequence()
                     .mapNotNull { it as? String }
-                    .map { mapVersion(model, it) to getProperty(it) }
+                    .map {
+                        // if the overrides contains the property, use that value, otherwise
+                        // use the actual value
+                        mapVersion(model, it) to propertyOverrides.getOrDefault(it, getProperty(it))
+                    }
                     .toMap()
             }
         extraProperties["project.version"] = model.version

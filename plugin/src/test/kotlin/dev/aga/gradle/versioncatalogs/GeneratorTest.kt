@@ -237,6 +237,54 @@ internal class GeneratorTest {
         )
     }
 
+    @Test
+    fun testGenerate_PropertyOverrides() {
+        val dep = dep("org.springframework.boot", "spring-boot-dependencies", "3.1.2")
+        val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+        val config =
+            GeneratorConfig(settings).apply {
+                source = { dep }
+                cacheDirectory = projectDir
+                propertyOverrides =
+                    mapOf(
+                        "assertj.version" to "3.25.3",
+                        "caffeine.version" to "3.1.8",
+                        "jackson-bom.version" to "2.16.1",
+                    )
+            }
+
+        container.generate("myLibs", objectFactory, config, resolver)
+        verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
+        val (versions, libraries, bundles) =
+            getExpectedCatalog(
+                Paths.get(
+                    "expectations",
+                    "spring-boot-dependencies",
+                    "property-overrides.toml",
+                ),
+            )
+        // validate the versions
+        verify(builder, times(versions.size())).version(any<String>(), any<String>())
+        versions.dottedKeySet().forEach { v -> verify(builder).version(v, versions.getString(v)!!) }
+
+        verify(builder, times(libraries.size()))
+            .library(any<String>(), any<String>(), any<String>())
+        verifyLibraries(libraries)
+
+        verify(builder, times(bundles.size())).bundle(any<String>(), any<List<String>>())
+        bundles.dottedKeySet().forEach {
+            assertThat(generatedBundles).containsKey(it)
+            val expectedLibraries = bundles.getArrayOrEmpty(it).toList()
+            assertThat(expectedLibraries).containsExactlyInAnyOrderElementsOf(generatedBundles[it])
+        }
+
+        assertTomlTableEquals(
+            "myLibs",
+            dep,
+            Paths.get("expectations", "spring-boot-dependencies", "property-overrides.toml"),
+        )
+    }
+
     private fun verifyLibraries(libraries: TomlTable) {
         // sort the keys and split into groups of 3, which should give us
         // the group, name, and version properties
