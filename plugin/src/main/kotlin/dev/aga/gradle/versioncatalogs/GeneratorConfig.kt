@@ -89,6 +89,9 @@ class GeneratorConfig(val settings: Settings) {
                 }
         }
 
+    /** Whether to enable the caching functionality. Disabled by default. See [cacheDirectory] */
+    @Incubating var cacheEnabled = false
+
     /**
      * Override property values that are set in the root BOM you are generating a catalog for. For
      * example if the BOM has the property `jackson-bom.version` with the value `2.15.3` but you'd

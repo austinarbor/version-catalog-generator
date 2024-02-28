@@ -101,7 +101,7 @@ object Generator {
             }
 
         val cachedPath = config.cacheDirectory.resolve(cachedCatalogName(name, bomDep))
-        if (cachedPath.exists()) {
+        if (config.cacheEnabled && cachedPath.exists()) {
             return create(name) { from(objectFactory.fileCollection().from(cachedPath)) }
         }
 
@@ -117,8 +117,10 @@ object Generator {
                 rootDep = false
             }
 
-            config.settings.gradle.projectsEvaluated {
-                registerSaveTask(rootProject, config.cacheDirectory, name, bomDep, container)
+            if (config.cacheEnabled) {
+                config.settings.gradle.projectsEvaluated {
+                    registerSaveTask(rootProject, config.cacheDirectory, name, bomDep, container)
+                }
             }
         }
     }
