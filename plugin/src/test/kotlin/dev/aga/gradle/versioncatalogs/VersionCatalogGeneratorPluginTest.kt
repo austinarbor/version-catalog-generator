@@ -64,6 +64,7 @@ class VersionCatalogGeneratorPluginTest {
                     GeneratorConfig.DEFAULT_ALIAS_GENERATOR(prefix,suffix)
                   }
                   versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
+                  cacheEnabled = true
                 }
                 generate("mockitoLibs") {
                   from("org.mockito:mockito-bom:5.5.0")
@@ -71,10 +72,12 @@ class VersionCatalogGeneratorPluginTest {
                   aliasSuffixGenerator = { _, _, artifact ->
                     GeneratorConfig.caseChange(artifact, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.LOWER_UNDERSCORE)
                   }
+                  cacheEnabled = true
                 }
                 generate("junitLibs") {
                   from("org.junit:junit-bom:5.10.0")
                   aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+                  cacheEnabled = true
                 }
                 generate("awsLibs") {
                   from(toml("aws-bom"))
@@ -126,7 +129,7 @@ class VersionCatalogGeneratorPluginTest {
         assertThat(result.output).contains("BUILD SUCCESSFUL")
 
         assertThat(projectDir.resolve(Paths.get("build", "version-catalogs").toString()))
-            .isDirectoryContaining { it.name == "libs.awsLibs-bom-2.21.15.toml" }
+            .isDirectoryNotContaining { it.name == "libs.awsLibs-bom-2.21.15.toml" }
             .isDirectoryContaining { it.name == "libs.jsonLibs-jackson-bom-2.15.2.toml" }
             .isDirectoryContaining { it.name == "libs.junitLibs-junit-bom-5.10.0.toml" }
             .isDirectoryContaining { it.name == "libs.mockitoLibs-mockito-bom-5.5.0.toml" }
