@@ -1,5 +1,8 @@
 package dev.aga.gradle.versioncatalogs
 
+import dev.aga.gradle.versioncatalogs.model.PropertyOverride
+import dev.aga.gradle.versioncatalogs.model.TomlVersionRef
+import dev.aga.gradle.versioncatalogs.service.CatalogParser
 import dev.aga.gradle.versioncatalogs.service.FileCatalogParser
 import java.io.File
 import java.nio.file.Paths
@@ -91,11 +94,28 @@ class GeneratorConfig(val settings: Settings) {
      * example if the BOM has the property `jackson-bom.version` with the value `2.15.3` but you'd
      * rather use `2.16.1`, you can pass in values to override the BOM.
      *
+     * The valid types of values that can be set are either [String] or [PropertyOverride]. A string
+     * value will be taken literally, while a [PropertyOverride] can be used for more advanced use
+     * cases. The convenience function [versionRef] is available to create a [PropertyOverride] that
+     * references a version alias from the same TOML file that contains the source BOM. As such,
+     * using this function without sourcing your BOM from a TOML will cause an exception. Setting a
+     * value of any type other than `String` or `PropertyOverride` will also cause an exception.
+     *
      * ```kotlin
-     * propertyOverrides = mapOf("jackson-bom" to "2.16.1")
+     * propertyOverrides = mapOf("jackson-bom" to "2.16.1", "mockito-bom" to versionRef("mockito"))
      * ```
      */
-    var propertyOverrides: Map<String, String> = emptyMap()
+    var propertyOverrides: Map<String, Any> = emptyMap()
+
+    /**
+     * Convenience function to construct a [PropertyOverride] that references a version alias from
+     * the same TOML file in which the BOM was sourced.
+     *
+     * @param alias the version alias to lookup
+     */
+    fun versionRef(alias: String): PropertyOverride {
+        return TomlVersionRef(catalogParser, alias)
+    }
 
     internal val excludeFilter: (Dependency) -> Boolean by lazy {
         {
@@ -115,6 +135,8 @@ class GeneratorConfig(val settings: Settings) {
 
     /** The provider for the source BOM to generate the dependency from. */
     lateinit var source: () -> Any
+
+    internal lateinit var catalogParser: CatalogParser
 
     /**
      * Specify the source BOM to generate the version catalog from using standard dependency
@@ -171,8 +193,8 @@ class GeneratorConfig(val settings: Settings) {
     fun from(sc: SourceConfig.() -> Unit) {
         val cfg = SourceConfig(settings).apply(sc)
         if (cfg.hasTomlConfig()) {
-            val parser = FileCatalogParser(cfg.tomlConfig.file)
-            source = { parser.findLibrary(cfg.tomlConfig.libraryAlias) }
+            catalogParser = FileCatalogParser(cfg.tomlConfig.file)
+            source = { catalogParser.findLibrary(cfg.tomlConfig.libraryAlias) }
         } else if (cfg.hasDependency()) {
             source = { cfg.dependencyNotation }
         }

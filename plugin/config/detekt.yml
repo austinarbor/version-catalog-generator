@@ -19,6 +19,8 @@ style:
     ignoreNumbers: ['-1', '0', '1', '2', '3']
   ReturnCount:
     max: 3
+  ThrowsCount:
+    max: 3
   UnusedPrivateMember:
     excludes:
       - '**/test/**' # it doesn't correctly identify parameterized tests with MethodSources
