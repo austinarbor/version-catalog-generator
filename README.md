@@ -50,7 +50,10 @@ dependencyResolutionManagement {
     versionCatalogs {
         generate("springLibs") { // the name of the generated catalog
             from(toml("springBootDependencies")) // name of the bom library in the version catalog
-            propertyOverrides = mapOf("jackson-bom.version" to "2.16.1") // optionally override some version properties
+            propertyOverrides = mapOf(
+                "jackson-bom.version" to "2.16.1", // optionally override some version properties using a literal value
+                "mockito.version" to versionRef("mockito"), // or you can reference version aliases in the source toml
+            )
         }
         generate("awsLibs") { 
             from(toml("awsBom"))
