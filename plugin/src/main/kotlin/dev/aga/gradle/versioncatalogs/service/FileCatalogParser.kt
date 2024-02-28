@@ -9,9 +9,14 @@ import org.tomlj.TomlTable
 
 internal class FileCatalogParser(private val file: File) : CatalogParser {
 
+    private val toml: TomlParseResult = parseCatalog(file)
+
     override fun findLibrary(name: String): Dependency {
-        val parsed = parseCatalog(file)
-        return findBom(parsed, name)
+        return findBom(toml, name)
+    }
+
+    override fun findVersion(alias: String): String? {
+        return toml["versions"]?.let { it as? TomlTable }?.let { it[alias] }?.let { it as? String }
     }
 
     private fun findBom(toml: TomlParseResult, libraryName: String): Dependency {

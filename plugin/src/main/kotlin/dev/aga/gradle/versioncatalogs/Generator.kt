@@ -1,11 +1,16 @@
 package dev.aga.gradle.versioncatalogs
 
+import dev.aga.gradle.versioncatalogs.model.PropertyOverride
 import dev.aga.gradle.versioncatalogs.model.Version
 import dev.aga.gradle.versioncatalogs.service.DependencyResolver
 import dev.aga.gradle.versioncatalogs.service.GradleDependencyResolver
 import dev.aga.gradle.versioncatalogs.tasks.SaveTask
 import java.io.File
+import java.util.*
 import java.util.function.Supplier
+import kotlin.collections.ArrayDeque
+import kotlin.collections.component1
+import kotlin.collections.component2
 import kotlin.collections.set
 import org.apache.commons.text.StringSubstitutor
 import org.apache.maven.model.Dependency
@@ -336,7 +341,7 @@ object Generator {
     internal fun getProperties(
         model: Model,
         parentModel: Model?,
-        propertyOverrides: Map<String, String>,
+        propertyOverrides: Map<String, Any>,
     ): Map<String, String> {
         val parentProps = getModelProperties(parentModel, mutableMapOf(), propertyOverrides)
         val modelProps = getModelProperties(model, parentProps.toMutableMap(), propertyOverrides)
@@ -348,7 +353,7 @@ object Generator {
     fun getModelProperties(
         model: Model?,
         extraProperties: MutableMap<String, String> = mutableMapOf(),
-        propertyOverrides: Map<String, String>,
+        propertyOverrides: Map<String, Any>,
     ): Map<String, String> {
         if (model == null) {
             return emptyMap()
@@ -361,7 +366,7 @@ object Generator {
                     .map {
                         // if the overrides contains the property, use that value, otherwise
                         // use the actual value
-                        mapVersion(model, it) to propertyOverrides.getOrDefault(it, getProperty(it))
+                        mapVersion(model, it) to getPropertyValue(this, it, propertyOverrides)
                     }
                     .toMap()
             }
@@ -372,6 +377,29 @@ object Generator {
                 substitutor.replace(k) to substitutor.replace(v)
             }
         return final
+    }
+
+    private fun getPropertyValue(
+        properties: Properties,
+        propertyName: String,
+        overrides: Map<String, Any>,
+    ): String {
+        return if (overrides.containsKey(propertyName)) {
+            when (val override = overrides[propertyName] as Any) {
+                is String -> override
+                is PropertyOverride ->
+                    override.getValue()
+                        ?: throw IllegalArgumentException(
+                            "No value found for property override ${propertyName}",
+                        )
+                else ->
+                    throw IllegalArgumentException(
+                        "Invalid type ${override::class.java} for property override ${propertyName}",
+                    )
+            }
+        } else {
+            properties.getProperty(propertyName)
+        }
     }
 
     internal fun mapGroup(model: Model, group: String): String {

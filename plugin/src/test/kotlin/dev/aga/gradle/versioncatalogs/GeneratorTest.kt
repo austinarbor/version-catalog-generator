@@ -7,6 +7,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import org.apache.maven.model.Dependency
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
@@ -18,6 +19,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -103,12 +105,20 @@ internal class GeneratorTest {
 
     @ParameterizedTest
     @MethodSource("testGenerateProvider")
-    fun testGenerate(dep: Dependency, cfg: GeneratorConfig.() -> Unit, expectedCatalog: Path) {
+    fun testGenerate(
+        dep: Dependency,
+        cfg: GeneratorConfig.() -> Unit,
+        expectedCatalog: Path,
+        sourceSet: Boolean = false,
+    ) {
         val config =
             GeneratorConfig(settings).apply(cfg).apply {
-                source = { dep }
+                if (!sourceSet) {
+                    source = { dep }
+                }
                 cacheDirectory = projectDir
             }
+
         val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
         container.generate("myLibs", objectFactory, config, resolver)
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
@@ -135,6 +145,31 @@ internal class GeneratorTest {
         container.generate("myLibs", objectFactory, config, resolver)
         verify(builder, times(0)).library(any<String>(), any<String>(), any<String>())
         verify(builder).from(any<FileCollection>())
+    }
+
+    @Test
+    fun testGenerate_InvalidOverrides() {
+        val config =
+            GeneratorConfig(settings).apply {
+                from {
+                    toml {
+                        libraryAlias = "springBootDependencies"
+                        file = Paths.get("src", "test", "resources", "source-toml.toml").toFile()
+                    }
+                }
+                propertyOverrides = mapOf("assertj.version" to versionRef("does-not-exist"))
+                cacheDirectory = projectDir
+            }
+
+        val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+        assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
+            container.generate("myLibs", objectFactory, config, resolver)
+        }
+
+        config.propertyOverrides = mapOf("assertj.version" to 1)
+        assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
+            container.generate("myLibs", objectFactory, config, resolver)
+        }
     }
 
     private fun verifyLibraries(libraries: TomlTable) {
@@ -263,15 +298,35 @@ internal class GeneratorTest {
                             "jackson-bom.version" to "2.16.1",
                         )
                 },
+                createArgs(
+                    sb312,
+                    "property-overrides.toml",
+                    true,
+                ) {
+                    from {
+                        toml {
+                            libraryAlias = "springBootDependencies"
+                            file =
+                                Paths.get("src", "test", "resources", "source-toml.toml").toFile()
+                        }
+                    }
+                    propertyOverrides =
+                        mapOf(
+                            "assertj.version" to versionRef("assertj"),
+                            "caffeine.version" to versionRef("caffeine"),
+                            "jackson-bom.version" to versionRef("jackson"),
+                        )
+                },
             )
         }
 
         private fun createArgs(
             dep: Dependency,
             expectedFileName: String,
+            sourceSet: Boolean = false,
             conf: GeneratorConfig.() -> Unit,
         ): Arguments {
-            return arguments(dep, conf, expectedPath(dep, expectedFileName))
+            return arguments(dep, conf, expectedPath(dep, expectedFileName), sourceSet)
         }
 
         private fun expectedPath(dep: Dependency, fileName: String): Path {

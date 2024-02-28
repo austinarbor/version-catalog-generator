@@ -1,0 +1,8 @@
+[versions]
+assertj = "3.25.3"
+caffeine = "3.1.8"
+jackson = "2.16.1"
+spring = "3.1.2"
+
+[libraries]
+springBootDependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
