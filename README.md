@@ -125,14 +125,23 @@ dependencyResolutionManagement {
             // you can optionally override version properties from the BOM you are
             // generating a catalog for. for example, if spring-boot-dependencies
             // specifies jackson 2.15.3 but you want to use 2.16.1 instead, you can
-            // override the version property in their BOM
-            propertyOverrides = mapOf("jackson-bom.version" to "2.16.1")
+            // override the version property in their BOM. You can also specify
+            // a version ref to use. The version ref only works if you are sourcing
+            // your BOM dependency from a TOML file, and the version reference must
+            // exist in that same TOML file.
+            propertyOverrides = mapOf(
+                "jackson-bom.version" to "2.16.1", // optionally override some version properties using a literal value
+                "mockito.version" to versionRef("mockito"), // or you can reference version aliases in the source toml
+            )
             
             // you can optionally provide regex patterns to exclude dependencies
             // by their group or name
             excludeGroups = "some\\.group"
             excludeNames = ".*pattern"
-            // by default, we will store generated catalogs in build/version-catalogs,
+            // optionally enable caching. this is disabled by default while we test the feature
+            // out. see the below property for more details
+            cacheEnabled = true
+            // by default, if cachins is enabled we will store generated catalogs in build/version-catalogs,
             // relative to the directory in which the settings file is stored. customize that
             // directory by passing in a new value here. A relative directory will be resolved
             // relative to the settings file root. An absolute directory will be used as-is.
