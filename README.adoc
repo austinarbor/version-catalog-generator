@@ -22,7 +22,7 @@ Gradle’s https://docs.gradle.org/current/userguide/platforms.html[Version Cata
 
 == Quick Start
 
-First, add your BOM dependencies to your version catalog
+_First, add your BOM dependencies to your version catalog_
 
 .libs.versions.toml
 [%collapsible%open]
@@ -39,7 +39,7 @@ springBootDependencies = { group = "org.springframework.boot", name = "spring-bo
 ----
 ====
 
-Then add the plugin to your settings with the catalogs you want to generate
+_Then, add the plugin to your settings with the catalogs you want to generate_
 
 .settings.gradle.kts
 [%collapsible%open]
@@ -79,7 +79,7 @@ dependencyResolutionManagement {
 <6> All dependencies in the AWS BOM are for AWS so we can skip the prefix
 ====
 
-Lastly, use the dependencies in your build
+_Lastly, use the dependencies in your build_
 
 .build.gradle.kts
 [%collapsible%open]
