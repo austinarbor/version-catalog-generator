@@ -294,6 +294,8 @@ object Generator {
         container: TomlContainer,
     ): String {
         val alias = config.libraryAliasGenerator(dep.groupId, dep.artifactId)
+        checkAlias(alias, config, container, dep, version)
+
         val library = library(alias, dep.groupId, dep.artifactId)
         // only register version aliases if we are in the top-level BOM
         if (rootDep && version.isRef) {
@@ -311,6 +313,36 @@ object Generator {
             container.addLibrary(alias, dep.groupId, dep.artifactId, value, false)
         }
         return alias
+    }
+
+    internal fun checkAlias(
+        alias: String,
+        config: GeneratorConfig,
+        container: TomlContainer,
+        dep: Dependency,
+        version: Version,
+    ) {
+        if (container.containsLibraryAlias(alias)) {
+            val lib = container.getLibrary(alias)
+            val ver = container.getLibraryVersionString(alias)
+            val group = lib.getString("group")
+            val name = lib.getString("name")
+            val newVersion =
+                if (version.isRef) {
+                    config.versionNameGenerator(version.unwrapped)
+                } else {
+                    version.value
+                }
+            val msg =
+                """
+                Attempting to register a library with the alias ${alias} but the alias already exists.
+                    Existing: ${group}:${name}:${ver}
+                  Attempting: ${dep.groupId}:${dep.artifactId}:${newVersion}
+                Please check the source BOM and either exclude the conflict or provide custom prefix/suffix generators.
+            """
+                    .trimIndent()
+            throw IllegalArgumentException(msg)
+        }
     }
 
     internal fun getNewDependencies(
