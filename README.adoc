@@ -1,26 +1,22 @@
-[![ci](https://github.com/austinarbor/version-catalog-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/austinarbor/version-catalog-generator/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/austinarbor/version-catalog-generator/graph/badge.svg?token=IO5UCDD5A0)](https://codecov.io/gh/austinarbor/version-catalog-generator)
-[![Gradle Plugin Portal](https://staging.shields.io/gradle-plugin-portal/v/dev.aga.gradle.version-catalog-generator?label=Gradle%20Plugin%20Portal)](https://plugins.gradle.org/plugin/dev.aga.gradle.version-catalog-generator)
+https://github.com/austinarbor/version-catalog-generator/actions/workflows/ci.yml[image:https://github.com/austinarbor/version-catalog-generator/actions/workflows/ci.yml/badge.svg[ci]] https://codecov.io/gh/austinarbor/version-catalog-generator[image:https://codecov.io/gh/austinarbor/version-catalog-generator/graph/badge.svg?token=IO5UCDD5A0[codecov]] https://plugins.gradle.org/plugin/dev.aga.gradle.version-catalog-generator[image:https://staging.shields.io/gradle-plugin-portal/v/dev.aga.gradle.version-catalog-generator?label=Gradle%20Plugin%20Portal[Gradle Plugin Portal]]
 
-# Version Catalog Generator Plugin
+:version: 1.4.1
 
-Gradle's [Version Catalog](https://docs.gradle.org/current/userguide/platforms.html) functionality currently lacks
-cohesion
-with `platform` and `BOM` concepts. The Version Catalog Generator plugin attempts to enhance Gradle by automatically
-generating
-a version catalog from an external BOM.
+== Version Catalog Generator Plugin
 
-## Compatibility
+Gradle’s https://docs.gradle.org/current/userguide/platforms.html[Version Catalog] functionality currently lacks cohesion with `platform` and `BOM` concepts. The Version Catalog Generator plugin attempts to enhance Gradle by automatically generating a version catalog from an external BOM.
+
+=== Compatibility
+
 Works on Gradle 7.6+
 
-## Quick Start
+=== Quick Start
 
-Add your BOM dependencies to your version catalog
+First, add your BOM dependencies to your version catalog
 
-<details open>
-  <summary>libs.versions.toml</summary>
-
-```toml
+.libs.versions.toml
+[source,toml]
+----
 [versions]
 spring = "3.2.0"
 aws = "2.22.0"
@@ -28,19 +24,17 @@ aws = "2.22.0"
 [libraries]
 awsBom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws" }
 springBootDependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
-```
-</details>
+----
 
-Add the plugin to your settings with the catalogs you want to generate
+Then add the plugin to your settings with the catalogs you want to generate
 
-<details open>
-  <summary>settings.gradle.kts</summary>
-
-```kotlin
+.settings.gradle.kts
+[source,kotlin,subs="attributes"]
+----
 import dev.aga.gradle.versioncatalogs.Generator.generate
 
 plugins {
-  id("dev.aga.gradle.version-catalog-generator") version("1.4.1")
+  id("dev.aga.gradle.version-catalog-generator") version("{version}")
 }
 
 dependencyResolutionManagement {
@@ -55,41 +49,38 @@ dependencyResolutionManagement {
                 "mockito.version" to versionRef("mockito"), // or you can reference version aliases in the source toml
             )
         }
-        generate("awsLibs") { 
+        generate("awsLibs") {
             from(toml("awsBom"))
             // all dependencies in the aws bom are for aws so we can skip the prefix
             aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
         }
     }
 }
-```
-</details>
+----
 
-Use the dependencies in your build
+Lastly, use the dependencies in your build
 
-<details open>
- <summary>build.gradle.kts</summary>
-
-```kotlin
+.build.gradle.kts
+[source,kotlin]
+----
 dependencies {
     implementation(awsLibs.s3)
     implementation(awsLibs.dynamodb)
     implementation(springLibs.spring.springBootStarterWeb)
     implementation(springLibs.jackson.jacksonDatabind)
 }
-```
-</details>
+----
 
-## Detailed Usage
-<details>
-  <summary>settings.gradle.kts</summary>
+=== Detailed Usage
 
-```kotlin
+.settings.gradle.kts
+[source,kotlin,subs="attributes"]
+----
 import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.GeneratorConfig
 
 plugins {
-    id("dev.aga.gradle.version-catalog-generator") version("1.4.1")
+    id("dev.aga.gradle.version-catalog-generator") version("{version}")
 }
 
 dependencyResolutionManagement {
@@ -116,12 +107,12 @@ dependencyResolutionManagement {
             }
             // for example if you prefer no prefix and camelCase library names you can do:
             aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
-            
+
             // you can optionally change the version alias generation behavior by
-            // providing your own algorithm below. check the javadoc for more 
+            // providing your own algorithm below. check the javadoc for more
             // information
             versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
-            
+
             // you can optionally override version properties from the BOM you are
             // generating a catalog for. for example, if spring-boot-dependencies
             // specifies jackson 2.15.3 but you want to use 2.16.1 instead, you can
@@ -133,7 +124,7 @@ dependencyResolutionManagement {
                 "jackson-bom.version" to "2.16.1", // optionally override some version properties using a literal value
                 "mockito.version" to versionRef("mockito"), // or you can reference version aliases in the source toml
             )
-            
+
             // you can optionally provide regex patterns to exclude dependencies
             // by their group or name
             excludeGroups = "some\\.group"
@@ -152,14 +143,13 @@ dependencyResolutionManagement {
         }
     }
 }
-```
-</details>
-<details>
-    <summary>settings.gradle</summary>
+----
 
-```groovy
+.settings.gradle
+[source,groovy,subs="attributes"]
+----
 plugins {
-    id('dev.aga.gradle.version-catalog-generator') version '1.4.1'
+    id('dev.aga.gradle.version-catalog-generator') version '{version}'
 }
 
 dependencyResolutionManagement {
@@ -178,10 +168,10 @@ dependencyResolutionManagement {
                 DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
             }
             // you can optionally change the version alias generation behavior by
-            // providing your own algorithm below. check the javadoc for more 
+            // providing your own algorithm below. check the javadoc for more
             // information
             it.versionNameGenerator = it.DEFAULT_VERSION_NAME_GENERATOR
-            
+
             // you can optionally provide regex patterns to exclude dependencies
             // by their group or name
             excludeGroups = "some\\.group"
@@ -189,21 +179,19 @@ dependencyResolutionManagement {
         }
     }
 }
-```
-</details>
-<details>
-    <summary>build.gradle.kts</summary>
+----
 
-```kotlin
+.build.gradle.kts
+[source,kotlin]
+----
 // add your dependencies from the generated catalog
 dependencies {
     implementation(springLibs.spring.springBootStarterJdbc)
 }
-```
-</details>
+----
 
-## Goals
+=== Goals
 
-- [x] Compatible with Dependabot
-- [x] Nested BOM support (i.e. `spring-boot-dependences` imports `mockito-bom`, etc)
-- [x] Easy to override versions (similar to `ext["version.property"] = ...` in Spring Boot Dependencies plugin)
+* [x] Compatible with Dependabot
+* [x] Nested BOM support (i.e. `spring-boot-dependences` imports `+mockito-bom+`, etc)
+* [x] Easy to override versions (similar to `ext["version.property"] = ...` in Spring Boot Dependencies plugin)
