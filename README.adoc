@@ -1,13 +1,14 @@
+= Version Catalog Generator Plugin
+
 https://github.com/austinarbor/version-catalog-generator/actions/workflows/ci.yml[image:https://github.com/austinarbor/version-catalog-generator/actions/workflows/ci.yml/badge.svg[ci]] https://codecov.io/gh/austinarbor/version-catalog-generator[image:https://codecov.io/gh/austinarbor/version-catalog-generator/graph/badge.svg?token=IO5UCDD5A0[codecov]] https://plugins.gradle.org/plugin/dev.aga.gradle.version-catalog-generator[image:https://staging.shields.io/gradle-plugin-portal/v/dev.aga.gradle.version-catalog-generator?label=Gradle%20Plugin%20Portal[Gradle Plugin Portal]]
 
 :version: 1.4.1
 :icons: font
 
-== Version Catalog Generator Plugin
 
 Gradle’s https://docs.gradle.org/current/userguide/platforms.html[Version Catalog] functionality currently lacks cohesion with `platform` and `BOM` concepts. The Version Catalog Generator plugin attempts to enhance Gradle by automatically generating a version catalog from an external BOM.
 
-=== Compatibility
+== Compatibility
 
 [%autowidth]
 |===
@@ -19,7 +20,7 @@ Gradle’s https://docs.gradle.org/current/userguide/platforms.html[Version Cata
 |===
 
 
-=== Quick Start
+== Quick Start
 
 First, add your BOM dependencies to your version catalog
 
@@ -94,7 +95,7 @@ dependencies {
 ----
 ====
 
-=== Detailed Usage
+== Detailed Usage
 
 .settings.gradle.kts
 [%collapsible]
@@ -222,7 +223,7 @@ dependencies {
 ----
 ====
 
-=== Goals
+== Goals
 
 * [x] Compatible with Dependabot
 * [x] Nested BOM support (i.e. `spring-boot-dependences` imports `+mockito-bom+`, etc)
