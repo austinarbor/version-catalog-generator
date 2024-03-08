@@ -46,9 +46,7 @@ class TomlContainer {
         val lib = getLibrary(alias)
 
         return when (val v = lib.get("version")) {
-            is TomlTable ->
-                v.getString("ref")
-                    ?: throw IllegalArgumentException("Missing ref for library with alias ${alias}")
+            is TomlTable -> v.getString("ref")!!
             is String -> v
             else -> throw IllegalArgumentException("Unable to resolve version value ${v}")
         }
