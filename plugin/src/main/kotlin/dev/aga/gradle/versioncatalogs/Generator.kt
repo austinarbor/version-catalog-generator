@@ -327,12 +327,17 @@ object Generator {
             val ver = container.getLibraryVersionString(alias)
             val group = lib.getString("group")
             val name = lib.getString("name")
-            val newVersionAlias = config.versionNameGenerator(version.unwrapped)
+            val newVersion =
+                if (version.isRef) {
+                    config.versionNameGenerator(version.unwrapped)
+                } else {
+                    version.value
+                }
             val msg =
                 """
                 Attempting to register a library with the alias ${alias} but the alias already exists.
                     Existing: ${group}:${name}:${ver}
-                  Attempting: ${dep.groupId}:${dep.artifactId}:${newVersionAlias}
+                  Attempting: ${dep.groupId}:${dep.artifactId}:${newVersion}
                 Please check the source dependencies and either exclude the conflict or provide custom prefix/suffix generators.
             """
                     .trimIndent()
