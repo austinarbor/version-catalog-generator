@@ -338,7 +338,7 @@ object Generator {
                 Attempting to register a library with the alias ${alias} but the alias already exists.
                     Existing: ${group}:${name}:${ver}
                   Attempting: ${dep.groupId}:${dep.artifactId}:${newVersion}
-                Please check the source dependencies and either exclude the conflict or provide custom prefix/suffix generators.
+                Please check the source BOM and either exclude the conflict or provide custom prefix/suffix generators.
             """
                     .trimIndent()
             throw IllegalArgumentException(msg)
