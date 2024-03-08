@@ -37,6 +37,23 @@ class TomlContainer {
         libraries.set(alias, lib, oneOne)
     }
 
+    fun containsLibraryAlias(alias: String) = libraries.contains(alias)
+
+    fun getLibrary(alias: String) =
+        requireNotNull(libraries.getTable(alias)) { "No library found for the alias ${alias}" }
+
+    fun getLibraryVersionString(alias: String): String {
+        val lib = getLibrary(alias)
+
+        return when (val v = lib.get("version")) {
+            is TomlTable ->
+                v.getString("ref")
+                    ?: throw IllegalArgumentException("Missing ref for library with alias ${alias}")
+            is String -> v
+            else -> throw IllegalArgumentException("Unable to resolve version value ${v}")
+        }
+    }
+
     fun addBundle(alias: String, libraries: Iterable<String>) {
         val array = MutableTomlArray(false)
         libraries.forEach { array.append(it, oneOne) }

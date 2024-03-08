@@ -8,6 +8,7 @@ import java.nio.file.Paths
 import org.apache.maven.model.Dependency
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
+import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
@@ -146,6 +147,23 @@ internal class GeneratorTest {
         container.generate("myLibs", objectFactory, config, resolver)
         verify(builder, times(0)).library(any<String>(), any<String>(), any<String>())
         verify(builder).from(any<FileCollection>())
+    }
+
+    @Test
+    fun testGenerate_DuplicateAlias() {
+        val config =
+            GeneratorConfig(settings).apply {
+                from("org.springframework.boot:spring-boot-dependencies:2.7.18")
+                cacheEnabled = false
+            }
+        val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+        assertThatIllegalArgumentException()
+            .isThrownBy { container.generate("myLibs", objectFactory, config, resolver) }
+            .withMessageContainingAll(
+                "Attempting to register a library with the alias ehcache-ehcache",
+                "Existing: net.sf.ehcache:ehcache:ehcache",
+                "Attempting: org.ehcache:ehcache:ehcache3",
+            )
     }
 
     @Test
