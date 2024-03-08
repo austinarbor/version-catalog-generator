@@ -16,6 +16,8 @@ Works on Gradle 7.6+
 First, add your BOM dependencies to your version catalog
 
 .libs.versions.toml
+[%collapsible%open]
+====
 [source,toml]
 ----
 [versions]
@@ -26,10 +28,13 @@ aws = "2.22.0"
 awsBom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws" }
 springBootDependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
 ----
+====
 
 Then add the plugin to your settings with the catalogs you want to generate
 
 .settings.gradle.kts
+[%collapsible%open]
+====
 [source,kotlin,subs="attributes+"]
 ----
 import dev.aga.gradle.versioncatalogs.Generator.generate
@@ -63,10 +68,13 @@ dependencyResolutionManagement {
 <4> Optionally override some version properties using a literal value
 <5> Or, you can reference version aliases in the source TOML
 <6> All dependencies in the AWS BOM are for AWS so we can skip the prefix
+====
 
 Lastly, use the dependencies in your build
 
 .build.gradle.kts
+[%collapsible%open]
+====
 [source,kotlin]
 ----
 dependencies {
@@ -76,6 +84,7 @@ dependencies {
     implementation(springLibs.jackson.jacksonDatabind)
 }
 ----
+====
 
 === Detailed Usage
 
