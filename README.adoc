@@ -9,7 +9,15 @@ Gradle’s https://docs.gradle.org/current/userguide/platforms.html[Version Cata
 
 === Compatibility
 
-Works on Gradle 7.6+
+[%autowidth]
+|===
+|*Gradle Version*|*Plugin Version*
+|7.6.x
+|1.x
+|8.x
+|1.x
+|===
+
 
 === Quick Start
 
