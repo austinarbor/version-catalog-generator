@@ -74,6 +74,8 @@ dependencies {
 === Detailed Usage
 
 .settings.gradle.kts
+[%collapsible]
+====
 [source,kotlin,subs="attributes"]
 ----
 import dev.aga.gradle.versioncatalogs.Generator.generate
@@ -144,8 +146,11 @@ dependencyResolutionManagement {
     }
 }
 ----
+====
 
 .settings.gradle
+[%collapsible]
+====
 [source,groovy,subs="attributes"]
 ----
 plugins {
@@ -180,8 +185,11 @@ dependencyResolutionManagement {
     }
 }
 ----
+====
 
 .build.gradle.kts
+[%collapsible]
+====
 [source,kotlin]
 ----
 // add your dependencies from the generated catalog
@@ -189,6 +197,7 @@ dependencies {
     implementation(springLibs.spring.springBootStarterJdbc)
 }
 ----
+====
 
 === Goals
 
