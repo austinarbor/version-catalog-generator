@@ -1,6 +1,7 @@
 https://github.com/austinarbor/version-catalog-generator/actions/workflows/ci.yml[image:https://github.com/austinarbor/version-catalog-generator/actions/workflows/ci.yml/badge.svg[ci]] https://codecov.io/gh/austinarbor/version-catalog-generator[image:https://codecov.io/gh/austinarbor/version-catalog-generator/graph/badge.svg?token=IO5UCDD5A0[codecov]] https://plugins.gradle.org/plugin/dev.aga.gradle.version-catalog-generator[image:https://staging.shields.io/gradle-plugin-portal/v/dev.aga.gradle.version-catalog-generator?label=Gradle%20Plugin%20Portal[Gradle Plugin Portal]]
 
 :version: 1.4.1
+:icons: font
 
 == Version Catalog Generator Plugin
 
@@ -29,7 +30,7 @@ springBootDependencies = { group = "org.springframework.boot", name = "spring-bo
 Then add the plugin to your settings with the catalogs you want to generate
 
 .settings.gradle.kts
-[source,kotlin,subs="attributes"]
+[source,kotlin,subs="attributes+"]
 ----
 import dev.aga.gradle.versioncatalogs.Generator.generate
 
@@ -39,24 +40,29 @@ plugins {
 
 dependencyResolutionManagement {
     repositories {
-        mavenCentral() // must include repositories here for dependency resolution to work from settings
+        mavenCentral() // <1>
     }
     versionCatalogs {
-        generate("springLibs") { // the name of the generated catalog
-            from(toml("springBootDependencies")) // name of the bom library in the version catalog
+        generate("springLibs") { // <2>
+            from(toml("springBootDependencies")) // <3>
             propertyOverrides = mapOf(
-                "jackson-bom.version" to "2.16.1", // optionally override some version properties using a literal value
-                "mockito.version" to versionRef("mockito"), // or you can reference version aliases in the source toml
+                "jackson-bom.version" to "2.16.1", // <4>
+                "mockito.version" to versionRef("mockito"), // <5>
             )
         }
         generate("awsLibs") {
             from(toml("awsBom"))
-            // all dependencies in the aws bom are for aws so we can skip the prefix
-            aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+            aliasPrefixGenerator = GeneratorConfig.NO_PREFIX // <6>
         }
     }
 }
 ----
+<1> Must include repositories here for dependency resolution to work from settings
+<2> The name of the generated catalog
+<3> The name of the bom library in the version catalog
+<4> Optionally override some version properties using a literal value
+<5> Or, you can reference version aliases in the source TOML
+<6> All dependencies in the AWS BOM are for AWS so we can skip the prefix
 
 Lastly, use the dependencies in your build
 
@@ -76,7 +82,7 @@ dependencies {
 .settings.gradle.kts
 [%collapsible]
 ====
-[source,kotlin,subs="attributes"]
+[source,kotlin,subs="attributes+"]
 ----
 import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.GeneratorConfig
@@ -151,7 +157,7 @@ dependencyResolutionManagement {
 .settings.gradle
 [%collapsible]
 ====
-[source,groovy,subs="attributes"]
+[source,groovy,subs="attributes+"]
 ----
 plugins {
     id('dev.aga.gradle.version-catalog-generator') version '{version}'
