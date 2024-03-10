@@ -1,4 +1,5 @@
 [versions]
+asciidoctorj = "4.0.2"
 assertj = "3.25.3"
 commons-text = "1.11.0"
 detekt = "1.23.5"
@@ -32,6 +33,7 @@ testing = ["assertj", "junit"]
 mockito = ["mockito-core", "mockito-junit-jupiter", "mockito-kotlin"]
 
 [plugins]
+asciidoctorj = { id = "org.asciidoctor.jvm.convert", version.ref = "asciidoctorj" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 gradle-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-publish" }
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

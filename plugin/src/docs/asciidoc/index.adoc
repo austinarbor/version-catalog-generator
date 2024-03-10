@@ -1,0 +1,9 @@
+:toc: left
+:version: 1.4.1
+:icons: font
+:rootdir: ../../../../
+:srcdir: ../../main/java
+
+include::{rootdir}/README.adoc[]
+include::{docdir}/detailed-usage.adoc[]
+include::{docdir}/goals.adoc[]

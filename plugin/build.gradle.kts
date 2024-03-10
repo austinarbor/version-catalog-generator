@@ -1,5 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import io.gitlab.arturbosch.detekt.Detekt
+import org.asciidoctor.gradle.jvm.AsciidoctorTask
 
 plugins {
     alias(libs.plugins.kotlin)
@@ -11,6 +12,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.gradle.publish)
     alias(libs.plugins.shadow)
+    alias(libs.plugins.asciidoctorj)
 }
 
 val GROUP_ID: String by project
@@ -158,5 +160,15 @@ tasks {
     jacocoTestReport {
         dependsOn(test)
         reports { xml.required = true }
+    }
+    withType<AsciidoctorTask> {
+        attributes =
+            mapOf(
+                "version" to project.version,
+                "revnumber" to "${project.version}",
+                "rootdir" to rootDir.absolutePath,
+                "author" to "Austin G. Arbor",
+            )
+        baseDirFollowsSourceDir()
     }
 }
