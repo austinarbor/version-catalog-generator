@@ -27,8 +27,7 @@ since that's also where you would put `create` statements.
 <2> In order for us to be able to resolve your BOM dependencies, you must specify the repositories in your settings file.
 When specifying repositories in settings you can (most of the time) remove the same declarations from your build file.
 According to the https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:centralized-repository-declaration[Gradle documentation],
-repositories declared in the build file will override whatever is declared in settings. This section will mostly be excluded
-from subsequent code examples for brevity.
+repositories declared in the build file will override whatever is declared in settings.
 
 .settings.gradle
 [source,groovy,subs="attributes+",role="secondary"]
@@ -51,8 +50,7 @@ dependencyResolutionManagement {
 <1> In order for us to be able to resolve your BOM dependencies, you must specify the repositories in your settings file.
 When specifying repositories in settings you can (most of the time) remove the same declarations from your build file.
 According to the https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:centralized-repository-declaration[Gradle documentation],
-repositories declared in the build file will override whatever is declared in settings. This section will mostly be excluded
-from subsequent code examples for brevity.
+repositories declared in the build file will override whatever is declared in settings.
 <2> The `generator` extension should be available by default without an import
 
 
