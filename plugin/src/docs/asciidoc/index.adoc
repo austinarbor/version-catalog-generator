@@ -5,6 +5,6 @@
 :rootdir: ../../../../
 :srcdir: ../../main/java
 
-include::{rootdir}/README.adoc[tags=!goals]
+include::{rootdir}/README.adoc[tags=!exclude-from-docs]
 include::{docdir}/detailed-usage.adoc[]
 include::{docdir}/goals.adoc[]

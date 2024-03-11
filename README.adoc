@@ -94,9 +94,12 @@ dependencies {
 }
 ----
 ====
-// tag::goals[]
+// tag::exclude-from-docs[]
+== Detailed Usage
+https://austinarbor.github.io/version-catalog-generator[See the docs]
+
 == Goals
 * [x] Compatible with Dependabot
 * [x] Nested BOM support (i.e. `spring-boot-dependences` imports `+mockito-bom+`, etc)
 * [x] Easy to override versions (similar to `ext["version.property"] = ...` in Spring Boot Dependencies plugin)
-// end::goals[]
+// end::exclude-from-docs[]
