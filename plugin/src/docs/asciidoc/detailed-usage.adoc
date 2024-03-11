@@ -5,6 +5,7 @@ include::{docdir}/detailed-usage/sources.adoc[]
 include::{docdir}/detailed-usage/naming.adoc[]
 include::{docdir}/detailed-usage/overrides.adoc[]
 include::{docdir}/detailed-usage/filtering.adoc[]
+include::{docdir}/detailed-usage/caching.adoc[]
 
 .settings.gradle.kts
 [%collapsible]
