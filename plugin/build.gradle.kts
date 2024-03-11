@@ -1,6 +1,4 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import io.gitlab.arturbosch.detekt.Detekt
-import org.asciidoctor.gradle.jvm.AsciidoctorTask
 
 plugins {
     alias(libs.plugins.kotlin)
@@ -65,14 +63,6 @@ detekt {
     buildUponDefaultConfig = true
     config.setFrom("$projectDir/config/detekt.yml")
     baseline = file("$projectDir/config/detekt-baseline.xml")
-}
-
-tasks {
-    withType<Detekt>().configureEach {
-        // exclude the mock classes from detekt
-        exclude("dev/aga/gradle/versioncatalogs/mock/**")
-    }
-    withType<ShadowJar> { archiveClassifier = "" }
 }
 
 gradlePlugin {
@@ -156,6 +146,11 @@ val createTestkitFiles by
     }
 
 tasks {
+    shadowJar { archiveClassifier = "" }
+    withType<Detekt>().configureEach {
+        // exclude the mock classes from detekt
+        exclude("dev/aga/gradle/versioncatalogs/mock/**")
+    }
     test {
         dependsOn(createTestkitFiles)
         finalizedBy(jacocoTestReport) // report is always generated after tests run
@@ -165,7 +160,7 @@ tasks {
         dependsOn(test)
         reports { xml.required = true }
     }
-    withType<AsciidoctorTask> {
+    asciidoctor {
         configurations(asciidoctorExtensions)
         attributes =
             mapOf(
