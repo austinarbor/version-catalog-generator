@@ -1,5 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import io.gitlab.arturbosch.detekt.Detekt
+import org.asciidoctor.gradle.jvm.AsciidoctorTask
 
 plugins {
     alias(libs.plugins.kotlin)
@@ -11,6 +12,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.gradle.publish)
     alias(libs.plugins.shadow)
+    alias(libs.plugins.asciidoctorj)
 }
 
 val GROUP_ID: String by project
@@ -28,6 +30,8 @@ val jacocoRuntime by configurations.creating
 
 repositories { mavenCentral() }
 
+val asciidoctorExtensions by configurations.registering
+
 dependencies {
     implementation(libs.maven.model)
     implementation(libs.tomlj)
@@ -40,6 +44,8 @@ dependencies {
     testImplementation(gradleTestKit())
     testRuntimeOnly(files(layout.buildDirectory.dir("testkit")))
     jacocoRuntime(variantOf(libs.jacoco.agent) { classifier("runtime") })
+
+    asciidoctorExtensions(libs.asciidoctor.tabbedCode)
 }
 
 jacoco { toolVersion = libs.versions.jacoco.get() }
@@ -158,5 +164,17 @@ tasks {
     jacocoTestReport {
         dependsOn(test)
         reports { xml.required = true }
+    }
+    withType<AsciidoctorTask> {
+        configurations(asciidoctorExtensions)
+        attributes =
+            mapOf(
+                "version" to project.version,
+                "revnumber" to "${project.version}",
+                "rootdir" to rootDir.absolutePath,
+                "author" to "Austin G. Arbor",
+                "source-highlighter" to "prettify",
+            )
+        baseDirFollowsSourceDir()
     }
 }

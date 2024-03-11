@@ -1,0 +1,10 @@
+:toc: left
+:toclevels: 4
+:version: 1.4.1
+:icons: font
+:rootdir: ../../../../
+:srcdir: ../../main/java
+
+include::{rootdir}/README.adoc[tags=!exclude-from-docs]
+include::{docdir}/detailed-usage.adoc[]
+include::{docdir}/goals.adoc[]

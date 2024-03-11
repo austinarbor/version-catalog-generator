@@ -1,4 +1,6 @@
 [versions]
+asciidoctorj = "4.0.2"
+asciidoctorTabbedCode = "0.3"
 assertj = "3.25.3"
 commons-text = "1.11.0"
 detekt = "1.23.5"
@@ -15,6 +17,7 @@ spotless = "6.25.0"
 tomlj = "1.1.1"
 
 [libraries]
+asciidoctor-tabbedCode = { group = "com.bmuschko", name = "asciidoctorj-tabbed-code-extension", version.ref = "asciidoctorTabbedCode" }
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
 commons-text = { group = "org.apache.commons", name = "commons-text", version.ref = "commons-text" }
 detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt" }
@@ -32,6 +35,7 @@ testing = ["assertj", "junit"]
 mockito = ["mockito-core", "mockito-junit-jupiter", "mockito-kotlin"]
 
 [plugins]
+asciidoctorj = { id = "org.asciidoctor.jvm.convert", version.ref = "asciidoctorj" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 gradle-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-publish" }
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
