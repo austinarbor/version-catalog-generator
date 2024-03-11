@@ -1,0 +1,23 @@
+
+=== Build File
+
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
+----
+dependencies {
+  implementation(springLibs.spring.springBootStarterWeb) // <1>
+}
+----
+<1> When using the libraries from your generated catalog, each `-` in the generated alias is replaced with a `.`
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+dependencies {
+  implementation springLibs.spring.springBootStarterWeb // <1>
+}
+----
+<1> When using the libraries from your generated catalog, each `-` in the generated alias is replaced with a `.`
+
+TIP: The generated catalog won't be immediately available (same as adding a new entry to your `libs.versions.toml` file).
+You will need to evaluate the settings through another gradle task (i.e. `assemble`) to trigger the catalog generation.
