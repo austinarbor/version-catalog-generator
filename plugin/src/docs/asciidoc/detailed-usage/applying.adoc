@@ -1,7 +1,8 @@
 
 === Applying the Plugin
 
-[source,kotlin,subs="attributes+"]
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
 ----
 import dev.aga.gradle.versioncatalogs.Generator.generate // <1>
 
@@ -28,5 +29,31 @@ When specifying repositories in settings you can (most of the time) remove the s
 According to the https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:centralized-repository-declaration[Gradle documentation],
 repositories declared in the build file will override whatever is declared in settings. This section will mostly be excluded
 from subsequent code examples for brevity.
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+plugins {
+  id 'dev.aga.gradle.version-catalog-generator' version '{version}'
+}
+
+dependencyResolutionManagement {
+  repositories { // <1>
+    mavenCentral()
+  }
+  versionCatalogs {
+    generator.generate("myLibs") { // <2>
+      // excluded for brevity
+    }
+  }
+}
+----
+<1> In order for us to be able to resolve your BOM dependencies, you must specify the repositories in your settings file.
+When specifying repositories in settings you can (most of the time) remove the same declarations from your build file.
+According to the https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:centralized-repository-declaration[Gradle documentation],
+repositories declared in the build file will override whatever is declared in settings. This section will mostly be excluded
+from subsequent code examples for brevity.
+<2> The `generator` extension should be available by default without an import
+
 
 NOTE: The import statement and repository declaration blocks may be excluded from future code samples for brevity.
