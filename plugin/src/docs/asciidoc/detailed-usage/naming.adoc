@@ -39,7 +39,8 @@ version range is known to cause problems due to conflicting entries of `ehcache`
 ==== Customizing Prefix Generation
 The prefix generation logic can be modified by overriding the property `aliasPrefixGenerator` in `GeneratorConfig`
 
-[source,kotlin,subs="attributes+"]
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
 ----
 generate("myLibs") {
   // excluded for brevity
@@ -52,17 +53,45 @@ generate("myLibs") {
   }
 }
 ----
-<1> We can always fallback to the default logic if our condition isn't met
+<1> We can always fall back to the default logic if our condition isn't met
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+generator.generate("myLibs") {
+  // excluded for brevity
+  it.aliasPrefixGenerator = { groupId, artifactId ->
+    if(groupId == "some.group") {
+      "somegroup"
+    } else {
+      DEFAULT_ALIAS_PREFIX_GENERATOR.invoke(groupId, artifactId) // <1>
+    }
+  }
+}
+----
+<1> We can always fall back to the default logic if our condition isn't met
 
 ===== Skipping Prefix Generation Entirely
 In some BOMs which _only_ contain their own dependencies, for example the AWS BOM, the inclusion of the prefix may
 not be useful and instead you may want to skip the prefix entirely. A convenience function is provided to do so.
 
-[source,kotlin,subs="attributes+"]
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
 ----
 generate("awsLibs") {
-  from("awsBom")
+  from(toml("awsBom"))
   aliasPrefixGenerator = GeneratorConfig.NO_PREFIX // <1>
+}
+----
+<1> The resulting generated alias for `software.amazon.awssdk:s3` would just be `s3`. When accessing this library
+in our build file, the accessor would subsequently be `awsLibs.s3` instead of `awsLibs.awssdk.s3`
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+generator.generate("awsLibs") {
+  it.from(it.toml("awsBom"))
+  aliasPrefixGenerator = NO_PREFIX // <1>
 }
 ----
 <1> The resulting generated alias for `software.amazon.awssdk:s3` would just be `s3`. When accessing this library
@@ -71,12 +100,13 @@ in our build file, the accessor would subsequently be `awsLibs.s3` instead of `a
 ==== Customizing Suffix Generation
 The suffix generation logic can be modified by overriding the property `aliasSuffixGenerator` in `GeneratorConfig`
 
-[source,kotlin,subs="attributes+"]
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
 ----
 generate("myLibs") {
   // excluded for brevity
   aliasSuffixGenerator = { prefix, groupId, artifactId -> // <1>
-   val suffix = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR(groupId, artifactId) <2>
+   val suffix = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR(groupId, artifactId) // <2>
    if(prefix == "spring") {
        suffix.replaceFirst("spring","") // <3>
    } else {
@@ -87,6 +117,26 @@ generate("myLibs") {
 ----
 <1> The prefix argument refers to the generated prefix value for the dependency
 <2> The default logic can always be accessed through `GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR`
+<3> In this example we are extending the default behavior to remove the "duplicate" appearance of the word `spring`.
+For example, instead of `spring-springBootStarterWeb`, we would generate `spring-bootStarterWeb`
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+generator.generate("myLibs") {
+  // excluded for brevity
+  it.aliasSuffixGenerator = { prefix, groupId, artifactId -> // <1>
+   def suffix = DEFAULT_ALIAS_SUFFIX_GENERATOR.invoke(groupId, artifactId) // <2>
+   if(prefix == "spring") {
+       suffix.replaceFirst("spring","") // <3>
+   } else {
+       suffix
+   }
+  }
+}
+----
+<1> The prefix argument refers to the generated prefix value for the dependency
+<2> The default logic can always be accessed through `DEFAULT_ALIAS_SUFFIX_GENERATOR`
 <3> In this example we are extending the default behavior to remove the "duplicate" appearance of the word `spring`.
 For example, instead of `spring-springBootStarterWeb`, we would generate `spring-bootStarterWeb`
 
@@ -111,7 +161,8 @@ The default algorithm to generate a version alias from a property is:
 ==== Customizing Version Aliases
 The version alias generation logic can be customized by overriding the property `versionNameGenerator` in `GeneratorConfig`
 
-[source,kotlin,subs="attributes+"]
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
 ----
 generate("myLibs") {
   // excluded for brevity
@@ -127,13 +178,43 @@ generate("myLibs") {
 <1> The property name from the maven POM, i.e. `jackson.version`
 <2> The default logic can always be accessed through `GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR`
 
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+generator.generate("myLibs") {
+  // excluded for brevity
+  it.versionNameGenerator = { propertyName -> // <1>
+   if(propertyName == "somethingWeird") {
+       "notAsWeird"
+   } else {
+       DEFAULT_VERSION_NAME_GENERATOR.invoke(propertyName) // <2>
+   }
+  }
+}
+----
+<1> The property name from the maven POM, i.e. `jackson.version`
+<2> The default logic can always be accessed through `DEFAULT_VERSION_NAME_GENERATOR`
+
 === Case Conversion
 For converting between different text cases, for example lower-hyphen to lower-camel, you can use the convenience
 function `caseChange`
 
-[source,kotlin,subs="attributes+"]
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
 ----
 aliasSuffixGenerator = { _, _, artifactId ->
-    GeneratorConfig.caseChange(artifactId, CaseFormat.LOWER_HYPEN, CaseFormat.CAMEL)
+    GeneratorConfig.caseChange(artifactId, CaseFormat.LOWER_HYPEN, CaseFormat.CAMEL) // <1>
 }
 ----
+<1> You will have to add an import for net.pearx.kasechange.CaseFormat into the build file. The dependency
+is already available for use when you apply the plugin
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+it.aliasSuffixGenerator = { _, _, artifactId ->
+    caseChange(artifactId, CaseFormat.LOWER_HYPEN, CaseFormat.CAMEL) // <1>
+}
+----
+<1> You will have to add an import for net.pearx.kasechange.CaseFormat into the build file. The dependency
+is already available for use when you apply the plugin

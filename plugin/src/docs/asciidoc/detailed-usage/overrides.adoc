@@ -1,6 +1,6 @@
-:fn-gradle-overrides: footnote:[You can always use standard Gradle mechanisms such as resolution strategies or platforms if a property is not used to specify the version]
 
 === Overriding Versions
+:fn-gradle-overrides: footnote:[You can always use standard Gradle mechanisms such as resolution strategies or platforms if a property is not used to specify the version]
 In some cases you may want to override the version specified by the BOM you are generating
 the catalog from. At the current point in time, this is only possible if the BOM uses a property
 to specify the version{fn-gradle-overrides}
