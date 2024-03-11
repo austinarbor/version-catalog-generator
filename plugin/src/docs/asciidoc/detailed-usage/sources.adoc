@@ -4,7 +4,7 @@
 ==== TOML
 
 .settings.gradle.kts
-[source,kotlin,subs="attributes+"]
+[source,kotlin,subs="attributes+",role="primary"]
 ----
 dependencyResolutionmanagement {
   versionCatalogs {
@@ -27,12 +27,37 @@ dependencyResolutionmanagement {
 if _not_ using the value `gradle/libs.versions.toml`
 <3> When using the default file, you can use the convenience function `toml(..)` and just provide the alias name
 
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+dependencyResolutionmanagement {
+  versionCatalogs {
+    generator.generate("springLibs") {
+      it.from { from ->
+        from.toml { toml ->
+          toml.libraryAlias = "springBootDependencies" // <1>
+          toml.file = file("gradle/libs.versions.toml") // <2>
+        }
+      }
+    }
+    generator.generate("awsLibs") {
+      it.from(it.toml("spring-boot-dependencies")) // <3>
+    }
+  }
+}
+----
+<1> Required, the alias of the library in the TOML file
+<2> The TOML file to find the provided alias in. This only needs to be provided
+if _not_ using the value `gradle/libs.versions.toml`
+<3> When using the default file, you can use the convenience function `toml(..)` and just provide the alias name
+
+
 TIP: GitHub's Dependabot only supports automatic updates in the default version catalog `gradle/libs.versions.toml`
 
 ==== String Notation
 
 .settings.gradle.kts
-[source,kotlin,subs="attributes+"]
+[source,kotlin,subs="attributes+",role="primary"]
 ----
 dependencyResolutionmanagement {
   versionCatalogs {
@@ -49,3 +74,25 @@ dependencyResolutionmanagement {
 ----
 <1> You can also use the standard string notation to specify your dependency
 <2> More conveniently, you can pass the string notation directly into `from()`
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+dependencyResolutionmanagement {
+  versionCatalogs {
+    generator.generate("springLibs") {
+      it.from { from ->
+        from.dependency("org.springframework.boot:spring-boot-dependencies:3.1.2") // <1>
+      }
+    }
+    generator.generate("awsLibs") {
+      it.from("software.amazon.awssdk:bom:2.25.6") // <2>
+    }
+  }
+}
+----
+<1> You can also use the standard string notation to specify your dependency
+<2> More conveniently, you can pass the string notation directly into `from()`
+
+NOTE: Groovy is not my strong point so it's possible there is simpler / better syntax I'm not aware of. If you have
+any improvements please open an issue or a PR.
