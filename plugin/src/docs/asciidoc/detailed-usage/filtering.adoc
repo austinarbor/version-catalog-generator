@@ -5,7 +5,8 @@ dependencies either by `groupId` or by `name` (artifactId)
 
 ==== Filtering By GroupId
 
-[source,kotlin,subs="attributes+"]
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
 ----
 generate("myLibs") {
   // excluded for brevity
@@ -14,13 +15,34 @@ generate("myLibs") {
 ----
 <1> Exclude all dependencies that have "spring" in their groupId
 
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+generator.generate("myLibs") {
+  // excluded for brevity
+  it.excludeGroups = ".*spring.*" // <1>
+}
+----
+<1> Exclude all dependencies that have "spring" in their groupId
+
 ==== Filtering By Name
 
-[source,kotlin,subs="attributes+"]
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
 ----
 generate("myLibs") {
   // excluded for brevity
   excludeNames = ".*hibernate.*" // <1>
+}
+----
+<1> Exclude all dependencies that have "hibernate" in their name/artifactId
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+generator.generate("myLibs") {
+  // excluded for brevity
+  it.excludeNames = ".*hibernate.*" // <1>
 }
 ----
 <1> Exclude all dependencies that have "hibernate" in their name/artifactId
