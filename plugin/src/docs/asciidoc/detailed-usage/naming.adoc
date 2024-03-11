@@ -1,0 +1,95 @@
+
+=== Customizing Generated Library Aliases
+
+The aliases we generate for libraries discovered in the BOM are based on two separate components,
+a `prefix` and a `suffix`. The prefix and suffix are separated by a hyphen to create the library's alias.
+If the prefix is blank, it will be ignored entirely.
+
+==== Default Behavior
+The default algorithm is as follows:
+
+===== Prefix Generation
+1. The `groupId` of the dependency is split by `.`
+2. If the split only returns a list of one item and the value is the string `bundles`, `plugins`, or `versions`, an
+`IllegalArgumentException` is thrown
+3. If the split returns a list of two or more items, and the last value is one of the invalid strings listed above, the
+last two items in the list are concatenated by a hyphen. The entirety of the string is the converted to camelCase
+4. In any other scenario, the last item in the list is returned as-is
+
+NOTE: Due to the popularity of the Spring Framework and the Jackson json mapping libraries, special cases have been added
+to simplify their generated naming conventions. If any groupId _begins_ with `com.fasterxml.jackson`, the prefix `jackson` will
+be emitted, while any groupId _beginning_ with `org.springframework` will emit the prefix `spring`.
+
+===== Suffix Generation
+1. Replace any `.` character in the `artifactId` of the dependency with a `-`
+2. Convert the resulting string to camelCase
+
+===== Examples
+1. `org.springframework.boot:spring-boot-starter-web` -> `spring-springBootStarterWeb`
+2. `com.fasterxml.jackson.core:jackson-databind` -> `jackson-jacksonDatabind`
+3. `com.fasterxml.jackson.datatype:jackson-datatype-jsr310` -> `jackson-jacksonDatatypeJsr310`
+4. `software.amazon.awssdk:s3` -> `awssdk-s3`
+
+==== Customizing Prefix Generation
+The prefix generation logic can be modified by overriding the property `aliasPrefixGenerator` in `GeneratorConfig`
+
+[source,kotlin,subs="attributes+"]
+----
+generate("myLibs") {
+  from("..")
+  aliasPrefixGenerator = { groupId, artifactId ->
+   if(groupId == "some.group") {
+       "somegroup"
+   } else {
+       GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR(groupId, artifactId) // <1>
+   }
+  }
+}
+----
+<1> We can always fallback to the default logic if our condition isn't met
+
+===== Skipping Prefix Generation Entirely
+In some BOMs which _only_ contain their own dependencies, for example the AWS BOM, the inclusion of the prefix may
+not be useful and instead you may want to skip the prefix entirely. A convenience function is provided to do so.
+
+[source,kotlin,subs="attributes+"]
+----
+generate("awsLibs") {
+  from("awsBom")
+  aliasPrefixGenerator = GeneratorConfig.NO_PREFIX // <1>
+}
+----
+<1> The resulting generated alias for `software.amazon.awssdk:s3` would just be `s3`. When accessing this library
+in our build file, the accessor would subsequently be `awsLibs.s3` instead of `awsLibs.awssdk.s3`
+
+==== Customizing Suffix Generation
+The suffix generation logic can be modified by overriding the property `aliasSuffixGenerator` in `GeneratorConfig`
+
+[source,kotlin,subs="attributes+"]
+----
+generate("myLibs") {
+  from("..")
+  aliasSuffixGenerator = { prefix, groupId, artifactId -> // <1>
+   val suffix = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR(groupId, artifactId)
+   if(prefix == "spring") {
+       suffix.replaceFirst("spring","") // <2>
+   } else {
+       suffix
+   }
+  }
+}
+----
+<1> The prefix argument refers to the generated prefix value for the dependency
+<2> In this example we are extending the default behavior to remove the "duplicate" appearance of the word `spring`.
+For example, instead of `spring-springBootStarterWeb`, we would generate `spring-bootStarterWeb`
+
+==== Case Conversion
+For converting between different text cases, for example lower-hyphen to lower-camel, you can use the convenience
+function `caseChange`
+
+[source,kotlin,subs="attributes+"]
+----
+aliasSuffixGenerator = { _, _, artifactId ->
+    GeneratorConfig.caseChange(artifactId, CaseFormat.LOWER_HYPEN, CaseFormat.CAMEL)
+}
+----
