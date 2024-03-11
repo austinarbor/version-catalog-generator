@@ -1,5 +1,7 @@
 
 == Detailed Usage
+include::{docdir}/detailed-usage/applying.adoc[]
+include::{docdir}/detailed-usage/sources.adoc[]
 
 .settings.gradle.kts
 [%collapsible]

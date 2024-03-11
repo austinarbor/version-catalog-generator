@@ -1,0 +1,32 @@
+
+=== Applying the Plugin
+
+[source,kotlin,subs="attributes+"]
+----
+import dev.aga.gradle.versioncatalogs.Generator.generate // <1>
+
+plugins {
+  id("dev.aga.gradle.version-catalog-generator") version("{version}")
+}
+
+dependencyResolutionManagement {
+  repositories { // <2>
+    mavenCentral()
+  }
+  versionCatalogs {
+    generate("myLibs") {
+      // excluded for brevity
+    }
+  }
+}
+----
+<1> The extension function must be imported to allow the DSL to access the `generate` function.
+Technically, the `generate` function can be placed anywhere in the settings script, but I like putting it inside the `versionCatalogs` block
+since that's also where you would put `create` statements.
+<2> In order for us to be able to resolve your BOM dependencies, you must specify the repositories in your settings file.
+When specifying repositories in settings you can (most of the time) remove the same declarations from your build file.
+According to the https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:centralized-repository-declaration[Gradle documentation],
+repositories declared in the build file will override whatever is declared in settings. This section will mostly be excluded
+from subsequent code examples for brevity.
+
+NOTE: The import statement and repository declaration blocks may be excluded from future code samples for brevity.

@@ -1,0 +1,51 @@
+
+=== Dependency Sources
+
+==== TOML
+
+.settings.gradle.kts
+[source,kotlin,subs="attributes+"]
+----
+dependencyResolutionmanagement {
+  versionCatalogs {
+    generate("springLibs") {
+      from {
+        toml {
+          libraryAlias = "springBootDependencies" // <1>
+          file = file("gradle/libs.versions.toml") // <2>
+        }
+      }
+    }
+    generate("awsLibs") {
+      from(toml("awsBom")) // <3>
+    }
+  }
+}
+----
+<1> Required, the alias of the library in the TOML file
+<2> The TOML file to find the provided alias in. This only needs to be provided
+if _not_ using the value `gradle/libs.versions.toml`
+<3> When using the default file, you can use the convenience function `toml(..)` and just provide the alias name
+
+TIP: GitHub's Dependabot only supports automatic updates in the default version catalog `gradle/libs.versions.toml`
+
+==== String Notation
+
+.settings.gradle.kts
+[source,kotlin,subs="attributes+"]
+----
+dependencyResolutionmanagement {
+  versionCatalogs {
+    generate("springLibs") {
+      from {
+        dependency("org.springframework.boot:spring-boot-dependencies:3.1.2") // <1>
+      }
+    }
+    generate("awsLibs") {
+      from("software.amazon.awssdk:bom:2.25.6") // <2>
+    }
+  }
+}
+----
+<1> You can also use the standard string notation to specify your dependency
+<2> More conveniently, you can pass the string notation directly into `from()`
