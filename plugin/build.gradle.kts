@@ -30,6 +30,8 @@ val jacocoRuntime by configurations.creating
 
 repositories { mavenCentral() }
 
+val asciidoctorExtensions by configurations.registering
+
 dependencies {
     implementation(libs.maven.model)
     implementation(libs.tomlj)
@@ -42,6 +44,8 @@ dependencies {
     testImplementation(gradleTestKit())
     testRuntimeOnly(files(layout.buildDirectory.dir("testkit")))
     jacocoRuntime(variantOf(libs.jacoco.agent) { classifier("runtime") })
+
+    asciidoctorExtensions(libs.asciidoctor.tabbedCode)
 }
 
 jacoco { toolVersion = libs.versions.jacoco.get() }
@@ -162,6 +166,7 @@ tasks {
         reports { xml.required = true }
     }
     withType<AsciidoctorTask> {
+        configurations(asciidoctorExtensions)
         attributes =
             mapOf(
                 "version" to project.version,
