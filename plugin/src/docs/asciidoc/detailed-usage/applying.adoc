@@ -7,7 +7,7 @@
 import dev.aga.gradle.versioncatalogs.Generator.generate // <1>
 
 plugins {
-  id("dev.aga.gradle.version-catalog-generator") version("{version}")
+  id("dev.aga.gradle.version-catalog-generator") version "{version}"
 }
 
 dependencyResolutionManagement {
