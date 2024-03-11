@@ -5,12 +5,26 @@ for tasks with incremental builds. However, we have added the ability to save th
 and the build will (re)use that file the next time the build is invoked. The behavior is disabled by default, but may
 be enabled at a later time.
 
-[source,kotlin,subs="attributes+"]
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
 ----
 generate("myLibs") {
   // excluded for brevity
   cacheEnabled = true // <1>
   cacheDirectory = file("build/version-catalogs") // <2>
+}
+----
+<1> Enable the caching functionality
+<2> The directory to save the generated catalogs in. If not specified, the generated catalogs will be saved in
+`build/version-catalogs`, relative to the _root_ project directory.
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+generator.generate("myLibs") {
+  // excluded for brevity
+  it.cacheEnabled = true // <1>
+  it.cacheDirectory = file("build/version-catalogs") // <2>
 }
 ----
 <1> Enable the caching functionality
