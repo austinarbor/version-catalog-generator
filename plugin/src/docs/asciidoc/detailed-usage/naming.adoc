@@ -1,5 +1,5 @@
 
-=== Customizing Generated Library Aliases
+=== Customizing Library Aliases
 
 The aliases we generate for libraries discovered in the BOM are based on two separate components,
 a `prefix` and a `suffix`. The prefix and suffix are separated by a hyphen to create the library's alias.
@@ -25,10 +25,15 @@ be emitted, while any groupId _beginning_ with `org.springframework` will emit t
 2. Convert the resulting string to camelCase
 
 ===== Examples
-1. `org.springframework.boot:spring-boot-starter-web` -> `spring-springBootStarterWeb`
-2. `com.fasterxml.jackson.core:jackson-databind` -> `jackson-jacksonDatabind`
-3. `com.fasterxml.jackson.datatype:jackson-datatype-jsr310` -> `jackson-jacksonDatatypeJsr310`
-4. `software.amazon.awssdk:s3` -> `awssdk-s3`
+* `org.springframework.boot:spring-boot-starter-web` -> `spring-springBootStarterWeb`
+* `com.fasterxml.jackson.core:jackson-databind` -> `jackson-jacksonDatabind`
+* `com.fasterxml.jackson.datatype:jackson-datatype-jsr310` -> `jackson-jacksonDatatypeJsr310`
+* `software.amazon.awssdk:s3` -> `awssdk-s3`
+
+TIP: In some cases our default logic may not be sufficient and it may attempt to store two dependencies with the same
+alias. If this happens, an exception will be thrown pointing to the errant dependencies and you will either need to
+exclude one or more of the conflicting dependencies, or override the default behavior. `spring-boot-dependencies` in the 2.7.x
+version range is known to cause problems due to conflicting entries of `ehcache`. See https://github.com/austinarbor/version-catalog-generator/issues/100[#100]
 
 ==== Customizing Prefix Generation
 The prefix generation logic can be modified by overriding the property `aliasPrefixGenerator` in `GeneratorConfig`
@@ -70,9 +75,9 @@ The suffix generation logic can be modified by overriding the property `aliasSuf
 generate("myLibs") {
   from("..")
   aliasSuffixGenerator = { prefix, groupId, artifactId -> // <1>
-   val suffix = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR(groupId, artifactId)
+   val suffix = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR(groupId, artifactId) <2>
    if(prefix == "spring") {
-       suffix.replaceFirst("spring","") // <2>
+       suffix.replaceFirst("spring","") // <3>
    } else {
        suffix
    }
@@ -80,10 +85,48 @@ generate("myLibs") {
 }
 ----
 <1> The prefix argument refers to the generated prefix value for the dependency
-<2> In this example we are extending the default behavior to remove the "duplicate" appearance of the word `spring`.
+<2> The default logic can always be accessed through `GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR`
+<3> In this example we are extending the default behavior to remove the "duplicate" appearance of the word `spring`.
 For example, instead of `spring-springBootStarterWeb`, we would generate `spring-bootStarterWeb`
 
-==== Case Conversion
+=== Customizing Version Aliases
+If any dependencies in the source BOM specify a dependency's version via a property, we will create a version alias in
+the generated catalog for that behavior.
+
+==== Default Behavior
+The default algorithm to generate a version alias from a property is:
+
+1. Replace all case-insensitive instances of the literal string `version` with an empty string
+2. All instances of two or more consecutive periods are replaced with a single period
+3. Any leading or trailing periods are trimmed
+4. All periods are replaced with a hyphen
+5. The entire string is converted to camelCase
+
+===== Examples
+* `jackson.version` -> `jackson`
+* `version.jackson` -> `jackson`
+* `jackson.modules.version` -> `jacksonModules`
+
+==== Customizing Version Aliases
+The version alias generation logic can be customized by overriding the property `versionNameGenerator` in `GeneratorConfig`
+
+[source,kotlin,subs="attributes+"]
+----
+generate("myLibs") {
+  from("..")
+  versionNameGenerator = { propertyName -> // <1>
+   if(propertyName == "somethingWeird") {
+       "notAsWeird"
+   } else {
+       GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR(propertyName) // <2>
+   }
+  }
+}
+----
+<1> The property name from the maven POM, i.e. `jackson.version`
+<2> The default logic can always be accessed through `GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR`
+
+=== Case Conversion
 For converting between different text cases, for example lower-hyphen to lower-camel, you can use the convenience
 function `caseChange`
 
