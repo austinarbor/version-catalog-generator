@@ -1,0 +1,26 @@
+
+=== Filtering Dependencies
+If you want to exclude certain dependencies from having entries generated for them in your catalog, you can filter
+dependencies either by `groupId` or by `name` (artifactId)
+
+==== Filtering By GroupId
+
+[source,kotlin,subs="attributes+"]
+----
+generate("myLibs") {
+  // excluded for brevity
+  excludeGroups = ".*spring.*" // <1>
+}
+----
+<1> Exclude all dependencies that have "spring" in their groupId
+
+==== Filtering By Name
+
+[source,kotlin,subs="attributes+"]
+----
+generate("myLibs") {
+  // excluded for brevity
+  excludeNames = ".*hibernate.*" // <1>
+}
+----
+<1> Exclude all dependencies that have "hibernate" in their name/artifactId

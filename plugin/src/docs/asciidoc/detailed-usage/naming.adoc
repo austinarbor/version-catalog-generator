@@ -29,6 +29,7 @@ be emitted, while any groupId _beginning_ with `org.springframework` will emit t
 * `com.fasterxml.jackson.core:jackson-databind` -> `jackson-jacksonDatabind`
 * `com.fasterxml.jackson.datatype:jackson-datatype-jsr310` -> `jackson-jacksonDatatypeJsr310`
 * `software.amazon.awssdk:s3` -> `awssdk-s3`
+* `org.hibernate.orm:hibernate-core` -> `orm.hibernateCore`
 
 TIP: In some cases our default logic may not be sufficient and it may attempt to store two dependencies with the same
 alias. If this happens, an exception will be thrown pointing to the errant dependencies and you will either need to
