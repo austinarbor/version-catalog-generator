@@ -41,7 +41,7 @@ The prefix generation logic can be modified by overriding the property `aliasPre
 [source,kotlin,subs="attributes+"]
 ----
 generate("myLibs") {
-  from("..")
+  // excluded for brevity
   aliasPrefixGenerator = { groupId, artifactId ->
    if(groupId == "some.group") {
        "somegroup"
@@ -73,7 +73,7 @@ The suffix generation logic can be modified by overriding the property `aliasSuf
 [source,kotlin,subs="attributes+"]
 ----
 generate("myLibs") {
-  from("..")
+  // excluded for brevity
   aliasSuffixGenerator = { prefix, groupId, artifactId -> // <1>
    val suffix = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR(groupId, artifactId) <2>
    if(prefix == "spring") {
@@ -113,7 +113,7 @@ The version alias generation logic can be customized by overriding the property 
 [source,kotlin,subs="attributes+"]
 ----
 generate("myLibs") {
-  from("..")
+  // excluded for brevity
   versionNameGenerator = { propertyName -> // <1>
    if(propertyName == "somethingWeird") {
        "notAsWeird"

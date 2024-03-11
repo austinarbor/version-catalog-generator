@@ -168,6 +168,7 @@ tasks {
                 "revnumber" to "${project.version}",
                 "rootdir" to rootDir.absolutePath,
                 "author" to "Austin G. Arbor",
+                "source-highlighter" to "prettify",
             )
         baseDirFollowsSourceDir()
     }

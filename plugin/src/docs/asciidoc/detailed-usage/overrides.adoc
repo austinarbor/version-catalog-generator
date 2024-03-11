@@ -1,0 +1,21 @@
+:fn-gradle-overrides: footnote:[You can always use standard Gradle mechanisms such as resolution strategies or platforms if a property is not used to specify the version]
+
+=== Overriding Versions
+In some cases you may want to override the version specified by the BOM you are generating
+the catalog from. At the current point in time, this is only possible if the BOM uses a property
+to specify the version{fn-gradle-overrides}
+
+[source,kotlin,subs="attributes+"]
+----
+generate("myLibs") {
+  // excluded for brevity
+  propertyOverrides = mapOf(
+      "jackson.version" to "2.16.1", // <1>
+      "aws.version" to versionRef("aws") // <2>
+  )
+}
+----
+<1> Specify a string version to use in place of all occurrences of `jackson.version` when processing the BOM
+<2> Specify an existing version alias from your TOML file. The `versionRef` function
+can only be used if your BOM source is a TOML (not a string dependency notation), and the version alias being
+referenced _must_ exist in the same TOML file in which your BOM alias is declared.
