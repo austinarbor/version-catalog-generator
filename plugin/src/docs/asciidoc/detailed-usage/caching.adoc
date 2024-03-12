@@ -2,8 +2,7 @@
 === Caching
 Unfortunately, settings plugins in Gradle cannot take advantage of the same caching mechanisms that are provided
 for tasks with incremental builds. However, we have added the ability to save the generated TOML catalog to a file,
-and the build will (re)use that file the next time the build is invoked. The behavior is disabled by default, but may
-be enabled at a later time.
+and the build will (re)use that file the next time the build is invoked. Currently, the behavior is disabled by default.
 
 .settings.gradle.kts
 [source,kotlin,subs="attributes+",role="primary"]
