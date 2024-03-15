@@ -4,6 +4,7 @@ import dev.aga.gradle.versioncatalogs.model.PropertyOverride
 import dev.aga.gradle.versioncatalogs.model.Version
 import dev.aga.gradle.versioncatalogs.service.DependencyResolver
 import dev.aga.gradle.versioncatalogs.service.GradleDependencyResolver
+import dev.aga.gradle.versioncatalogs.service.PublishedArtifactResolver
 import dev.aga.gradle.versioncatalogs.tasks.SaveTask
 import java.io.File
 import java.util.*
@@ -72,7 +73,8 @@ object Generator {
         name: String,
         conf: VersionCatalogGeneratorPluginExtension,
     ): VersionCatalogBuilder {
-        val resolver = GradleDependencyResolver(conf.objects, dependencyResolutionServices)
+        val artifactResolver = PublishedArtifactResolver(conf.objects, dependencyResolutionServices)
+        val resolver = GradleDependencyResolver(artifactResolver)
         return generate(name, conf.objects, conf.config, resolver)
     }
 

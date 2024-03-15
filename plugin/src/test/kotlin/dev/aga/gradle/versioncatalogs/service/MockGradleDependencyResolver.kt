@@ -50,7 +50,8 @@ class MockGradleDependencyResolver(val rootDir: Path) : DependencyResolver {
 
     init {
         val supp: Supplier<DependencyResolutionServices> = Supplier { drs }
-        delegate = GradleDependencyResolver(objectFactory, supp, this)
+        val artifactResolver = PublishedArtifactResolver(objectFactory, supp)
+        delegate = GradleDependencyResolver(artifactResolver, this)
     }
 
     override fun resolve(source: Dependency): Pair<Model, Model?> {
