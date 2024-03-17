@@ -166,7 +166,7 @@ class VersionCatalogGeneratorPluginTest {
                    def suffix = aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
                    DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
                   }
-                  it.versionNameGenerator = it.DEFAULT_VERSION_NAME_GENERATOR
+                  it.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
                 }
                 
                 generator.generate("mockitoLibs") {
@@ -176,7 +176,16 @@ class VersionCatalogGeneratorPluginTest {
                       def suffix = aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
                       DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
                     }
-                    it.versionNameGenerator = it.DEFAULT_VERSION_NAME_GENERATOR
+                    it.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
+                }
+                generator.generate("junitLibs") {
+                  it.from { from ->
+                    from.toml { toml ->
+                      toml.libraryAlias = "boms-junit5"
+                      toml.dependency = "io.micronaut.platform:micronaut-platform:4.3.6"
+                    }
+                  }
+                  it.aliasPrefixGenerator = NO_PREFIX
                 }
               }
             }
@@ -192,6 +201,7 @@ class VersionCatalogGeneratorPluginTest {
               implementation(jsonLibs.jackson.jacksonDatabind)
               implementation(jsonLibs.bundles.jacksonModule)
               testImplementation(mockitoLibs.mockito.mockitoCore)
+              testImplementation(junitLibs.junitJupiter)
             }
             """
                 .trimIndent(),

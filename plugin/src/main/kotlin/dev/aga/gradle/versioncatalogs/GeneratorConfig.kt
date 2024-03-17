@@ -246,6 +246,11 @@ class GeneratorConfig(val settings: Settings) {
         var file: File =
             settings.rootDir.toPath().resolve(Paths.get("gradle", "libs.versions.toml")).toFile()
 
+        /**
+         * If your TOML is a published artifact that can be found in one of the repositories you
+         * have configured, you can use the dependency notation `groupId:artifactId:version` to
+         * fetch the TOML from the repository.
+         */
         lateinit var dependency: String
 
         internal fun isInitialized(): Boolean {
