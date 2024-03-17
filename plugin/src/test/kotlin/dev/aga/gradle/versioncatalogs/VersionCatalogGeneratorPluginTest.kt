@@ -74,14 +74,19 @@ class VersionCatalogGeneratorPluginTest {
                   }
                   cacheEnabled = true
                 }
-                generate("junitLibs") {
-                  from("org.junit:junit-bom:5.10.0")
-                  aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
-                  cacheEnabled = true
-                }
                 generate("awsLibs") {
                   from(toml("aws-bom"))
                   aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+                }
+                generate("junitLibs") {
+                  from {
+                    toml {
+                      libraryAlias = "boms-junit5"
+                      dependency = "io.micronaut.platform:micronaut-platform:4.3.6"
+                    }
+                  }
+                  aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+                  cacheEnabled = true
                 }
               }
             }
@@ -131,7 +136,7 @@ class VersionCatalogGeneratorPluginTest {
         assertThat(projectDir.resolve(Paths.get("build", "version-catalogs").toString()))
             .isDirectoryNotContaining { it.name == "libs.awsLibs-bom-2.21.15.toml" }
             .isDirectoryContaining { it.name == "libs.jsonLibs-jackson-bom-2.15.2.toml" }
-            .isDirectoryContaining { it.name == "libs.junitLibs-junit-bom-5.10.0.toml" }
+            .isDirectoryContaining { it.name == "libs.junitLibs-junit-bom-5.10.2.toml" }
             .isDirectoryContaining { it.name == "libs.mockitoLibs-mockito-bom-5.5.0.toml" }
     }
 

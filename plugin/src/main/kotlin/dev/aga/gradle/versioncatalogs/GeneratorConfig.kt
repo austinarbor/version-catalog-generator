@@ -4,6 +4,9 @@ import dev.aga.gradle.versioncatalogs.model.PropertyOverride
 import dev.aga.gradle.versioncatalogs.model.TomlVersionRef
 import dev.aga.gradle.versioncatalogs.service.CatalogParser
 import dev.aga.gradle.versioncatalogs.service.FileCatalogParser
+import dev.aga.gradle.versioncatalogs.service.PublishedArtifactResolver
+import dev.aga.gradle.versioncatalogs.service.dependencyResolutionServices
+import dev.aga.gradle.versioncatalogs.service.objects
 import java.io.File
 import java.nio.file.Paths
 import net.pearx.kasechange.CaseFormat
@@ -195,7 +198,16 @@ class GeneratorConfig(val settings: Settings) {
      */
     fun from(sc: SourceConfig.() -> Unit) {
         val cfg = SourceConfig(settings).apply(sc)
-        if (cfg.hasTomlConfig()) {
+        if (cfg.hasTomlConfig() && cfg.tomlConfig.isDependency()) {
+            with(settings.dependencyResolutionManagement.versionCatalogs) {
+                val par = PublishedArtifactResolver(objects, dependencyResolutionServices)
+                val dep = cfg.tomlConfig.dependency.toDependency()
+                source = {
+                    catalogParser = FileCatalogParser(par.resolve(dep, "toml"))
+                    catalogParser.findLibrary(cfg.tomlConfig.libraryAlias)
+                }
+            }
+        } else if (cfg.hasTomlConfig()) {
             catalogParser = FileCatalogParser(cfg.tomlConfig.file)
             source = { catalogParser.findLibrary(cfg.tomlConfig.libraryAlias) }
         } else if (cfg.hasDependency()) {
@@ -234,8 +246,14 @@ class GeneratorConfig(val settings: Settings) {
         var file: File =
             settings.rootDir.toPath().resolve(Paths.get("gradle", "libs.versions.toml")).toFile()
 
+        lateinit var dependency: String
+
         internal fun isInitialized(): Boolean {
             return ::libraryAlias.isInitialized
+        }
+
+        internal fun isDependency(): Boolean {
+            return ::dependency.isInitialized
         }
     }
 
