@@ -198,16 +198,7 @@ class GeneratorConfig(val settings: Settings) {
      */
     fun from(sc: SourceConfig.() -> Unit) {
         val cfg = SourceConfig(settings).apply(sc)
-        if (cfg.hasTomlConfig() && cfg.tomlConfig.isDependency()) {
-            with(settings.dependencyResolutionManagement.versionCatalogs) {
-                val par = PublishedArtifactResolver(objects, dependencyResolutionServices)
-                val dep = cfg.tomlConfig.dependency.toDependency()
-                source = {
-                    catalogParser = FileCatalogParser(par.resolve(dep, "toml"))
-                    catalogParser.findLibrary(cfg.tomlConfig.libraryAlias)
-                }
-            }
-        } else if (cfg.hasTomlConfig()) {
+        if (cfg.hasTomlConfig()) {
             catalogParser = FileCatalogParser(cfg.tomlConfig.file)
             source = { catalogParser.findLibrary(cfg.tomlConfig.libraryAlias) }
         } else if (cfg.hasDependency()) {
@@ -248,17 +239,23 @@ class GeneratorConfig(val settings: Settings) {
 
         /**
          * If your TOML is a published artifact that can be found in one of the repositories you
-         * have configured, you can use the dependency notation `groupId:artifactId:version` to
-         * fetch the TOML from the repository.
+         * have configured, you can use dependency function to and notation
+         * `groupId:artifactId:version` to fetch the TOML from the repository.
+         *
+         * ```kotlin
+         * file = dependency("io.micrometer.platform:micrometer-platform:4.3.6")
+         * ```
          */
-        lateinit var dependency: String
+        fun dependency(notation: String): File {
+            return with(settings.dependencyResolutionManagement.versionCatalogs) {
+                val par = PublishedArtifactResolver(objects, dependencyResolutionServices)
+                val dep = notation.toDependency()
+                par.resolve(dep, "toml")
+            }
+        }
 
         internal fun isInitialized(): Boolean {
             return ::libraryAlias.isInitialized
-        }
-
-        internal fun isDependency(): Boolean {
-            return ::dependency.isInitialized
         }
     }
 

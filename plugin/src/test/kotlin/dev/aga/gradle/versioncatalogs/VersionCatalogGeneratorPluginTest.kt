@@ -82,7 +82,7 @@ class VersionCatalogGeneratorPluginTest {
                   from {
                     toml {
                       libraryAlias = "boms-junit5"
-                      dependency = "io.micronaut.platform:micronaut-platform:4.3.6"
+                      file = dependency("io.micronaut.platform:micronaut-platform:4.3.6")
                     }
                   }
                   aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
@@ -182,7 +182,7 @@ class VersionCatalogGeneratorPluginTest {
                   it.from { from ->
                     from.toml { toml ->
                       toml.libraryAlias = "boms-junit5"
-                      toml.dependency = "io.micronaut.platform:micronaut-platform:4.3.6"
+                      toml.file = toml.dependency("io.micronaut.platform:micronaut-platform:4.3.6")
                     }
                   }
                   it.aliasPrefixGenerator = NO_PREFIX
