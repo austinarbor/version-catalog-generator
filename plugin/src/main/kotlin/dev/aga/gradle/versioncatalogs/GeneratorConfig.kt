@@ -243,10 +243,10 @@ class GeneratorConfig(val settings: Settings) {
          * `groupId:artifactId:version` to fetch the TOML from the repository.
          *
          * ```kotlin
-         * file = dependency("io.micrometer.platform:micrometer-platform:4.3.6")
+         * file = artifact("io.micrometer.platform:micrometer-platform:4.3.6")
          * ```
          */
-        fun dependency(notation: String): File {
+        fun artifact(notation: String): File {
             return with(settings.dependencyResolutionManagement.versionCatalogs) {
                 val par = PublishedArtifactResolver(objects, dependencyResolutionServices)
                 val dep = notation.toDependency()
