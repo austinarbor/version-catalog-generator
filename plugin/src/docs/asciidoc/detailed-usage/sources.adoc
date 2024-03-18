@@ -19,6 +19,14 @@ dependencyResolutionmanagement {
     generate("awsLibs") {
       from(toml("awsBom")) // <3>
     }
+    generate("junitLibs") {
+      from {
+        toml {
+          libraryAlias = "boms-junit5"
+          file = dependency("io.micronaut.platform:micronaut-platform:4.3.6") // <4>
+        }
+      }
+    }
   }
 }
 ----
@@ -26,6 +34,8 @@ dependencyResolutionmanagement {
 <2> The TOML file to find the provided alias in. This only needs to be provided
 if _not_ using the value `gradle/libs.versions.toml`
 <3> When using the default file, you can use the convenience function `toml(..)` and just provide the alias name
+<4> If your TOML is published to a repository, you can fetch it using the `dependency` function and standard string
+notation.
 
 .settings.gradle
 [source,groovy,subs="attributes+",role="secondary"]
@@ -43,6 +53,14 @@ dependencyResolutionmanagement {
     generator.generate("awsLibs") {
       it.from(it.toml("spring-boot-dependencies")) // <3>
     }
+    generate("junitLibs") {
+      it.from { from ->
+        from.toml { toml ->
+          toml.libraryAlias = "boms-junit5"
+          toml.file = toml.dependency("io.micronaut.platform:micronaut-platform:4.3.6") // <4>
+        }
+      }
+    }
   }
 }
 ----
@@ -50,7 +68,8 @@ dependencyResolutionmanagement {
 <2> The TOML file to find the provided alias in. This only needs to be provided
 if _not_ using the value `gradle/libs.versions.toml`
 <3> When using the default file, you can use the convenience function `toml(..)` and just provide the alias name
-
+<4> If your TOML is published to a repository, you can fetch it using the `dependency` function and standard string
+notation.
 
 TIP: GitHub's Dependabot only supports automatic updates in the default version catalog `gradle/libs.versions.toml`
 
