@@ -19,6 +19,14 @@ dependencyResolutionmanagement {
     generate("awsLibs") {
       from(toml("awsBom")) // <3>
     }
+    generate("junitLibs") {
+      from {
+        toml {
+          libraryAlias = "boms-junit5"
+          file = artifact("io.micronaut.platform:micronaut-platform:4.3.6") // <4>
+        }
+      }
+    }
   }
 }
 ----
@@ -26,6 +34,8 @@ dependencyResolutionmanagement {
 <2> The TOML file to find the provided alias in. This only needs to be provided
 if _not_ using the value `gradle/libs.versions.toml`
 <3> When using the default file, you can use the convenience function `toml(..)` and just provide the alias name
+<4> If your TOML is published to a repository, you can fetch it using the `artifact` function and standard string
+notation.
 
 .settings.gradle
 [source,groovy,subs="attributes+",role="secondary"]
@@ -43,6 +53,14 @@ dependencyResolutionmanagement {
     generator.generate("awsLibs") {
       it.from(it.toml("spring-boot-dependencies")) // <3>
     }
+    generate("junitLibs") {
+      it.from { from ->
+        from.toml { toml ->
+          toml.libraryAlias = "boms-junit5"
+          toml.file = toml.artifact("io.micronaut.platform:micronaut-platform:4.3.6") // <4>
+        }
+      }
+    }
   }
 }
 ----
@@ -50,7 +68,8 @@ dependencyResolutionmanagement {
 <2> The TOML file to find the provided alias in. This only needs to be provided
 if _not_ using the value `gradle/libs.versions.toml`
 <3> When using the default file, you can use the convenience function `toml(..)` and just provide the alias name
-
+<4> If your TOML is published to a repository, you can fetch it using the `artifact` function and standard string
+notation.
 
 TIP: GitHub's Dependabot only supports automatic updates in the default version catalog `gradle/libs.versions.toml`
 
@@ -94,5 +113,5 @@ dependencyResolutionmanagement {
 <1> You can also use the standard string notation to specify your dependency
 <2> More conveniently, you can pass the string notation directly into `from()`
 
-NOTE: Groovy is not my strong point so it's possible there is simpler / better syntax I'm not aware of. If you have
-any improvements please open an issue or a PR.
+NOTE: Groovy is not my strong point so it's likely that there is simpler / better syntax I'm not aware of. If you have
+any suggestions to improve the syntax in the documentation please open an issue or a PR.

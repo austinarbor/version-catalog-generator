@@ -4,10 +4,11 @@ import dev.aga.gradle.versioncatalogs.model.PropertyOverride
 import dev.aga.gradle.versioncatalogs.model.Version
 import dev.aga.gradle.versioncatalogs.service.DependencyResolver
 import dev.aga.gradle.versioncatalogs.service.GradleDependencyResolver
+import dev.aga.gradle.versioncatalogs.service.PublishedArtifactResolver
+import dev.aga.gradle.versioncatalogs.service.dependencyResolutionServices
 import dev.aga.gradle.versioncatalogs.tasks.SaveTask
 import java.io.File
 import java.util.*
-import java.util.function.Supplier
 import kotlin.collections.ArrayDeque
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -20,7 +21,6 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
-import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.register
@@ -72,7 +72,8 @@ object Generator {
         name: String,
         conf: VersionCatalogGeneratorPluginExtension,
     ): VersionCatalogBuilder {
-        val resolver = GradleDependencyResolver(conf.objects, dependencyResolutionServices)
+        val artifactResolver = PublishedArtifactResolver(conf.objects, dependencyResolutionServices)
+        val resolver = GradleDependencyResolver(artifactResolver)
         return generate(name, conf.objects, conf.config, resolver)
     }
 
@@ -452,19 +453,4 @@ object Generator {
 
     internal fun cachedCatalogName(name: String, dep: Dependency) =
         "libs.${name}-${dep.artifactId}-${dep.version}.toml"
-
-    /*
-    Below methods inspired by / taken from
-     https://github.com/F43nd1r/bomVersionCatalog/blob/master/bom-version-catalog/src/main/kotlin/com/faendir/gradle/extensions.kt
-     */
-    private val MutableVersionCatalogContainer.dependencyResolutionServices:
-        Supplier<DependencyResolutionServices>
-        get() = accessField("dependencyResolutionServices")
-
-    private fun <T> MutableVersionCatalogContainer.accessField(name: String): T {
-        return this.javaClass.superclass
-            .getDeclaredField(name)
-            .apply { isAccessible = true }
-            .get(this) as T
-    }
 }

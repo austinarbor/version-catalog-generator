@@ -4,6 +4,9 @@ import dev.aga.gradle.versioncatalogs.model.PropertyOverride
 import dev.aga.gradle.versioncatalogs.model.TomlVersionRef
 import dev.aga.gradle.versioncatalogs.service.CatalogParser
 import dev.aga.gradle.versioncatalogs.service.FileCatalogParser
+import dev.aga.gradle.versioncatalogs.service.PublishedArtifactResolver
+import dev.aga.gradle.versioncatalogs.service.dependencyResolutionServices
+import dev.aga.gradle.versioncatalogs.service.objects
 import java.io.File
 import java.nio.file.Paths
 import net.pearx.kasechange.CaseFormat
@@ -233,6 +236,23 @@ class GeneratorConfig(val settings: Settings) {
         /** The catalog file containing the BOM library entry */
         var file: File =
             settings.rootDir.toPath().resolve(Paths.get("gradle", "libs.versions.toml")).toFile()
+
+        /**
+         * If your TOML is a published artifact that can be found in one of the repositories you
+         * have configured, you can use dependency function to and notation
+         * `groupId:artifactId:version` to fetch the TOML from the repository.
+         *
+         * ```kotlin
+         * file = artifact("io.micrometer.platform:micrometer-platform:4.3.6")
+         * ```
+         */
+        fun artifact(notation: String): File {
+            return with(settings.dependencyResolutionManagement.versionCatalogs) {
+                val par = PublishedArtifactResolver(objects, dependencyResolutionServices)
+                val dep = notation.toDependency()
+                par.resolve(dep, "toml")
+            }
+        }
 
         internal fun isInitialized(): Boolean {
             return ::libraryAlias.isInitialized
