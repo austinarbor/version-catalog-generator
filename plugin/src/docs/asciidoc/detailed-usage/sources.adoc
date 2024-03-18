@@ -113,5 +113,5 @@ dependencyResolutionmanagement {
 <1> You can also use the standard string notation to specify your dependency
 <2> More conveniently, you can pass the string notation directly into `from()`
 
-NOTE: Groovy is not my strong point so it's possible there is simpler / better syntax I'm not aware of. If you have
-any improvements please open an issue or a PR.
+NOTE: Groovy is not my strong point so it's likely that there is simpler / better syntax I'm not aware of. If you have
+any suggestions to improve the syntax in the documentation please open an issue or a PR.
