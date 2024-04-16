@@ -6,7 +6,7 @@ https://github.com/austinarbor/version-catalog-generator/actions/workflows/ci.ym
 :icons: font
 
 
-Gradle’s https://docs.gradle.org/current/userguide/platforms.html[Version Catalog] functionality currently lacks cohesion with `platform` and `BOM` concepts. The Version Catalog Generator plugin attempts to enhance Gradle by automatically generating a version catalog from an external BOM.
+Easily use any BOM as a https://docs.gradle.org/current/userguide/platforms.html[Gradle Version Catalog].
 
 == Compatibility
 
