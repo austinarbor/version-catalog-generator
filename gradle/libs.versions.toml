@@ -2,7 +2,7 @@
 asciidoctorj = "4.0.2"
 asciidoctorTabbedCode = "0.3"
 assertj = "3.25.3"
-commons-text = "1.11.0"
+commons-text = "1.12.0"
 detekt = "1.23.6"
 gradle-publish = "1.2.1"
 jacoco = "0.8.12"
