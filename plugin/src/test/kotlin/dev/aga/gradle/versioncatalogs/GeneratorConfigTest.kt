@@ -34,7 +34,7 @@ class GeneratorConfigTest {
                 )
         } else {
             val actual = GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR(groupId, artifactId)
-            Assertions.assertThat(actual).isEqualTo(expected)
+            assertThat(actual).isEqualTo(expected)
         }
     }
 
@@ -109,7 +109,31 @@ class GeneratorConfigTest {
         private fun defaultAliasPrefixProvider(): List<Arguments> {
             return listOf(
                 arguments("com.fasterxml.jackson", "any-thing", "jackson"),
+                arguments("com.oracle.database.jdbc", "ojdbc8", "oracle"),
+                arguments("com.google.android.material", "material", "android"),
+                arguments("com.facebook.react", "react", "facebook"),
                 arguments("org.springframework.boot", "spring-boot-starter-web", "spring"),
+                arguments("org.hibernate.orm", "hibernate-core", "hibernate"),
+                arguments("org.apache.httpcomponents.client5", "httpclient5", "httpcomponents"),
+                arguments("org.apache.tomcat.embed", "tomcat-embed-core", "tomcat"),
+                arguments("org.eclipse.jetty.ee10", "jetty-ee10-bom", "jetty"),
+                arguments("org.elasticsearch.client", "elasticsearch-rest-client", "elasticsearch"),
+                arguments("org.firebirdsql.jdbc", "jaybird", "firebird"),
+                arguments("org.glassfish.jersey.core", "jersey-client", "jersey"),
+                arguments("org.jetbrains.kotlinx", "anything", "kotlinx"),
+                arguments("org.jetbrains.kotlin", "anything", "kotlin"),
+                arguments("org.junit.jupiter", "junit-jupiter-api", "junit"),
+                arguments("org.mariadb.jdbc", "mariadb-java-client", "mariadb"),
+                arguments("org.neo4j.build", "advanced-build", "neo4j"),
+                arguments("io.projectreactor.rabbitmq", "reactor-rabbitmq", "projectreactor"),
+                arguments("io.zipkin.brave", "brave", "zipkin"),
+                arguments("jakarta.activation", "jakarta.activation-api", "jakarta"),
+                arguments("commons-io", "commons-io", "commons"),
+                arguments("commons-lang", "commons-lang", "commons"),
+                arguments("commons-codec", "commons-codec", "commons"),
+                arguments("commons-logging", "commons-logging", "commons"),
+                arguments("commons-collections", "commons-collections", "commons"),
+                arguments("androidx.appcompat", "appcompat", "androidx"),
                 arguments("dev.aga", "version-catalog-generator", "aga"),
                 arguments("dev.plugins", "anything", "devPlugins"),
                 arguments("plugins", "anything", "error"),

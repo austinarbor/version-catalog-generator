@@ -291,10 +291,9 @@ class GeneratorConfig(val settings: Settings) {
          */
         @JvmStatic
         val DEFAULT_ALIAS_PREFIX_GENERATOR: (String, String) -> String = { group, artifact ->
-            if (group.startsWith("com.fasterxml.jackson")) {
-                "jackson"
-            } else if (group.startsWith("org.springframework")) {
-                "spring"
+            val (nice, nicePrefix) = nicePrefix(group)
+            if (nice) {
+                nicePrefix
             } else {
                 val split = group.split(".")
                 if (INVALID_PREFIXES.contains(split.last())) {
@@ -361,6 +360,53 @@ class GeneratorConfig(val settings: Settings) {
         fun caseChange(str: String, from: CaseFormat, to: CaseFormat): String {
             val split = from.splitToWords(str)
             return to.format(split)
+        }
+
+        private val prefixSubstitutions: Map<String, List<Pair<String, String>>> =
+            mapOf(
+                "com." to
+                    listOf(
+                        "fasterxml.jackson" to "jackson",
+                        "oracle.database" to "oracle",
+                        "google.android" to "android",
+                        "facebook" to "facebook",
+                    ),
+                "org." to
+                    listOf(
+                        "springframework" to "spring",
+                        "hibernate" to "hibernate",
+                        "apache.httpcomponents" to "httpcomponents",
+                        "apache.tomcat" to "tomcat",
+                        "eclipse.jetty" to "jetty",
+                        "elasticsearch" to "elasticsearch",
+                        "firebirdsql" to "firebird",
+                        "glassfish.jersey" to "jersey",
+                        "jetbrains.kotlinx" to "kotlinx",
+                        "jetbrains.kotlin" to "kotlin",
+                        "junit" to "junit",
+                        "mariadb" to "mariadb",
+                        "neo4j" to "neo4j",
+                    ),
+                "io." to listOf("projectreactor" to "projectreactor", "zipkin" to "zipkin"),
+                "jakarta." to listOf("" to "jakarta"),
+                "commons-" to
+                    listOf(
+                        "io" to "commons",
+                        "codec" to "commons",
+                        "lang" to "commons",
+                        "logging" to "commons",
+                        "collections" to "commons",
+                    ),
+                "androidx." to listOf("" to "androidx"),
+            )
+
+        private fun nicePrefix(group: String): Pair<Boolean, String> {
+            return prefixSubstitutions.entries
+                .firstOrNull { (tld, _) -> group.startsWith(tld) }
+                ?.let { (tld, pairs) ->
+                    pairs.firstOrNull { (prefix, _) -> group.startsWith(prefix, tld.length) }
+                }
+                ?.let { (_, replacement) -> true to replacement } ?: return false to ""
         }
     }
 }
