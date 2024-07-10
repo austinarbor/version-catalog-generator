@@ -295,11 +295,10 @@ class GeneratorConfig(val settings: Settings) {
         @JvmStatic
         val DEFAULT_ALIAS_PREFIX_GENERATOR: (String, String) -> String = { group, artifact ->
             val (nice, nicePrefix) = nicePrefix(group)
-            if (nice) {
-                nicePrefix
-            } else {
-                val split = group.split(".")
-                if (INVALID_PREFIXES.contains(split.last())) {
+            val split = group.split(".")
+            when {
+                nice -> nicePrefix
+                INVALID_PREFIXES.contains(split.last()) -> {
                     require(split.size >= 2) {
                         "Cannot generate alias for ${group}:${artifact}, please provide custom generator"
                     }
@@ -308,9 +307,8 @@ class GeneratorConfig(val settings: Settings) {
                         CaseFormat.LOWER_HYPHEN,
                         CaseFormat.CAMEL,
                     )
-                } else {
-                    split.last()
                 }
+                else -> split.last()
             }
         }
 
