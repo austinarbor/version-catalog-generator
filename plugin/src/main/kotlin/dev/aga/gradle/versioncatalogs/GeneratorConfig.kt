@@ -278,13 +278,36 @@ class GeneratorConfig(val settings: Settings) {
         }
 
         /**
-         * Default function to generate the prefix of the library's alias. If the `groupId` starts
-         * with `com.fasterxml.jackson`, we return `jackson`. If the `groupId` starts with
-         * `org.springframework`, we return `spring`. Otherwise, the below logic applies:
+         * Default function to generate the prefix of the library's alias. There are a series of
+         * special cases we handle to make the prefix generation "nicer":
+         * 1. The group prefix is `com.fasterxml.jackson`: `jackson`
+         * 2. The group prefix is `com.oracle.database`: `oracle`
+         * 3. The group prefix is `com.google.android`: `android`
+         * 4. The group prefix is `com.facebook`: `facebook`
+         * 5. The group prefix is `org.springframework`: `spring`
+         * 6. The group prefix is `org.hibernate`: `hibernate`
+         * 7. The group prefix is `org.apache.httpcomponents`: `httpcomponents`
+         * 8. The group prefix is `org.apache.tomcat`: `tomcat`
+         * 9. The group prefix is `org.eclipse.jetty`: `jetty`
+         * 10. The group prefix is `org.elasticsearch`: `elasticsearch`
+         * 11. The group prefix is `org.firebirdsql`: `firebird`
+         * 12. The group prefix is `org.glassfish.jersey`: `jersey`
+         * 13. The group prefix is `org.jetbrains.kotlinx`: `kotlinx`
+         * 14. The group prefix is `org.jetbrains.kotlin`: `kotlin`
+         * 15. The group prefix is `org.junit`: `junit`
+         * 16. The group prefix is `org.mariadb`: `mariadb`
+         * 17. The group prefix is `org.neo4j`: `neo4j`
+         * 18. The group prefix is `io.projectreactor`: `projectreactor`
+         * 19. The group prefix is `io.zipkin`: `zipkin`
+         * 20. The group prefix is `jakarta.`: `jakarta`
+         * 21. The group prefix is `commons-`: `commons`
+         * 22. The group prefix is `androidx`: `androidx`
+         *
+         * If none of the above prefixes match, the logic is as follows:
          * 1. The `groupId` is split by `.`
          * 2. If the split only returns a list of one item and the value is any one of
          *    [INVALID_PREFIXES], an [IllegalArgumentException] is thrown.
-         * 3. Otherwise if the split returns a list of more than one item and the last value is any
+         * 3. Otherwise, if the split returns a list of more than one item and the last value is any
          *    one of [INVALID_PREFIXES], the last two values are concatenated with a `-` and then
          *    the entirety of the string is converted to camelCase
          * 4. In any other scenario, the last item in the list is returned
@@ -389,14 +412,7 @@ class GeneratorConfig(val settings: Settings) {
                     ),
                 "io." to listOf("projectreactor" to "projectreactor", "zipkin" to "zipkin"),
                 "jakarta." to listOf("" to "jakarta"),
-                "commons-" to
-                    listOf(
-                        "io" to "commons",
-                        "codec" to "commons",
-                        "lang" to "commons",
-                        "logging" to "commons",
-                        "collections" to "commons",
-                    ),
+                "commons-" to listOf("" to "commons"),
                 "androidx." to listOf("" to "androidx"),
             )
 
