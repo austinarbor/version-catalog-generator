@@ -16,9 +16,36 @@ The default algorithm is as follows:
 last two items in the list are concatenated by a hyphen. The entirety of the string is the converted to camelCase
 4. In any other scenario, the last item in the list is returned as-is
 
-NOTE: Due to the popularity of the Spring Framework and the Jackson json mapping libraries, special cases have been added
-to simplify their generated naming conventions. If any groupId _begins_ with `com.fasterxml.jackson`, the prefix `jackson` will
-be emitted, while any groupId _beginning_ with `org.springframework` will emit the prefix `spring`.
+NOTE: Due to the popularity of many packages that may not necessarily fit our algorithm, a number of special cases have
+been added to simplify their generated prefixes. Please refer to the below table for the hardcoded aliases we have
+set up. If you do not wish to use the aliases, you will need to provide your own prefix generation function.
+
+[cols="3*", options="header"]
+|===
+| Condition         | Value | Generated Prefix
+| Group begins with | `com.fasterxml.jackson` | `jackson`
+| Group begins with | `com.oracle.database` | `oracle`
+| Group begins with | `com.google.android` | `android`
+| Group begins with | `com.facebook` | `facebook`
+| Group begins with | `org.springframework` | `spring`
+| Group begins with | `org.hibernate` | `hibernate`
+| Group begins with | `org.apache.httpcomponents` | `httpcomponents`
+| Group begins with | `org.apache.tomcat` | `tomcat`
+| Group begins with | `org.eclipse.jetty` | `jetty`
+| Group begins with | `org.elasticsearch` | `elasticsearch`
+| Group begins with | `org.firebirdsql` | `firebird`
+| Group begins with | `org.glassfish.jersey` | `jersey`
+| Group begins with | `org.jetbrains.kotlinx` | `kotlinx`
+| Group begins with | `org.jetbrains.kotlin` | `kotlin`
+| Group begins with | `org.junit` | `junit`
+| Group begins with | `org.mariadb` | `mariadb`
+| Group begins with | `org.neo4j` | `neo4j`
+| Group begins with | `io.projectreactor` | `projectreactor`
+| Group begins with | `io.zipkin` | `zipkin`
+| Group begins with | `jakarta.` | `jakarta`
+| Group begins with | `commons-` | `commons`
+| Group begins with | `androidx` | `androidx`
+|===
 
 ===== Suffix Generation
 1. Replace any `.` character in the `artifactId` of the dependency with a `-`
