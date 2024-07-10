@@ -17,10 +17,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+      - uses: gradle/actions/setup-gradle@v3
       - name: Run Detekt
-        uses: gradle/gradle-build-action@v3
-        with:
-          arguments: clean detekt
+        run: ./gradlew clean detekt
 
   spotless:
     runs-on: ubuntu-latest
@@ -30,10 +29,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+      - uses: gradle/actions/setup-gradle@v3
       - name: Run Spotless Check
-        uses: gradle/gradle-build-action@v3
-        with:
-          arguments: clean spotlessCheck
+        run: ./gradlew clean spotlessCheck
 
   run-tests:
     runs-on: ubuntu-latest
@@ -50,11 +48,17 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Run Tests
-        uses: gradle/gradle-build-action@v3
+      - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: ${{ matrix.gradle-version }}
-          arguments: clean test
+
+      - name: Run Tests
+        if: ${{ matrix.gradle-version == 'wrapper' }}
+        run: ./gradlew clean test
+
+      - name: Run Tests
+        if: ${{ matrix.gradle-version != 'wrapper' }}
+        run: gradle clean test
 
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
