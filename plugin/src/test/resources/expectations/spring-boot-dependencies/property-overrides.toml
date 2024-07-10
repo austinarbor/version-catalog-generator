@@ -44,7 +44,7 @@ jackson-jacksonJakartaRsBase = { group = "com.fasterxml.jackson.jakarta.rs", nam
 jackson-jacksonJrAll = { group = "com.fasterxml.jackson.jr", name = "jackson-jr-all", version = "2.16.1" }
 jackson-jacksonModuleBlackbird = { group = "com.fasterxml.jackson.module", name = "jackson-module-blackbird", version = "2.16.1" }
 jackson-jacksonModuleKotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version = "2.16.1" }
-jackson-jacksonModuleScala_211 = { group = "com.fasterxml.jackson.module", name = "jackson-module-scala_2.11", version = "2.16.1" }
+jackson-jacksonModuleScala211 = { group = "com.fasterxml.jackson.module", name = "jackson-module-scala_2.11", version = "2.16.1" }
 dropwizard-metricsBom = { group = "io.dropwizard.metrics", name = "metrics-bom", version.ref = "dropwizardMetrics" }
 dropwizard-metricsAnnotation = { group = "io.dropwizard.metrics", name = "metrics-annotation", version = "4.2.19" }
 dropwizard-metricsCaffeine = { group = "io.dropwizard.metrics", name = "metrics-caffeine", version = "4.2.19" }

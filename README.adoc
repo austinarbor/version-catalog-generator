@@ -16,7 +16,7 @@ Easily use any BOM as a https://docs.gradle.org/current/userguide/platforms.html
 |7.6.x
 |1.x
 |8.x
-|1.x
+|1.x, 2.x
 |===
 
 

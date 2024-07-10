@@ -314,12 +314,12 @@ class GeneratorConfig(val settings: Settings) {
 
         /**
          * Default function to generate the suffix of the library's alias. The logic is as follows:
-         * 1. Replace any '.' characters with a '-'
+         * 1. Replace any '.' or '_' characters with a '-'
          * 2. Convert the entirety of the string to camelCase
          */
         @JvmStatic
         val DEFAULT_ALIAS_SUFFIX_GENERATOR: (String, String, String) -> String = { _, _, artifact ->
-            val replaced = artifact.replace('.', '-')
+            val replaced = artifact.replace(Regex("[._]"), "")
             caseChange(replaced, CaseFormat.LOWER_HYPHEN, CaseFormat.CAMEL)
         }
 
