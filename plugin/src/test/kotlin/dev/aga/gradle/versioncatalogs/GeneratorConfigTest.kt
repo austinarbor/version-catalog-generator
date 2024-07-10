@@ -4,8 +4,8 @@ import dev.aga.gradle.versioncatalogs.GeneratorConfig.Companion.DEFAULT_ALIAS_GE
 import java.io.File
 import java.nio.file.Paths
 import net.pearx.kasechange.CaseFormat
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.gradle.api.initialization.Settings
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -20,14 +20,14 @@ class GeneratorConfigTest {
     @MethodSource("defaultLibraryNameProvider")
     fun `default library alias generator`(group: String, name: String, expected: String) {
         val actual = DEFAULT_ALIAS_GENERATOR(group, name)
-        Assertions.assertThat(actual).isEqualTo(expected)
+        assertThat(actual).isEqualTo(expected)
     }
 
     @ParameterizedTest
     @MethodSource("defaultAliasPrefixProvider")
     fun `default alias prefix generator`(groupId: String, artifactId: String, expected: String) {
         if (expected == "error") {
-            Assertions.assertThatExceptionOfType(IllegalArgumentException::class.java)
+            assertThatExceptionOfType(IllegalArgumentException::class.java)
                 .isThrownBy { GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR(groupId, artifactId) }
                 .withMessage(
                     "Cannot generate alias for ${groupId}:${artifactId}, please provide custom generator",
@@ -47,27 +47,27 @@ class GeneratorConfigTest {
         expected: String,
     ) {
         val actual = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR(prefix, groupId, artifactId)
-        Assertions.assertThat(actual).isEqualTo(expected)
+        assertThat(actual).isEqualTo(expected)
     }
 
     @Test
     fun testNoAliasPrefix() {
         val actual = GeneratorConfig.NO_PREFIX("whatever", "whatever")
-        Assertions.assertThat(actual).isBlank()
+        assertThat(actual).isBlank()
     }
 
     @ParameterizedTest
     @MethodSource("defaultVersionNameProvider")
     fun `default version name generator`(version: String, expected: String) {
         val actual = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR(version)
-        Assertions.assertThat(actual).isEqualTo(expected)
+        assertThat(actual).isEqualTo(expected)
     }
 
     @ParameterizedTest
     @MethodSource("caseChangeProvider")
     fun `case change`(source: String, from: CaseFormat, to: CaseFormat, expected: String) {
         val actual = GeneratorConfig.caseChange(source, from, to)
-        Assertions.assertThat(actual).isEqualTo(expected)
+        assertThat(actual).isEqualTo(expected)
     }
 
     @Test
