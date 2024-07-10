@@ -49,7 +49,7 @@ set up. If you do not wish to use the aliases, you will need to provide your own
 |===
 
 ===== Suffix Generation
-1. Replace any `.` character in the `artifactId` of the dependency with a `-`
+1. Replace any `.` or `_` character in the `artifactId` of the dependency with a `-`
 2. Convert the resulting string to camelCase
 
 ===== Examples
