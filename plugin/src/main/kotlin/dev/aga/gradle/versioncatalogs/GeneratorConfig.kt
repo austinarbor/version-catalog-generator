@@ -390,7 +390,12 @@ class GeneratorConfig(val settings: Settings) {
                         "mariadb" to "mariadb",
                         "neo4j" to "neo4j",
                     ),
-                "io." to listOf("projectreactor" to "projectreactor", "zipkin" to "zipkin"),
+                "io." to
+                    listOf(
+                        "projectreactor" to "projectreactor",
+                        "zipkin" to "zipkin",
+                        "dropwizard" to "dropwizard",
+                    ),
                 "jakarta." to listOf("" to "jakarta"),
                 "commons-" to listOf("" to "commons"),
                 "androidx." to listOf("" to "androidx"),

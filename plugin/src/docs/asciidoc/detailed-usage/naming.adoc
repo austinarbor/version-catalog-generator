@@ -42,6 +42,7 @@ set up. If you do not wish to use the aliases, you will need to provide your own
 | Group begins with | `org.neo4j` | `neo4j`
 | Group begins with | `io.projectreactor` | `projectreactor`
 | Group begins with | `io.zipkin` | `zipkin`
+| Group begins with | `io.dropwizard` | `dropwizard`
 | Group begins with | `jakarta.` | `jakarta`
 | Group begins with | `commons-` | `commons`
 | Group begins with | `androidx` | `androidx`

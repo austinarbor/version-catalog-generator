@@ -127,6 +127,7 @@ class GeneratorConfigTest {
                 arguments("org.neo4j.build", "advanced-build", "neo4j"),
                 arguments("io.projectreactor.rabbitmq", "reactor-rabbitmq", "projectreactor"),
                 arguments("io.zipkin.brave", "brave", "zipkin"),
+                arguments("io.dropwizard.metrics", "metrics", "dropwizard"),
                 arguments("jakarta.activation", "jakarta.activation-api", "jakarta"),
                 arguments("commons-io", "commons-io", "commons"),
                 arguments("commons-lang", "commons-lang", "commons"),
