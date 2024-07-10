@@ -25,10 +25,10 @@ spring-springBootStarterActuator = { group = "org.springframework.boot", name = 
 spring-springBootStarterAop = { group = "org.springframework.boot", name = "spring-boot-starter-aop", version = "3.1.2" }
 spring-springBootStarterJdbc = { group = "org.springframework.boot", name = "spring-boot-starter-jdbc", version = "3.1.2" }
 spring-springBootStarterWeb = { group = "org.springframework.boot", name = "spring-boot-starter-web", version = "3.1.2" }
-brave-braveBom = { group = "io.zipkin.brave", name = "brave-bom", version.ref = "brave" }
-brave-brave = { group = "io.zipkin.brave", name = "brave", version = "5.15.1" }
-brave-braveTests = { group = "io.zipkin.brave", name = "brave-tests", version = "5.15.1" }
-brave-braveSpringBeans = { group = "io.zipkin.brave", name = "brave-spring-beans", version = "5.15.1" }
+zipkin-braveBom = { group = "io.zipkin.brave", name = "brave-bom", version.ref = "brave" }
+zipkin-brave = { group = "io.zipkin.brave", name = "brave", version = "5.15.1" }
+zipkin-braveTests = { group = "io.zipkin.brave", name = "brave-tests", version = "5.15.1" }
+zipkin-braveSpringBeans = { group = "io.zipkin.brave", name = "brave-spring-beans", version = "5.15.1" }
 caffeine-caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
 caffeine-guava = { group = "com.github.ben-manes.caffeine", name = "guava", version.ref = "caffeine" }
 caffeine-jcache = { group = "com.github.ben-manes.caffeine", name = "jcache", version.ref = "caffeine" }
@@ -45,16 +45,16 @@ jackson-jacksonJrAll = { group = "com.fasterxml.jackson.jr", name = "jackson-jr-
 jackson-jacksonModuleBlackbird = { group = "com.fasterxml.jackson.module", name = "jackson-module-blackbird", version = "2.16.1" }
 jackson-jacksonModuleKotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version = "2.16.1" }
 jackson-jacksonModuleScala_211 = { group = "com.fasterxml.jackson.module", name = "jackson-module-scala_2.11", version = "2.16.1" }
-metrics-metricsBom = { group = "io.dropwizard.metrics", name = "metrics-bom", version.ref = "dropwizardMetrics" }
-metrics-metricsAnnotation = { group = "io.dropwizard.metrics", name = "metrics-annotation", version = "4.2.19" }
-metrics-metricsCaffeine = { group = "io.dropwizard.metrics", name = "metrics-caffeine", version = "4.2.19" }
-metrics-metricsCaffeine3 = { group = "io.dropwizard.metrics", name = "metrics-caffeine3", version = "4.2.19" }
-metrics-metricsCore = { group = "io.dropwizard.metrics", name = "metrics-core", version = "4.2.19" }
-reporter2-zipkinReporterBom = { group = "io.zipkin.reporter2", name = "zipkin-reporter-bom", version = "2.16.3" }
-zipkin2-zipkin = { group = "io.zipkin.zipkin2", name = "zipkin", version = "2.23.2" }
-proto3-zipkinProto3 = { group = "io.zipkin.proto3", name = "zipkin-proto3", version = "1.0.0" }
-reporter2-zipkinReporter = { group = "io.zipkin.reporter2", name = "zipkin-reporter", version = "2.16.3" }
-reporter2-zipkinReporterBrave = { group = "io.zipkin.reporter2", name = "zipkin-reporter-brave", version = "2.16.3" }
+dropwizard-metricsBom = { group = "io.dropwizard.metrics", name = "metrics-bom", version.ref = "dropwizardMetrics" }
+dropwizard-metricsAnnotation = { group = "io.dropwizard.metrics", name = "metrics-annotation", version = "4.2.19" }
+dropwizard-metricsCaffeine = { group = "io.dropwizard.metrics", name = "metrics-caffeine", version = "4.2.19" }
+dropwizard-metricsCaffeine3 = { group = "io.dropwizard.metrics", name = "metrics-caffeine3", version = "4.2.19" }
+dropwizard-metricsCore = { group = "io.dropwizard.metrics", name = "metrics-core", version = "4.2.19" }
+zipkin-zipkinReporterBom = { group = "io.zipkin.reporter2", name = "zipkin-reporter-bom", version = "2.16.3" }
+zipkin-zipkin = { group = "io.zipkin.zipkin2", name = "zipkin", version = "2.23.2" }
+zipkin-zipkinProto3 = { group = "io.zipkin.proto3", name = "zipkin-proto3", version = "1.0.0" }
+zipkin-zipkinReporter = { group = "io.zipkin.reporter2", name = "zipkin-reporter", version = "2.16.3" }
+zipkin-zipkinReporterBrave = { group = "io.zipkin.reporter2", name = "zipkin-reporter-brave", version = "2.16.3" }
 
 
 [bundles]

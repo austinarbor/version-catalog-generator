@@ -278,26 +278,27 @@ class GeneratorConfig(val settings: Settings) {
         }
 
         /**
-         * Default function to generate the prefix of the library's alias. If the `groupId` starts
-         * with `com.fasterxml.jackson`, we return `jackson`. If the `groupId` starts with
-         * `org.springframework`, we return `spring`. Otherwise, the below logic applies:
+         * Default function to generate the prefix of the library's alias. There are a series of
+         * special cases we handle to make the prefix generation "nicer". Please see the
+         * [documentation](https://austinarbor.github.io/version-catalog-generator/#_prefix_generation)
+         * for a list of specially handled prefixes.
+         *
+         * If none of the above prefixes match, the logic is as follows:
          * 1. The `groupId` is split by `.`
          * 2. If the split only returns a list of one item and the value is any one of
          *    [INVALID_PREFIXES], an [IllegalArgumentException] is thrown.
-         * 3. Otherwise if the split returns a list of more than one item and the last value is any
+         * 3. Otherwise, if the split returns a list of more than one item and the last value is any
          *    one of [INVALID_PREFIXES], the last two values are concatenated with a `-` and then
          *    the entirety of the string is converted to camelCase
          * 4. In any other scenario, the last item in the list is returned
          */
         @JvmStatic
         val DEFAULT_ALIAS_PREFIX_GENERATOR: (String, String) -> String = { group, artifact ->
-            if (group.startsWith("com.fasterxml.jackson")) {
-                "jackson"
-            } else if (group.startsWith("org.springframework")) {
-                "spring"
-            } else {
-                val split = group.split(".")
-                if (INVALID_PREFIXES.contains(split.last())) {
+            val (nice, nicePrefix) = nicePrefix(group)
+            val split = group.split(".")
+            when {
+                nice -> nicePrefix
+                INVALID_PREFIXES.contains(split.last()) -> {
                     require(split.size >= 2) {
                         "Cannot generate alias for ${group}:${artifact}, please provide custom generator"
                     }
@@ -306,9 +307,8 @@ class GeneratorConfig(val settings: Settings) {
                         CaseFormat.LOWER_HYPHEN,
                         CaseFormat.CAMEL,
                     )
-                } else {
-                    split.last()
                 }
+                else -> split.last()
             }
         }
 
@@ -361,6 +361,51 @@ class GeneratorConfig(val settings: Settings) {
         fun caseChange(str: String, from: CaseFormat, to: CaseFormat): String {
             val split = from.splitToWords(str)
             return to.format(split)
+        }
+
+        private val prefixSubstitutions: Map<String, List<Pair<String, String>>> =
+            mapOf(
+                "com." to
+                    listOf(
+                        "fasterxml.jackson" to "jackson",
+                        "oracle.database" to "oracle",
+                        "google.android" to "android",
+                        "facebook" to "facebook",
+                    ),
+                "org." to
+                    listOf(
+                        "springframework" to "spring",
+                        "hibernate" to "hibernate",
+                        "apache.httpcomponents" to "httpcomponents",
+                        "apache.tomcat" to "tomcat",
+                        "eclipse.jetty" to "jetty",
+                        "elasticsearch" to "elasticsearch",
+                        "firebirdsql" to "firebird",
+                        "glassfish.jersey" to "jersey",
+                        "jetbrains.kotlinx" to "kotlinx",
+                        "jetbrains.kotlin" to "kotlin",
+                        "junit" to "junit",
+                        "mariadb" to "mariadb",
+                        "neo4j" to "neo4j",
+                    ),
+                "io." to
+                    listOf(
+                        "projectreactor" to "projectreactor",
+                        "zipkin" to "zipkin",
+                        "dropwizard" to "dropwizard",
+                    ),
+                "jakarta." to listOf("" to "jakarta"),
+                "commons-" to listOf("" to "commons"),
+                "androidx." to listOf("" to "androidx"),
+            )
+
+        private fun nicePrefix(group: String): Pair<Boolean, String> {
+            return prefixSubstitutions.entries
+                .firstOrNull { (tld, _) -> group.startsWith(tld) }
+                ?.let { (tld, pairs) ->
+                    pairs.firstOrNull { (prefix, _) -> group.startsWith(prefix, tld.length) }
+                }
+                ?.let { (_, replacement) -> true to replacement } ?: return false to ""
         }
     }
 }
