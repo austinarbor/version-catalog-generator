@@ -38,10 +38,10 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - uses: gradle/actions/setup-gradle@v3
+
       - name: Build Documentation
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          arguments: clean :plugin:asciidoctor
+        run: ./gradlew clean :plugin:asciidoctor
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
