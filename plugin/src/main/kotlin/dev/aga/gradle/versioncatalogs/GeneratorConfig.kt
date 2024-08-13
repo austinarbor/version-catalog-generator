@@ -319,7 +319,7 @@ class GeneratorConfig(val settings: Settings) {
          */
         @JvmStatic
         val DEFAULT_ALIAS_SUFFIX_GENERATOR: (String, String, String) -> String = { _, _, artifact ->
-            val replaced = artifact.replace(Regex("[._]"), "")
+            val replaced = artifact.replace(Regex("[._]"), "-")
             caseChange(replaced, CaseFormat.LOWER_HYPHEN, CaseFormat.CAMEL)
         }
 

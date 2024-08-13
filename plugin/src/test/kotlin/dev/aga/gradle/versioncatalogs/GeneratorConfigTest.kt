@@ -169,6 +169,12 @@ class GeneratorConfigTest {
                     "springBootStarterWeb",
                 ),
                 arguments("spring", "org.springframework", "spring-web", "springWeb"),
+                arguments(
+                    "jakarta",
+                    "jakarta.persistence",
+                    "jakarta.persistence-api",
+                    "jakartaPersistenceApi",
+                ),
             )
         }
 
