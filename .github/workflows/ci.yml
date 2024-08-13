@@ -52,6 +52,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Print Github Context Info
+        run: |
+          echo "github.ref: ${{ github.ref }}"
+          echo "github.ref_name: ${{ github.ref_name }}"
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: ${{ matrix.gradle-version }}
