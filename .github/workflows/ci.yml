@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        gradle-version: [wrapper, 8.4, 8.5, 8.6, 8.7, release-nightly, release-candidate]
+        gradle-version: [wrapper, 8.4, 8.5, 8.6, 8.7, 8.8, release-nightly, release-candidate]
     steps:
       - uses: actions/checkout@v4
         name: Checkout
