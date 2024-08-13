@@ -55,7 +55,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: ${{ matrix.gradle-version }}
-          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/release' && matrix.gradle-version != 'wrapper' }}
+          cache-read-only: ${{ github.ref != 'refs/heads/gha-changes' && matrix.gradle-version != 'wrapper' }}
 
       - name: Run Tests
         run: ${{ matrix.gradle-command }} clean test
