@@ -73,6 +73,7 @@ class VersionCatalogGeneratorPluginTest {
                     GeneratorConfig.caseChange(artifact, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.LOWER_UNDERSCORE)
                   }
                   cacheEnabled = true
+                  generateBomEntry = true
                 }
                 generate("awsLibs") {
                   from(toml("aws-bom"))
@@ -177,6 +178,7 @@ class VersionCatalogGeneratorPluginTest {
                       DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
                     }
                     it.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
+                    it.generateBomEntry = true
                 }
                 generator.generate("junitLibs") {
                   it.from { from ->

@@ -1,0 +1,28 @@
+
+=== Including a BOM Entry
+
+Optionally, you can configure the generator to also generate an entry in the catalog for the BOM itself.
+
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
+----
+generate("springLibs") {
+  from(toml("springBootDependencies"))
+  generateBomEntry = true // <1>
+}
+----
+<1> Set `generateBomEntry` to `true` to include an entry for the BOM in the generated catalog
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+generator.generate("springLibs") {
+  it.from { from ->
+    from.toml { toml ->
+      toml.libraryAlias = "springBootDependencies"
+    }
+  }
+  it.generateBomEntry = true // <1>
+}
+----
+<1> Set `generateBomEntry` to `true` to include an entry for the BOM in the generated catalog
