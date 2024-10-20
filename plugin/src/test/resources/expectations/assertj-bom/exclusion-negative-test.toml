@@ -1,6 +1,7 @@
 [versions]
 
 [libraries]
+assertj-assertjBom = { group = "org.assertj", name = "assertj-bom", version = "3.24.2" }
 assertj-assertjCore = { group = "org.assertj", name = "assertj-core", version = "3.24.2" }
 assertj-assertjGuava = { group = "org.assertj", name = "assertj-guava", version = "3.24.2" }
 

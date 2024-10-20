@@ -119,6 +119,7 @@ internal class GeneratorTest {
                 }
                 cacheDirectory = projectDir
                 cacheEnabled = true
+                generateBomEntry = true
             }
 
         val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))

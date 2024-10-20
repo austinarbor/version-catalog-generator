@@ -111,6 +111,16 @@ object Generator {
             val queue = ArrayDeque(listOf(bomDep))
             val container = TomlContainer()
             var rootDep = true
+            if (config.generateBomEntry) {
+                createLibrary(
+                    bomDep,
+                    Version(bomDep.version, bomDep.version, bomDep.version),
+                    config,
+                    true,
+                    container,
+                )
+            }
+
             while (queue.isNotEmpty()) {
                 val dep = queue.removeFirst()
                 val (model, parentModel) = resolver.resolve(dep)

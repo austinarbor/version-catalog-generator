@@ -20,6 +20,7 @@ awssdk-s3 = { group = "software.amazon.awssdk", name = "s3", version = "2.21.21"
 awssdk-sqs = { group = "software.amazon.awssdk", name = "sqs", version = "2.21.21" }
 awssdk-sts = { group = "software.amazon.awssdk", name = "sts", version = "2.21.21" }
 spring-springBoot = { group = "org.springframework.boot", name = "spring-boot", version = "3.1.2" }
+spring-springBootDependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version = "3.1.2" }
 spring-springBootDevtools = { group = "org.springframework.boot", name = "spring-boot-devtools", version = "3.1.2" }
 spring-springBootStarterActuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator", version = "3.1.2" }
 spring-springBootStarterAop = { group = "org.springframework.boot", name = "spring-boot-starter-aop", version = "3.1.2" }
