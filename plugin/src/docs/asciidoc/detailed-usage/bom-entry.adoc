@@ -1,3 +1,4 @@
+
 === Including a BOM Entry
 
 Optionally, you can configure the generator to also generate an entry in the catalog for the BOM itself.
@@ -8,6 +9,7 @@ Optionally, you can configure the generator to also generate an entry in the cat
 generate("springLibs") {
   from(toml("springBootDependencies"))
   generateBomEntry = true // <1>
+}
 ----
 <1> Set `generateBomEntry` to `true` to include an entry for the BOM in the generated catalog
 
@@ -20,7 +22,7 @@ generator.generate("springLibs") {
       toml.libraryAlias = "springBootDependencies"
     }
   }
-  it.generateBomEntry = true
+  it.generateBomEntry = true // <1>
 }
 ----
 <1> Set `generateBomEntry` to `true` to include an entry for the BOM in the generated catalog
