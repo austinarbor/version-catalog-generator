@@ -73,6 +73,9 @@ class GeneratorConfig(val settings: Settings) {
      */
     var excludeNames: String? = null
 
+    /** When true, an entry for the BOM itself will be added to the catalog. */
+    var generateBomEntry: Boolean = false
+
     /**
      * The directory to store our cached TOML file. By default, it will be stored in
      * `build/catalogs` relative to the directory of where the settings file exists. When
