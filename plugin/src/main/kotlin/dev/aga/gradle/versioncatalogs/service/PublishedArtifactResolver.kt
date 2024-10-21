@@ -2,7 +2,6 @@ package dev.aga.gradle.versioncatalogs.service
 
 import dev.aga.gradle.versioncatalogs.exception.ResolutionException
 import java.io.File
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Supplier
 import org.apache.maven.model.Dependency
 import org.gradle.api.artifacts.Configuration
@@ -44,13 +43,7 @@ class PublishedArtifactResolver(
     }
 
     private fun createConfiguration(): Configuration {
-        val config =
-            drs.configurationContainer.create(
-                "incomingConfiguration${configurationCount.incrementAndGet()}",
-            )
-
-        return config.apply {
-            resolutionStrategy.activateDependencyLocking()
+        return drs.configurationContainer.detachedConfiguration().apply {
             attributes {
                 attribute(
                     Category.CATEGORY_ATTRIBUTE,
@@ -60,9 +53,5 @@ class PublishedArtifactResolver(
             isCanBeResolved = true
             isCanBeConsumed = false
         }
-    }
-
-    companion object {
-        private val configurationCount = AtomicInteger(0)
     }
 }
