@@ -2,7 +2,7 @@
 
 https://github.com/austinarbor/version-catalog-generator/actions/workflows/ci.yml[image:https://github.com/austinarbor/version-catalog-generator/actions/workflows/ci.yml/badge.svg[ci]] https://codecov.io/gh/austinarbor/version-catalog-generator[image:https://codecov.io/gh/austinarbor/version-catalog-generator/graph/badge.svg?token=IO5UCDD5A0[codecov]] https://plugins.gradle.org/plugin/dev.aga.gradle.version-catalog-generator[image:https://staging.shields.io/gradle-plugin-portal/v/dev.aga.gradle.version-catalog-generator?label=Gradle%20Plugin%20Portal[Gradle Plugin Portal]]
 
-:version: 2.0.0
+:version: 2.1.0
 :icons: font
 
 
@@ -63,10 +63,11 @@ dependencyResolutionManagement {
         "jackson-bom.version" to "2.16.1", // <4>
         "mockito.version" to versionRef("mockito"), // <5>
       )
+      generateBomEntry = true // <6>
     }
     generate("awsLibs") {
       from(toml("awsBom"))
-      aliasPrefixGenerator = GeneratorConfig.NO_PREFIX // <6>
+      aliasPrefixGenerator = GeneratorConfig.NO_PREFIX // <7>
     }
   }
 }
@@ -76,7 +77,8 @@ dependencyResolutionManagement {
 <3> The name of the bom library in the version catalog
 <4> Optionally override some version properties using a literal value
 <5> Or, you can reference version aliases in the source TOML
-<6> All dependencies in the AWS BOM are for AWS so we can skip the prefix
+<6> Optionally generate an entry in the catalog for the BOM itself
+<7> All dependencies in the AWS BOM are for AWS so we can skip the prefix
 ====
 
 _Lastly, use the dependencies in your build_
