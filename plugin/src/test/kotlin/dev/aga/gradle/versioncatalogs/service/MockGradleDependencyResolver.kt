@@ -34,7 +34,7 @@ class MockGradleDependencyResolver(val rootDir: Path) : DependencyResolver {
         }
 
     private val configurationContainer =
-        mock<ConfigurationContainer> { on { create(any<String>()) } doReturn configuration }
+        mock<ConfigurationContainer> { on { detachedConfiguration() } doReturn configuration }
 
     private val drs =
         mock<DependencyResolutionServices> {
