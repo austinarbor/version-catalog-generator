@@ -1,6 +1,6 @@
 :toc: left
 :toclevels: 4
-:version: 2.1.1
+:version: 2.1.2
 :icons: font
 :rootdir: ../../../../
 :srcdir: ../../main/java
