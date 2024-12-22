@@ -92,33 +92,40 @@ object Generator {
         // need to clean up this logic so that we don't double-resolve the first
         // dependency. I think the resolver interface/logic could use some
         // improvement as well
-        val bomDep =
-            when (val src = config.source()) {
-                is Dependency -> src
-                is String -> src.toDependency()
-                else -> throw IllegalArgumentException("Unable to resolve notation ${src}")
+        val rootDeps: List<Dependency> =
+            config.sources.flatMap { src ->
+                src().map {
+                    when (it) {
+                        is Dependency -> it
+                        is String -> it.toDependency()
+                        else -> throw IllegalArgumentException("Unable to resolve notation ${it}")
+                    }
+                }
             }
 
         return create(name) {
             val seenModules = mutableSetOf<String>()
-            val queue = ArrayDeque(listOf(bomDep))
+            val queue = ArrayDeque(rootDeps)
             val container = TomlContainer()
-            var rootDep = true
             if (config.generateBomEntry) {
-                createLibrary(
-                    bomDep,
-                    Version(bomDep.version, bomDep.version, bomDep.version),
-                    config,
-                    true,
-                    container,
-                )
+                rootDeps.forEach {
+                    createLibrary(
+                        it,
+                        Version(it.version, it.version, it.version),
+                        config,
+                        true,
+                        container,
+                    )
+                }
             }
 
             while (queue.isNotEmpty()) {
                 val dep = queue.removeFirst()
+                // Note: Dependency does not override equals, so we are relying on referential
+                // equality
+                val rootDep = rootDeps.contains(dep)
                 val (model, parentModel) = resolver.resolve(dep)
                 loadBom(model, parentModel, config, queue, seenModules, rootDep, container)
-                rootDep = false
             }
 
             if (config.saveGeneratedCatalog) {

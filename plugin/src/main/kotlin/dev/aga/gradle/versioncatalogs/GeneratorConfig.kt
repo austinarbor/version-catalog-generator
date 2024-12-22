@@ -140,17 +140,23 @@ class GeneratorConfig(val settings: Settings) {
         }
     }
 
-    /** The provider for the source BOM to generate the dependency from. */
-    lateinit var source: () -> Any
+    /**
+     * List of lambdas which when invoked will return either a [Dependency] or a string notation of
+     * a dependency to resolve.
+     */
+    internal val sources: MutableList<() -> List<Any>> = mutableListOf()
 
     internal lateinit var catalogParser: CatalogParser
 
     /**
-     * Specify the source BOM to generate the version catalog from using standard dependency
-     * notation ```group:artifact:version```
+     * Specify one or more source BOMs to generate the version catalog from using standard
+     * dependency notation `group:artifact:version`
+     *
+     * @param notation the first BOM's dependency notation to generate the catalog from
+     * @param others one or more other BOM dependency notations to include in the generated catalog
      */
-    fun from(notation: String) {
-        from { dependency(notation) }
+    fun from(notation: String, vararg others: String) {
+        from { dependency(notation, *others) }
     }
 
     /**
@@ -159,27 +165,31 @@ class GeneratorConfig(val settings: Settings) {
      *
      * ```kotlin
      * toml {
-     *  libraryAlias = "the-bom"
+     *  libraryAliases = listOf("my-bom", "another-optional-bom")
      * }
      * ```
      *
      * And is meant to be used as such:
      * ```kotlin
-     * from(toml("my-bom"))
+     * from(toml("my-bom", "another-optional-bom"))
      * ```
+     *
+     * @param libraryAliasName the first BOM alias to use from the TOML file to generate the catalog
+     *   from
+     * @param otherAliases one or more other BOM aliases to include in the generated catalog
      */
-    fun toml(libraryAliasName: String): SourceConfig.() -> Unit {
-        return { toml { libraryAlias = libraryAliasName } }
+    fun toml(libraryAliasName: String, vararg otherAliases: String): SourceConfig.() -> Unit {
+        return { toml { libraryAliases = listOf(libraryAliasName, *otherAliases) } }
     }
 
     /**
      * Specify the source BOM to generate the version catalog from. BOMs can be specified by using a
-     * reference to a library in a toml file, or by using regular dependency notation. To use a toml
+     * reference to a library in a TOML file, or by using regular dependency notation. To use a TOML
      *
      * ```kotlin
      * from {
      *   toml {
-     *     libraryName = "spring-boot-dependencies"
+     *     libraryAliases = listOf("spring-boot-dependencies")
      *     file = File("gradle/libs.versions.toml") // optional, defaults to this value
      *   }
      * }
@@ -201,24 +211,24 @@ class GeneratorConfig(val settings: Settings) {
         val cfg = SourceConfig(settings).apply(sc)
         if (cfg.hasTomlConfig()) {
             catalogParser = FileCatalogParser(cfg.tomlConfig.file)
-            source = { catalogParser.findLibrary(cfg.tomlConfig.libraryAlias) }
+            sources.add { cfg.tomlConfig.libraryAliases.map { catalogParser.findLibrary(it) } }
         } else if (cfg.hasDependency()) {
-            source = { cfg.dependencyNotation }
+            sources.add { cfg.dependencyNotations }
         }
     }
 
     class SourceConfig(private val settings: Settings) {
         internal lateinit var tomlConfig: TomlConfig
-        internal lateinit var dependencyNotation: Any
+        internal lateinit var dependencyNotations: List<Any>
 
         fun toml(tc: TomlConfig.() -> Unit) {
             val cfg = TomlConfig(settings).apply(tc)
-            require(cfg.isInitialized()) { "Library name must be set" }
+            require(cfg.isValid()) { "One or more library names must be set" }
             tomlConfig = cfg
         }
 
-        fun dependency(notation: Any) {
-            this.dependencyNotation = notation
+        fun dependency(notation: Any, vararg others: Any) {
+            this.dependencyNotations = listOf(notation, *others)
         }
 
         internal fun hasTomlConfig(): Boolean {
@@ -226,13 +236,31 @@ class GeneratorConfig(val settings: Settings) {
         }
 
         internal fun hasDependency(): Boolean {
-            return ::dependencyNotation.isInitialized
+            return ::dependencyNotations.isInitialized
         }
     }
 
     class TomlConfig(private val settings: Settings) {
-        /** The name of the library in the TOML catalog file */
-        lateinit var libraryAlias: String
+        /**
+         * The name of the library in the TOML catalog file. Setting this will override any value(s)
+         * set in [libraryAliases]
+         */
+        @Deprecated(
+            message = "Use libraryAliases instead",
+            replaceWith = ReplaceWith(expression = """libraryAliases = listOf("myAlias")"""),
+        )
+        var libraryAlias: String? = null
+            set(value) {
+                requireNotNull(value) { "libraryAlias cannot be null" }
+                field = value
+                libraryAliases = listOf(value)
+            }
+
+        /**
+         * The name of the library aliases in the TOML catalog file to load BOMs from. Setting this
+         * will replace any value previously set by [libraryAlias]
+         */
+        var libraryAliases: List<String> = emptyList()
 
         /** The catalog file containing the BOM library entry */
         var file: File =
@@ -255,9 +283,7 @@ class GeneratorConfig(val settings: Settings) {
             }
         }
 
-        internal fun isInitialized(): Boolean {
-            return ::libraryAlias.isInitialized
-        }
+        internal fun isValid(): Boolean = libraryAliases.isNotEmpty()
     }
 
     companion object {

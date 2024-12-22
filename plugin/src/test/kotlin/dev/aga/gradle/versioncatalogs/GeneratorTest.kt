@@ -113,7 +113,7 @@ internal class GeneratorTest {
         val config =
             GeneratorConfig(settings).apply(cfg).apply {
                 if (!sourceSet) {
-                    source = { dep }
+                    sources.add { listOf(dep) }
                 }
                 saveDirectory = projectDir
                 saveGeneratedCatalog = true
