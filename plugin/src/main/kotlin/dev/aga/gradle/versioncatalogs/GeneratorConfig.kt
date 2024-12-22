@@ -77,14 +77,12 @@ class GeneratorConfig(val settings: Settings) {
     var generateBomEntry: Boolean = false
 
     /**
-     * The directory to store our cached TOML file. By default, it will be stored in
-     * `build/catalogs` relative to the directory of where the settings file exists. When
-     * customizing the cache directory, you probably want to make sure it is cleaned up by the
-     * `clean` task. If you pass in a relative path it will be resolved from the root directory. An
-     * absolute path will be used exactly as provided.
+     * The directory to store the generated TOML catalog file. By default, it will be stored in
+     * `build/catalogs` relative to the directory of where the settings file exists. An absolute
+     * path will be used exactly as provided.
      */
     @Incubating
-    var cacheDirectory: File =
+    var saveDirectory: File =
         settings.rootDir.resolve(Paths.get("build", "version-catalogs").toFile())
         set(value) {
             field =
@@ -95,8 +93,8 @@ class GeneratorConfig(val settings: Settings) {
                 }
         }
 
-    /** Whether to enable the caching functionality. Disabled by default. See [cacheDirectory] */
-    @Incubating var cacheEnabled = false
+    /** Whether to enable the caching functionality. Disabled by default. See [saveDirectory] */
+    @Incubating var saveGeneratedCatalog = false
 
     /**
      * Override property values that are set in the root BOM you are generating a catalog for. For

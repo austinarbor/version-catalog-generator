@@ -11,7 +11,6 @@ import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.gradle.api.Action
 import org.gradle.api.Project
-import org.gradle.api.file.FileCollection
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder.LibraryAliasBuilder
@@ -31,7 +30,6 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.reset
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.tomlj.Toml
@@ -117,13 +115,13 @@ internal class GeneratorTest {
                 if (!sourceSet) {
                     source = { dep }
                 }
-                cacheDirectory = projectDir
-                cacheEnabled = true
+                saveDirectory = projectDir
+                saveGeneratedCatalog = true
                 generateBomEntry = true
             }
 
         val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
-        container.generate("myLibs", objectFactory, config, resolver)
+        container.generate("myLibs", config, resolver)
         verify(container).create(eq("myLibs"), any<Action<VersionCatalogBuilder>>())
         val (versions, libraries, bundles) = getExpectedCatalog(expectedCatalog)
         // validate the versions
@@ -141,13 +139,7 @@ internal class GeneratorTest {
             assertThat(expectedLibraries).containsExactlyInAnyOrderElementsOf(generatedBundles[it])
         }
 
-        assertTomlTableEquals("myLibs", dep, expectedCatalog)
-        // reset the mock and regenerate the library to assert that we use the cached file instead
-        // of reprocessing the whole thing
-        reset(builder)
-        container.generate("myLibs", objectFactory, config, resolver)
-        verify(builder, times(0)).library(any<String>(), any<String>(), any<String>())
-        verify(builder).from(any<FileCollection>())
+        assertTomlTableEquals("myLibs", expectedCatalog)
     }
 
     @Test
@@ -155,11 +147,11 @@ internal class GeneratorTest {
         val config =
             GeneratorConfig(settings).apply {
                 from("org.springframework.boot:spring-boot-dependencies:2.7.18")
-                cacheEnabled = false
+                saveGeneratedCatalog = false
             }
         val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
         assertThatIllegalArgumentException()
-            .isThrownBy { container.generate("myLibs", objectFactory, config, resolver) }
+            .isThrownBy { container.generate("myLibs", config, resolver) }
             .withMessageContainingAll(
                 "Attempting to register a library with the alias ehcache-ehcache",
                 "Existing: net.sf.ehcache:ehcache:ehcache",
@@ -178,17 +170,17 @@ internal class GeneratorTest {
                     }
                 }
                 propertyOverrides = mapOf("assertj.version" to versionRef("does-not-exist"))
-                cacheDirectory = projectDir
+                saveDirectory = projectDir
             }
 
         val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
-            container.generate("myLibs", objectFactory, config, resolver)
+            container.generate("myLibs", config, resolver)
         }
 
         config.propertyOverrides = mapOf("assertj.version" to 1)
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
-            container.generate("myLibs", objectFactory, config, resolver)
+            container.generate("myLibs", config, resolver)
         }
     }
 
@@ -220,8 +212,8 @@ internal class GeneratorTest {
         }
     }
 
-    private fun assertTomlTableEquals(name: String, dep: Dependency, expectedPath: Path) {
-        val cachedLib = projectDir.resolve(Generator.cachedCatalogName(name, dep))
+    private fun assertTomlTableEquals(name: String, expectedPath: Path) {
+        val cachedLib = projectDir.resolve("${name}.versions.toml")
         assertThat(cachedLib).exists()
 
         val cachedToml = Toml.parse(cachedLib.toPath())

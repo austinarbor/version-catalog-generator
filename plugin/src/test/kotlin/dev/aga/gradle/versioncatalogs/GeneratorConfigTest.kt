@@ -71,21 +71,21 @@ class GeneratorConfigTest {
     }
 
     @Test
-    fun `cache dir`() {
+    fun `save dir`() {
         val rootPath = Paths.get("/path", "to", "root")
         val settings = mock<Settings> { on { rootDir } doReturn rootPath.toFile() }
         val config = GeneratorConfig(settings)
         var expected = rootPath.resolve(Paths.get("build", "version-catalogs")).toFile()
-        assertThat(config.cacheDirectory).isEqualTo(expected)
+        assertThat(config.saveDirectory).isEqualTo(expected)
 
         val absolute = File("/some/path")
-        config.cacheDirectory = absolute
-        assertThat(config.cacheDirectory).isEqualTo(absolute)
+        config.saveDirectory = absolute
+        assertThat(config.saveDirectory).isEqualTo(absolute)
 
         val relative = File("some/path")
-        config.cacheDirectory = relative
+        config.saveDirectory = relative
         expected = rootPath.toFile().resolve(relative)
-        assertThat(config.cacheDirectory).isEqualTo(expected)
+        assertThat(config.saveDirectory).isEqualTo(expected)
     }
 
     companion object {
