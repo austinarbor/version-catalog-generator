@@ -21,7 +21,6 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.register
 import org.slf4j.LoggerFactory
@@ -74,7 +73,7 @@ object Generator {
     ): VersionCatalogBuilder {
         val artifactResolver = PublishedArtifactResolver(conf.objects, dependencyResolutionServices)
         val resolver = GradleDependencyResolver(artifactResolver)
-        return generate(name, conf.objects, conf.config, resolver)
+        return generate(name, conf.config, resolver)
     }
 
     /**
@@ -87,7 +86,6 @@ object Generator {
      */
     internal fun MutableVersionCatalogContainer.generate(
         name: String,
-        objectFactory: ObjectFactory,
         config: GeneratorConfig,
         resolver: DependencyResolver,
     ): VersionCatalogBuilder {
@@ -100,11 +98,6 @@ object Generator {
                 is String -> src.toDependency()
                 else -> throw IllegalArgumentException("Unable to resolve notation ${src}")
             }
-
-        val cachedPath = config.cacheDirectory.resolve(cachedCatalogName(name, bomDep))
-        if (config.cacheEnabled && cachedPath.exists()) {
-            return create(name) { from(objectFactory.fileCollection().from(cachedPath)) }
-        }
 
         return create(name) {
             val seenModules = mutableSetOf<String>()
@@ -128,35 +121,25 @@ object Generator {
                 rootDep = false
             }
 
-            if (config.cacheEnabled) {
+            if (config.saveGeneratedCatalog) {
                 config.settings.gradle.projectsEvaluated {
-                    registerSaveTask(rootProject, config.cacheDirectory, name, bomDep, container)
+                    registerSaveTask(rootProject, config.saveDirectory, name, container)
                 }
             }
         }
     }
 
-    internal fun registerSaveTask(
-        project: Project,
-        cachePath: File,
-        catalogName: String,
-        bom: Dependency,
-        container: TomlContainer,
-    ) {
-        val fileName = cachedCatalogName(catalogName, bom)
-        registerSaveTask(project, cachePath, fileName, container)
-    }
-
     private fun registerSaveTask(
         project: Project,
         cachePath: File,
-        fileName: String,
+        libraryName: String,
         container: TomlContainer,
     ) {
         with(project) {
             val task =
-                tasks.register<SaveTask>("save${fileName}") {
+                tasks.register<SaveTask>("save${libraryName}") {
                     destinationDir.set(cachePath)
+                    val fileName = "${libraryName}.versions.toml"
                     destinationFile.set(project.file(fileName))
                     contents.set(container.toToml())
                 }
@@ -460,7 +443,4 @@ object Generator {
         }
         return version
     }
-
-    internal fun cachedCatalogName(name: String, dep: Dependency) =
-        "libs.${name}-${dep.artifactId}-${dep.version}.toml"
 }
