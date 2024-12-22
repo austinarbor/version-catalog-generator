@@ -1,0 +1,31 @@
+
+=== Persisting
+Unfortunately, settings plugins in Gradle cannot take advantage of the same caching mechanisms that are provided
+for tasks with incremental builds. However, we have added the ability to save the generated TOML catalog to a file
+so that you can verify the contents of the generated catalog.
+
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
+----
+generate("myLibs") {
+  // excluded for brevity
+  saveGeneratedCatalog = true // <1>
+  saveDirectory = file("build/version-catalogs") // <2>
+}
+----
+<1> Enable saving the generated catalog to disk
+<2> The directory to save the generated catalogs in. If not specified, the generated catalogs will be saved in
+`build/version-catalogs`, relative to the _root_ project directory.
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+generator.generate("myLibs") {
+  // excluded for brevity
+  it.saveGeneratedCatalog = true // <1>
+  it.saveDirectory = file("build/version-catalogs") // <2>
+}
+----
+<1> Enable saving the generated catalog to disk
+<2> The directory to save the generated catalogs in. If not specified, the generated catalogs will be saved in
+`build/version-catalogs`, relative to the _root_ project directory.
