@@ -141,10 +141,12 @@ class GeneratorConfig(val settings: Settings) {
     }
 
     /**
-     * List of lambdas which when invoked will return either a [Dependency] or a string notation of
-     * a dependency to resolve.
+     * List of lambdas which when invoked will return a [Pair] with the first element being a
+     * [SourceConfig] and the second element being a list of BOMs to load from the [SourceConfig].
+     * Each BOM may be represented as either a [Dependency] or a string notation of a dependency to
+     * resolve.
      */
-    internal val sources: MutableList<() -> List<Any>> = mutableListOf()
+    internal val sources: MutableList<() -> Pair<SourceConfig, List<Any>>> = mutableListOf()
 
     internal lateinit var catalogParser: CatalogParser
 
@@ -211,9 +213,11 @@ class GeneratorConfig(val settings: Settings) {
         val cfg = SourceConfig(settings).apply(sc)
         if (cfg.hasTomlConfig()) {
             catalogParser = FileCatalogParser(cfg.tomlConfig.file)
-            sources.add { cfg.tomlConfig.libraryAliases.map { catalogParser.findLibrary(it) } }
+            sources.add {
+                cfg to cfg.tomlConfig.libraryAliases.map { catalogParser.findLibrary(it) }
+            }
         } else if (cfg.hasDependency()) {
-            sources.add { cfg.dependencyNotations }
+            sources.add { cfg to cfg.dependencyNotations }
         }
     }
 
