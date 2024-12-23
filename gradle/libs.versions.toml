@@ -1,5 +1,5 @@
 [versions]
-asciidoctorj = "4.0.3"
+asciidoctorj = "4.0.4"
 asciidoctorTabbedCode = "0.3"
 assertj = "3.26.3"
 commons-text = "1.13.0"
