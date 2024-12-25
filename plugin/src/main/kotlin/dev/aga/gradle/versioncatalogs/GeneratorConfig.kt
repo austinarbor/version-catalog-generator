@@ -254,22 +254,6 @@ class GeneratorConfig(val settings: Settings) {
         return TomlVersionRef(catalogParser, alias)
     }
 
-    internal val excludeFilter: (Dependency) -> Boolean by lazy {
-        {
-            val eg = excludeGroups
-            val en = excludeNames
-            if (eg == null && en == null) {
-                false
-            } else {
-                // default to true because if one of the regexes is non-null, then
-                // the null value should basically be equivalent to always matching
-                val excludeGroup = eg?.toRegex()?.matches(it.groupId) ?: true
-                val excludeName = en?.toRegex()?.matches(it.artifactId) ?: true
-                excludeGroup && excludeName
-            }
-        }
-    }
-
     /**
      * List of lambdas which when invoked will return a [Pair] with the first element being a
      * [SourceConfig] and the second element being a list of BOMs to load from the [SourceConfig].
