@@ -212,7 +212,11 @@ class GeneratorConfig(val settings: Settings) {
     fun from(sc: SourceConfig.() -> Unit) {
         val cfg = SourceConfig(settings).apply(sc)
         if (cfg.hasTomlConfig()) {
-            catalogParser = FileCatalogParser(cfg.tomlConfig.file)
+            // to preserve backwards compatibility, only set the top-level
+            // catalogParser from the first TOML config
+            if (!::catalogParser.isInitialized) {
+                catalogParser = FileCatalogParser(cfg.tomlConfig.file)
+            }
             sources.add {
                 cfg to cfg.tomlConfig.libraryAliases.map { catalogParser.findLibrary(it) }
             }
