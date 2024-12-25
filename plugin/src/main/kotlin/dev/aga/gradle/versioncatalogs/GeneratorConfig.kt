@@ -506,12 +506,14 @@ class GeneratorConfig(val settings: Settings) {
     class SourceConfig(private val settings: Settings) {
         internal lateinit var tomlConfig: TomlConfig
         internal lateinit var dependencyNotations: List<Any>
+        internal lateinit var catalogParser: CatalogParser
         internal var usingConfig: UsingConfig = UsingConfig()
 
         fun toml(tc: TomlConfig.() -> Unit) {
             val cfg = TomlConfig(settings).apply(tc)
             require(cfg.isValid()) { "One or more library names must be set" }
             tomlConfig = cfg
+            catalogParser = FileCatalogParser(cfg.file)
         }
 
         fun dependency(notation: Any, vararg others: Any) {
@@ -520,6 +522,10 @@ class GeneratorConfig(val settings: Settings) {
 
         fun using(uc: UsingConfig.() -> Unit) {
             uc(usingConfig)
+        }
+
+        fun versionRef(alias: String): TomlVersionRef {
+            return TomlVersionRef(catalogParser, alias)
         }
 
         internal fun hasTomlConfig(): Boolean {
