@@ -17,6 +17,21 @@ import org.gradle.api.initialization.Settings
 
 class GeneratorConfig(val settings: Settings) {
     /**
+     * The version catalog file to use when no specific file is otherwise set in the `from` block.
+     * This will default to "gradle/libs.versions.toml" relative to the root directory of the
+     * project. Starting with the 4.0 release, this will also be used as the source file to use to
+     * look up version aliases when using `versionRef`.
+     *
+     * ```kotlin
+     * defaultVersionCatalog = file("/path/to/libs.versions.toml")
+     * // a-library-alias will be looked up in the above TOML file
+     * from(toml("a-library-alias"))
+     * ```
+     */
+    var defaultVersionCatalog: File =
+        settings.rootDir.toPath().resolve(Paths.get("gradle", "libs.versions.toml")).toFile()
+
+    /**
      * Function to generate the name of the library in the generated catalog. The default behavior
      * takes the output of the [aliasPrefixGenerator] and the output of the [aliasSuffixGenerator]
      * and concatenates them together with a `-`. If the `prefix` is blank, only the `suffix` is
@@ -255,8 +270,19 @@ class GeneratorConfig(val settings: Settings) {
      * @param alias the version alias to lookup
      */
     @Deprecated(
-        """The functionality of versionRef will be changed or removed in an upcoming release. 
-            Marking as deprecated to bring attention to the change in functionality""",
+        """The functionality of versionRef will be changed in the next major release. 
+            Marking as deprecated to bring attention to the change in functionality.
+            Starting with the next major release, versionRef when called from the GeneratorConfig scope
+            will look up the alias from the TOML defined in defaultVersionCatalog
+            """,
+        replaceWith =
+            ReplaceWith(
+                """
+            defaultVersionCatalog = file("/path/to/somewhere/libs.versions.toml")
+            // someAlias will be fetched from defaultVersionCatalog
+            propertyOverrides = mapOf("my.version" to versionRef("someAlias"))
+        """,
+            ),
     )
     fun versionRef(alias: String): PropertyOverride {
         return TomlVersionRef(catalogParser, alias)
@@ -348,7 +374,7 @@ class GeneratorConfig(val settings: Settings) {
      * @param sc the config block
      */
     fun from(sc: SourceConfig.() -> Unit) {
-        val cfg = SourceConfig(settings).apply(sc)
+        val cfg = SourceConfig(settings, defaultVersionCatalog).apply(sc)
         if (cfg.hasTomlConfig()) {
             // to preserve backwards compatibility, only set the top-level
             // catalogParser from the first TOML config
@@ -530,14 +556,17 @@ class GeneratorConfig(val settings: Settings) {
         }
     }
 
-    class SourceConfig(private val settings: Settings) {
+    class SourceConfig(
+        private val settings: Settings,
+        private val defaultVersionCatalog: File,
+    ) {
         internal lateinit var tomlConfig: TomlConfig
         internal lateinit var dependencyNotations: List<Any>
         internal lateinit var catalogParser: CatalogParser
         internal var usingConfig: UsingConfig = UsingConfig()
 
         fun toml(tc: TomlConfig.() -> Unit) {
-            val cfg = TomlConfig(settings).apply(tc)
+            val cfg = TomlConfig(settings, defaultVersionCatalog).apply(tc)
             require(cfg.isValid()) { "One or more library names must be set" }
             tomlConfig = cfg
             catalogParser = FileCatalogParser(cfg.file)
@@ -576,7 +605,7 @@ class GeneratorConfig(val settings: Settings) {
         }
     }
 
-    class TomlConfig(private val settings: Settings) {
+    class TomlConfig(private val settings: Settings, defaultVersionCatalog: File) {
         /**
          * The name of the library in the TOML catalog file. Setting this will override any value(s)
          * set in [libraryAliases]
@@ -598,9 +627,11 @@ class GeneratorConfig(val settings: Settings) {
          */
         var libraryAliases: List<String> = emptyList()
 
-        /** The catalog file containing the BOM library entry */
-        var file: File =
-            settings.rootDir.toPath().resolve(Paths.get("gradle", "libs.versions.toml")).toFile()
+        /**
+         * The catalog file containing the BOM library entry. If not specified, will be set to
+         * `defaultVersionCatalog` in the parent [GeneratorConfig]
+         */
+        var file: File = defaultVersionCatalog
 
         /**
          * If your TOML is a published artifact that can be found in one of the repositories you

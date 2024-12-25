@@ -113,7 +113,15 @@ internal class GeneratorTest {
         val config =
             GeneratorConfig(settings).apply(cfg).apply {
                 if (!sourceSet) {
-                    sources.add { GeneratorConfig.SourceConfig(settings) to listOf(dep) }
+                    sources.add {
+                        GeneratorConfig.SourceConfig(
+                            settings,
+                            settings.rootDir
+                                .toPath()
+                                .resolve(Paths.get("gradle", "libs.versions.toml"))
+                                .toFile(),
+                        ) to listOf(dep)
+                    }
                 }
                 saveDirectory = projectDir
                 saveGeneratedCatalog = true

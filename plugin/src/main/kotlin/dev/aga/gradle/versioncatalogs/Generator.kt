@@ -95,18 +95,12 @@ object Generator {
         val rootDeps: List<Pair<GeneratorConfig.UsingConfig, Dependency>> =
             config.sources.flatMap { src ->
                 val (cfg, sources) = src()
+                val mergedConfig =
+                    GeneratorConfig.UsingConfig.merge(cfg.usingConfig, config.usingConfig)
                 sources.map {
                     when (it) {
-                        is Dependency ->
-                            GeneratorConfig.UsingConfig.merge(
-                                cfg.usingConfig,
-                                config.usingConfig,
-                            ) to it
-                        is String ->
-                            GeneratorConfig.UsingConfig.merge(
-                                cfg.usingConfig,
-                                config.usingConfig,
-                            ) to it.toDependency()
+                        is Dependency -> mergedConfig to it
+                        is String -> mergedConfig to it.toDependency()
                         else -> throw IllegalArgumentException("Unable to resolve notation ${it}")
                     }
                 }
