@@ -1,6 +1,7 @@
 package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.Generator.generate
+import dev.aga.gradle.versioncatalogs.assertion.TomlTableAssert
 import dev.aga.gradle.versioncatalogs.service.MockGradleDependencyResolver
 import java.io.File
 import java.nio.file.Path
@@ -33,7 +34,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.tomlj.Toml
-import org.tomlj.TomlArray
 import org.tomlj.TomlParseResult
 import org.tomlj.TomlTable
 
@@ -205,34 +205,13 @@ internal class GeneratorTest {
         }
     }
 
-    private fun assertTomlArrayEquals(actual: TomlArray, expected: TomlArray) {
-        assertThat(actual.size()).isEqualTo(expected.size())
-        for (i in 0 until actual.size()) {
-            assertThat(actual[i]).isEqualTo(expected[i])
-        }
-    }
-
     private fun assertTomlTableEquals(name: String, expectedPath: Path) {
         val cachedLib = projectDir.resolve("${name}.versions.toml")
         assertThat(cachedLib).exists()
 
         val cachedToml = Toml.parse(cachedLib.toPath())
         val expectedToml = getExpectedToml(expectedPath)
-        assertTomlTableEquals(cachedToml, expectedToml)
-    }
-
-    private fun assertTomlTableEquals(actual: TomlTable, expected: TomlTable) {
-        assertThat(actual.size()).isEqualTo(expected.size())
-        assertThat(actual.dottedKeySet())
-            .containsExactlyInAnyOrderElementsOf(expected.dottedKeySet())
-
-        actual.dottedKeySet().forEach { key ->
-            when (val value = actual.get(key)) {
-                is TomlArray -> assertTomlArrayEquals(value, expected.getArray(key)!!)
-                is TomlTable -> assertTomlTableEquals(value, expected.getTable(key)!!)
-                else -> assertThat(value).isEqualTo(expected.get(key))
-            }
-        }
+        TomlTableAssert.assertThat(cachedToml).isEqualTo(expectedToml)
     }
 
     private fun getLibraryAlias(property: String): String {
