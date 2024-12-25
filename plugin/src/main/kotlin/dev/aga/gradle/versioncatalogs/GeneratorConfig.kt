@@ -433,72 +433,74 @@ class GeneratorConfig(val settings: Settings) {
 
         companion object {
             fun merge(primary: UsingConfig, fallback: UsingConfig): UsingConfig {
-                val merged = UsingConfig()
-                merged.aliasPrefixGenerator =
-                    if (primary::aliasPrefixGenerator.isInitialized) {
-                        primary.aliasPrefixGenerator
-                    } else {
-                        fallback.aliasPrefixGenerator
-                    }
-                merged.aliasSuffixGenerator =
-                    if (primary::aliasSuffixGenerator.isInitialized) {
-                        primary.aliasSuffixGenerator
-                    } else {
-                        fallback.aliasSuffixGenerator
-                    }
-
-                // this one is a little tricky to set
-                // if the primary config has a custom generator set, use that
-                // otherwise if the fallback has a custom generator set, use that
-                // if none of the above conditions are true, re-construct the default
-                // generator logic using the set prefix and suffix generators from above
-                merged.libraryAliasGenerator =
-                    if (primary::libraryAliasGenerator.isInitialized) {
-                        primary.libraryAliasGenerator
-                    } else if (fallback::libraryAliasGenerator.isInitialized) {
-                        fallback.libraryAliasGenerator
-                    } else {
-                        { groupId, artifactId ->
-                            val prefix = merged.aliasPrefixGenerator(groupId, artifactId)
-                            val suffix = merged.aliasSuffixGenerator(prefix, groupId, artifactId)
-                            DEFAULT_ALIAS_GENERATOR(prefix, suffix)
+                return UsingConfig().apply {
+                    aliasPrefixGenerator =
+                        if (primary::aliasPrefixGenerator.isInitialized) {
+                            primary.aliasPrefixGenerator
+                        } else {
+                            fallback.aliasPrefixGenerator
                         }
-                    }
-                merged.versionNameGenerator =
-                    if (primary::versionNameGenerator.isInitialized) {
-                        primary.versionNameGenerator
-                    } else {
-                        fallback.versionNameGenerator
-                    }
 
-                merged.excludeGroups =
-                    if (primary.excludeGroups != null) {
-                        primary.excludeGroups
-                    } else {
-                        fallback.excludeGroups
-                    }
+                    aliasSuffixGenerator =
+                        if (primary::aliasSuffixGenerator.isInitialized) {
+                            primary.aliasSuffixGenerator
+                        } else {
+                            fallback.aliasSuffixGenerator
+                        }
 
-                merged.excludeNames =
-                    if (primary.excludeNames != null) {
-                        primary.excludeNames
-                    } else {
-                        fallback.excludeNames
-                    }
+                    // this one is a little tricky to set
+                    // if the primary config has a custom generator set, use that
+                    // otherwise if the fallback has a custom generator set, use that
+                    // if none of the above conditions are true, re-construct the default
+                    // generator logic using the set prefix and suffix generators from above
+                    libraryAliasGenerator =
+                        if (primary::libraryAliasGenerator.isInitialized) {
+                            primary.libraryAliasGenerator
+                        } else if (fallback::libraryAliasGenerator.isInitialized) {
+                            fallback.libraryAliasGenerator
+                        } else {
+                            { groupId, artifactId ->
+                                val prefix = aliasPrefixGenerator(groupId, artifactId)
+                                val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
+                                DEFAULT_ALIAS_GENERATOR(prefix, suffix)
+                            }
+                        }
 
-                merged.generateBomEntry =
-                    if (primary.generateBomEntry != null) {
-                        primary.generateBomEntry
-                    } else {
-                        fallback.generateBomEntry
-                    }
+                    versionNameGenerator =
+                        if (primary::versionNameGenerator.isInitialized) {
+                            primary.versionNameGenerator
+                        } else {
+                            fallback.versionNameGenerator
+                        }
 
-                merged.propertyOverrides =
-                    if (primary.propertyOverrides.isNotEmpty()) {
-                        primary.propertyOverrides
-                    } else {
-                        fallback.propertyOverrides
-                    }
-                return merged
+                    excludeGroups =
+                        if (primary.excludeGroups != null) {
+                            primary.excludeGroups
+                        } else {
+                            fallback.excludeGroups
+                        }
+
+                    excludeNames =
+                        if (primary.excludeNames != null) {
+                            primary.excludeNames
+                        } else {
+                            fallback.excludeNames
+                        }
+
+                    generateBomEntry =
+                        if (primary.generateBomEntry != null) {
+                            primary.generateBomEntry
+                        } else {
+                            fallback.generateBomEntry
+                        }
+
+                    propertyOverrides =
+                        if (primary.propertyOverrides.isNotEmpty()) {
+                            primary.propertyOverrides
+                        } else {
+                            fallback.propertyOverrides
+                        }
+                }
             }
         }
     }
