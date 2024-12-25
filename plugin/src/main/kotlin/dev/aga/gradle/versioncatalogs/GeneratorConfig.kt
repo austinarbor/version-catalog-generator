@@ -228,11 +228,6 @@ class GeneratorConfig(val settings: Settings) {
 
     var usingConfig =
         UsingConfig().apply {
-            libraryAliasGenerator = { groupId, artifactId ->
-                val prefix = aliasPrefixGenerator(groupId, artifactId)
-                val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
-                DEFAULT_ALIAS_GENERATOR(prefix, suffix)
-            }
             aliasPrefixGenerator = DEFAULT_ALIAS_PREFIX_GENERATOR
             aliasSuffixGenerator = DEFAULT_ALIAS_SUFFIX_GENERATOR
             versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
@@ -439,12 +434,6 @@ class GeneratorConfig(val settings: Settings) {
         companion object {
             fun merge(primary: UsingConfig, fallback: UsingConfig): UsingConfig {
                 val merged = UsingConfig()
-                merged.libraryAliasGenerator =
-                    if (primary::libraryAliasGenerator.isInitialized) {
-                        primary.libraryAliasGenerator
-                    } else {
-                        fallback.libraryAliasGenerator
-                    }
                 merged.aliasPrefixGenerator =
                     if (primary::aliasPrefixGenerator.isInitialized) {
                         primary.aliasPrefixGenerator
@@ -456,6 +445,24 @@ class GeneratorConfig(val settings: Settings) {
                         primary.aliasSuffixGenerator
                     } else {
                         fallback.aliasSuffixGenerator
+                    }
+
+                // this one is a little tricky to set
+                // if the primary config has a custom generator set, use that
+                // otherwise if the fallback has a custom generator set, use that
+                // if none of the above conditions are true, re-construct the default
+                // generator logic using the set prefix and suffix generators from above
+                merged.libraryAliasGenerator =
+                    if (primary::libraryAliasGenerator.isInitialized) {
+                        primary.libraryAliasGenerator
+                    } else if (fallback::libraryAliasGenerator.isInitialized) {
+                        fallback.libraryAliasGenerator
+                    } else {
+                        { groupId, artifactId ->
+                            val prefix = merged.aliasPrefixGenerator(groupId, artifactId)
+                            val suffix = merged.aliasSuffixGenerator(prefix, groupId, artifactId)
+                            DEFAULT_ALIAS_GENERATOR(prefix, suffix)
+                        }
                     }
                 merged.versionNameGenerator =
                     if (primary::versionNameGenerator.isInitialized) {

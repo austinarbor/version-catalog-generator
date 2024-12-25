@@ -128,8 +128,7 @@ object Generator {
                     )
                 }
                 val (model, parentModel) = resolver.resolve(dep)
-                loadBom(
-                    model, parentModel, config.usingConfig, queue, seenModules, rootDep, container)
+                loadBom(model, parentModel, using, queue, seenModules, rootDep, container)
             }
 
             if (config.saveGeneratedCatalog) {
