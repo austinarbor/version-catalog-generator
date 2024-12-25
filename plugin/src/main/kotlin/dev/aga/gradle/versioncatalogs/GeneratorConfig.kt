@@ -38,7 +38,9 @@ class GeneratorConfig(val settings: Settings) {
             DEFAULT_ALIAS_GENERATOR(prefix, suffix)
           }
         }
-    """))
+    """,
+            ),
+    )
     var libraryAliasGenerator: (String, String) -> String = { groupId, artifactId ->
         val prefix = aliasPrefixGenerator(groupId, artifactId)
         val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
@@ -65,7 +67,8 @@ class GeneratorConfig(val settings: Settings) {
         using {
           aliasPrefixGenerator = GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR
         }
-    """),
+    """,
+            ),
     )
     var aliasPrefixGenerator = DEFAULT_ALIAS_PREFIX_GENERATOR
         set(value) {
@@ -89,7 +92,8 @@ class GeneratorConfig(val settings: Settings) {
         using {
           aliasSuffixGenerator = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR
         }
-    """),
+    """,
+            ),
     )
     var aliasSuffixGenerator = DEFAULT_ALIAS_SUFFIX_GENERATOR
         set(value) {
@@ -110,7 +114,8 @@ class GeneratorConfig(val settings: Settings) {
         using {
           versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
         }
-    """),
+    """,
+            ),
     )
     var versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
         set(value) {
@@ -126,11 +131,13 @@ class GeneratorConfig(val settings: Settings) {
     @Deprecated(
         message = """Use "using" block instead""",
         replaceWith =
-            ReplaceWith("""
+            ReplaceWith(
+                """
         using {
           excludeGroups = ".*"
         }
-    """),
+    """,
+            ),
     )
     var excludeGroups: String? = null
         set(value) {
@@ -146,11 +153,13 @@ class GeneratorConfig(val settings: Settings) {
     @Deprecated(
         message = """Use "using" block instead""",
         replaceWith =
-            ReplaceWith("""
+            ReplaceWith(
+                """
         using {
           excludeNames = ".*"
         }
-    """),
+    """,
+            ),
     )
     var excludeNames: String? = null
         set(value) {
@@ -162,11 +171,13 @@ class GeneratorConfig(val settings: Settings) {
     @Deprecated(
         message = """Use "using" block instead""",
         replaceWith =
-            ReplaceWith("""
+            ReplaceWith(
+                """
         using {
           generateBomEntry = true
         }
-    """),
+    """,
+            ),
     )
     var generateBomEntry: Boolean = false
         set(value) {
@@ -218,7 +229,8 @@ class GeneratorConfig(val settings: Settings) {
         using {
           propertyOverrides = mapOf("a" to "1.0.0")
         }
-    """),
+    """,
+            ),
     )
     var propertyOverrides: Map<String, Any> = emptyMap()
         set(value) {
@@ -244,7 +256,8 @@ class GeneratorConfig(val settings: Settings) {
      */
     @Deprecated(
         """The functionality of versionRef will be changed or removed in an upcoming release. 
-            Marking as deprecated to bring attention to the change in functionality""")
+            Marking as deprecated to bring attention to the change in functionality""",
+    )
     fun versionRef(alias: String): PropertyOverride {
         return TomlVersionRef(catalogParser, alias)
     }
@@ -293,6 +306,18 @@ class GeneratorConfig(val settings: Settings) {
         return { toml { libraryAliases = listOf(libraryAliasName, *otherAliases) } }
     }
 
+    /**
+     * Apply customization options to the generation logic. Options set here will be applied to
+     * subsequent sources declared in a `from` function or block unless that option is specifically
+     * overridden within that `from` declaration.
+     *
+     * ```kotlin
+     * using {
+     *   aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+     *   // etc
+     * }
+     * ```
+     */
     fun using(uc: UsingConfig.() -> Unit) {
         uc(usingConfig)
     }
@@ -522,6 +547,18 @@ class GeneratorConfig(val settings: Settings) {
             this.dependencyNotations = listOf(notation, *others)
         }
 
+        /**
+         * Apply customization options to the generation logic. Options set here will be applied
+         * only to the sources declared within this block. Any options which are not explicitly set
+         * will take their values from the parent [GeneratorConfig]
+         *
+         * ```kotlin
+         * using {
+         *   aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+         *   // etc
+         * }
+         * ```
+         */
         fun using(uc: UsingConfig.() -> Unit) {
             uc(usingConfig)
         }

@@ -99,10 +99,14 @@ object Generator {
                     when (it) {
                         is Dependency ->
                             GeneratorConfig.UsingConfig.merge(
-                                cfg.usingConfig, config.usingConfig) to it
+                                cfg.usingConfig,
+                                config.usingConfig,
+                            ) to it
                         is String ->
                             GeneratorConfig.UsingConfig.merge(
-                                cfg.usingConfig, config.usingConfig) to it.toDependency()
+                                cfg.usingConfig,
+                                config.usingConfig,
+                            ) to it.toDependency()
                         else -> throw IllegalArgumentException("Unable to resolve notation ${it}")
                     }
                 }
