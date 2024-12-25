@@ -27,7 +27,7 @@ class GeneratorConfig(val settings: Settings) {
      * @see DEFAULT_ALIAS_GENERATOR
      */
     @Deprecated(
-        message = "Use UsingConfig instead",
+        message = """Use "using" block instead""",
         replaceWith =
             ReplaceWith(
                 """
@@ -58,7 +58,7 @@ class GeneratorConfig(val settings: Settings) {
      * @see DEFAULT_ALIAS_PREFIX_GENERATOR
      */
     @Deprecated(
-        message = "Use UsingConfig instead",
+        message = """Use "using" block instead""",
         replaceWith =
             ReplaceWith(
                 """
@@ -82,7 +82,7 @@ class GeneratorConfig(val settings: Settings) {
      * @see DEFAULT_ALIAS_SUFFIX_GENERATOR
      */
     @Deprecated(
-        message = "Use UsingConfig instead",
+        message = """Use "using" block instead""",
         replaceWith =
             ReplaceWith(
                 """
@@ -103,7 +103,7 @@ class GeneratorConfig(val settings: Settings) {
      * occurrences of '.' with a single one. It then converts the string to camelCase.
      */
     @Deprecated(
-        message = "Use UsingConfig instead",
+        message = """Use "using" block instead""",
         replaceWith =
             ReplaceWith(
                 """
@@ -124,7 +124,7 @@ class GeneratorConfig(val settings: Settings) {
      * is `null`.
      */
     @Deprecated(
-        message = "Use UsingConfig instead",
+        message = """Use "using" block instead""",
         replaceWith =
             ReplaceWith("""
         using {
@@ -144,7 +144,7 @@ class GeneratorConfig(val settings: Settings) {
      * is `null`.
      */
     @Deprecated(
-        message = "Use UsingConfig instead",
+        message = """Use "using" block instead""",
         replaceWith =
             ReplaceWith("""
         using {
@@ -160,7 +160,7 @@ class GeneratorConfig(val settings: Settings) {
 
     /** When true, an entry for the BOM itself will be added to the catalog. */
     @Deprecated(
-        message = "Use UsingConfig instead",
+        message = """Use "using" block instead""",
         replaceWith =
             ReplaceWith("""
         using {
@@ -211,7 +211,7 @@ class GeneratorConfig(val settings: Settings) {
      * ```
      */
     @Deprecated(
-        message = "Use UsingConfig instead",
+        message = """Use "using" block instead""",
         replaceWith =
             ReplaceWith(
                 """
