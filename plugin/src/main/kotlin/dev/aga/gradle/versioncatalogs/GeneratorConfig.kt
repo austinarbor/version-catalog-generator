@@ -451,11 +451,71 @@ class GeneratorConfig(val settings: Settings) {
                 }
             }
         }
+
+        companion object {
+            fun merge(primary: UsingConfig, fallback: UsingConfig): UsingConfig {
+                val merged = UsingConfig()
+                merged.libraryAliasGenerator =
+                    if (primary::libraryAliasGenerator.isInitialized) {
+                        primary.libraryAliasGenerator
+                    } else {
+                        fallback.libraryAliasGenerator
+                    }
+                merged.aliasPrefixGenerator =
+                    if (primary::aliasPrefixGenerator.isInitialized) {
+                        primary.aliasPrefixGenerator
+                    } else {
+                        fallback.aliasPrefixGenerator
+                    }
+                merged.aliasSuffixGenerator =
+                    if (primary::aliasSuffixGenerator.isInitialized) {
+                        primary.aliasSuffixGenerator
+                    } else {
+                        fallback.aliasSuffixGenerator
+                    }
+                merged.versionNameGenerator =
+                    if (primary::versionNameGenerator.isInitialized) {
+                        primary.versionNameGenerator
+                    } else {
+                        fallback.versionNameGenerator
+                    }
+
+                merged.excludeGroups =
+                    if (primary.excludeGroups != null) {
+                        primary.excludeGroups
+                    } else {
+                        fallback.excludeGroups
+                    }
+
+                merged.excludeNames =
+                    if (primary.excludeNames != null) {
+                        primary.excludeNames
+                    } else {
+                        fallback.excludeNames
+                    }
+
+                merged.generateBomEntry =
+                    if (primary.generateBomEntry != null) {
+                        primary.generateBomEntry
+                    } else {
+                        fallback.generateBomEntry
+                    }
+
+                merged.propertyOverrides =
+                    if (primary.propertyOverrides.isNotEmpty()) {
+                        primary.propertyOverrides
+                    } else {
+                        fallback.propertyOverrides
+                    }
+                return merged
+            }
+        }
     }
 
     class SourceConfig(private val settings: Settings) {
         internal lateinit var tomlConfig: TomlConfig
         internal lateinit var dependencyNotations: List<Any>
+        internal var usingConfig: UsingConfig = UsingConfig()
 
         fun toml(tc: TomlConfig.() -> Unit) {
             val cfg = TomlConfig(settings).apply(tc)
@@ -465,6 +525,10 @@ class GeneratorConfig(val settings: Settings) {
 
         fun dependency(notation: Any, vararg others: Any) {
             this.dependencyNotations = listOf(notation, *others)
+        }
+
+        fun using(uc: UsingConfig.() -> Unit) {
+            uc(usingConfig)
         }
 
         internal fun hasTomlConfig(): Boolean {

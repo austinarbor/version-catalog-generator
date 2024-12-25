@@ -92,13 +92,17 @@ object Generator {
         // need to clean up this logic so that we don't double-resolve the first
         // dependency. I think the resolver interface/logic could use some
         // improvement as well
-        val rootDeps: List<Pair<GeneratorConfig.SourceConfig, Dependency>> =
+        val rootDeps: List<Pair<GeneratorConfig.UsingConfig, Dependency>> =
             config.sources.flatMap { src ->
                 val (cfg, sources) = src()
                 sources.map {
                     when (it) {
-                        is Dependency -> cfg to it
-                        is String -> cfg to it.toDependency()
+                        is Dependency ->
+                            GeneratorConfig.UsingConfig.merge(
+                                cfg.usingConfig, config.usingConfig) to it
+                        is String ->
+                            GeneratorConfig.UsingConfig.merge(
+                                cfg.usingConfig, config.usingConfig) to it.toDependency()
                         else -> throw IllegalArgumentException("Unable to resolve notation ${it}")
                     }
                 }
@@ -106,25 +110,23 @@ object Generator {
 
         return create(name) {
             val seenModules = mutableSetOf<String>()
-            val queue = ArrayDeque<Pair<GeneratorConfig.SourceConfig?, Dependency>>(rootDeps)
+            val queue = ArrayDeque<Pair<GeneratorConfig.UsingConfig, Dependency>>(rootDeps)
             val container = TomlContainer()
-            if (config.generateBomEntry) {
-                rootDeps.forEach { (_, dep) ->
+
+            while (queue.isNotEmpty()) {
+                val (using, dep) = queue.removeFirst()
+                // Note: Dependency does not override equals, so we are relying on referential
+                // equality
+                val rootDep = rootDeps.any { it.second == dep }
+                if (rootDep && using.generateBomEntry == true) {
                     createLibrary(
                         dep,
                         Version(dep.version, dep.version, dep.version),
-                        config.usingConfig,
+                        using,
                         true,
                         container,
                     )
                 }
-            }
-
-            while (queue.isNotEmpty()) {
-                val (_, dep) = queue.removeFirst()
-                // Note: Dependency does not override equals, so we are relying on referential
-                // equality
-                val rootDep = rootDeps.any { it.second == dep }
                 val (model, parentModel) = resolver.resolve(dep)
                 loadBom(
                     model, parentModel, config.usingConfig, queue, seenModules, rootDep, container)
@@ -175,7 +177,7 @@ object Generator {
         model: Model,
         parentModel: Model?,
         using: GeneratorConfig.UsingConfig,
-        queue: MutableList<Pair<GeneratorConfig.SourceConfig?, Dependency>>,
+        queue: MutableList<Pair<GeneratorConfig.UsingConfig, Dependency>>,
         seenModules: MutableSet<String>,
         rootDep: Boolean,
         container: TomlContainer,
@@ -201,7 +203,7 @@ object Generator {
     internal fun VersionCatalogBuilder.loadDependencies(
         model: Model,
         using: GeneratorConfig.UsingConfig,
-        queue: MutableList<Pair<GeneratorConfig.SourceConfig?, Dependency>>,
+        queue: MutableList<Pair<GeneratorConfig.UsingConfig, Dependency>>,
         substitutor: StringSubstitutor,
         seenModules: MutableSet<String>,
         rootDep: Boolean,
@@ -226,7 +228,7 @@ object Generator {
                 if (version.isRef) {
                     bom.version = version.resolvedValue
                 }
-                queue.add(null to bom)
+                queue.add(using to bom)
             }
         }
 
