@@ -238,7 +238,7 @@ class GeneratorConfig(val settings: Settings) {
             usingConfig.propertyOverrides = value
         }
 
-    var usingConfig =
+    internal var usingConfig =
         UsingConfig().apply {
             aliasPrefixGenerator = DEFAULT_ALIAS_PREFIX_GENERATOR
             aliasSuffixGenerator = DEFAULT_ALIAS_SUFFIX_GENERATOR
