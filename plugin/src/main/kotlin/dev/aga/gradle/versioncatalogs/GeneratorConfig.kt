@@ -25,7 +25,8 @@ class GeneratorConfig(val settings: Settings) {
      * ```kotlin
      * defaultVersionCatalog = file("/path/to/libs.versions.toml")
      * // a-library-alias will be looked up in the above TOML file
-     * from(toml("a-library-alias"))
+     * from(toml("a-library-alias")) // deprecated
+     * fromToml("a-library-alias"))
      * ```
      */
     var defaultVersionCatalog: File =
@@ -306,11 +307,67 @@ class GeneratorConfig(val settings: Settings) {
      * @param others one or more other BOM dependency notations to include in the generated catalog
      */
     fun from(notation: String, vararg others: String) {
-        from { dependency(notation, *others) }
+        from(notation = notation, others = others, uc = {})
     }
 
     /**
-     * Use the library with the given alias from `gradle/libs.versions.toml` as the source of the
+     * Specify one or more source BOMs to generate the version catalog from using standard
+     * dependency notation `group:artifact:version`, and further customize the generation options by
+     * setting the [UsingConfig]
+     *
+     * *Note: Due to the combination of varargs and a trailing lambda, it may not be possible to
+     * call this method from the Groovy DSL.*
+     *
+     * @param notation the first BOM's dependency notation to generate the catalog from
+     * @param others one or more other BOM dependency notations to include in the generated catalog
+     * @param uc the configuration block for the [UsingConfig]
+     */
+    fun from(notation: String, vararg others: String, uc: UsingConfig.() -> Unit) {
+        from {
+            dependency(notation, *others)
+            using(uc)
+        }
+    }
+
+    /**
+     * Specify one or more aliases from [defaultVersionCatalog] that are BOMs to generate the
+     * version catalog from.
+     *
+     * @param libraryAliasName the first alias in [defaultVersionCatalog] to use in the generated
+     *   version catalog
+     * @param otherAliases one or more other aliases in [defaultVersionCatalog] to use in the
+     *   generated version catalog
+     */
+    fun fromToml(libraryAliasName: String, vararg otherAliases: String) {
+        fromToml(libraryAliasName = libraryAliasName, otherAliases = otherAliases, uc = {})
+    }
+
+    /**
+     * Specify one or more BOM aliases from [defaultVersionCatalog] that to generate the version
+     * catalog from and further customize the [UsingConfig].
+     *
+     * *Note: Due to the combination of varargs and a trailing lambda, it may not be possible to
+     * call this method from the Groovy DSL.*
+     *
+     * @param libraryAliasName the first alias in [defaultVersionCatalog] to use in the generated
+     *   version catalog
+     * @param otherAliases one or more other aliases in [defaultVersionCatalog] to use in the
+     *   generated version catalog
+     * @param uc the configuration block for the [UsingConfig] inside of the [SourceConfig]
+     */
+    fun fromToml(
+        libraryAliasName: String,
+        vararg otherAliases: String,
+        uc: UsingConfig.() -> Unit,
+    ) {
+        from {
+            toml { libraryAliases = listOf(libraryAliasName, *otherAliases) }
+            using(uc)
+        }
+    }
+
+    /**
+     * Use the library with the given alias from [defaultVersionCatalog] as the source of the
      * generated catalog. This is a shortcut for
      *
      * ```kotlin
@@ -328,6 +385,10 @@ class GeneratorConfig(val settings: Settings) {
      *   from
      * @param otherAliases one or more other BOM aliases to include in the generated catalog
      */
+    @Deprecated(
+        message = "Use fromToml instead of from(toml(...))",
+        replaceWith = ReplaceWith(expression = """fromToml("my-alias", "my-other-alias")"""),
+    )
     fun toml(libraryAliasName: String, vararg otherAliases: String): SourceConfig.() -> Unit {
         return { toml { libraryAliases = listOf(libraryAliasName, *otherAliases) } }
     }
@@ -374,7 +435,41 @@ class GeneratorConfig(val settings: Settings) {
      * @param sc the config block
      */
     fun from(sc: SourceConfig.() -> Unit) {
-        val cfg = SourceConfig(settings, defaultVersionCatalog).apply(sc)
+        from(sc = sc, uc = {})
+    }
+
+    /**
+     * Specify the source BOM to generate the version catalog from. BOMs can be specified by using a
+     * reference to a library in a TOML file, or by using regular dependency notation. This function
+     * is primarily provided to provide easier access to the [UsingConfig] when using the [fromToml]
+     * shortcut function.
+     *
+     * To use a TOML
+     *
+     * ```kotlin
+     * from {
+     *   toml {
+     *     libraryAliases = listOf("spring-boot-dependencies")
+     *     file = File("gradle/libs.versions.toml") // optional, defaults to this value
+     *   }
+     * }
+     * ```
+     *
+     * To use regular notation
+     *
+     * ```kotlin
+     * from("org.springframework.boot:spring-boot-dependencies:3.1.2")
+     * // or
+     * from {
+     *   dependency("org.springframework.boot:spring-boot-dependencies:3.1.2")
+     * }
+     * ```
+     *
+     * @param sc the config block
+     * @param uc the configuration block for the [UsingConfig] within [SourceConfig]
+     */
+    internal fun from(sc: SourceConfig.() -> Unit, uc: UsingConfig.() -> Unit) {
+        val cfg = SourceConfig(settings, defaultVersionCatalog).apply(sc).apply { using(uc) }
         if (cfg.hasTomlConfig()) {
             // to preserve backwards compatibility, only set the top-level
             // catalogParser from the first TOML config
