@@ -1,8 +1,10 @@
 package dev.aga.gradle.versioncatalogs.assertion
 
+import java.nio.file.Path
 import org.assertj.core.api.AbstractAssert
 import org.assertj.core.api.Assertions
 import org.assertj.core.error.ShouldHaveSize
+import org.tomlj.Toml
 import org.tomlj.TomlArray
 import org.tomlj.TomlTable
 
@@ -25,6 +27,11 @@ class TomlTableAssert(actual: TomlTable) :
         return this
     }
 
+    fun isEqualTo(expected: Path): TomlTableAssert {
+        val expected = Toml.parse(expected)
+        return isEqualTo(expected)
+    }
+
     fun hasSize(size: Int): TomlTableAssert {
         isNotNull()
         if (actual.size() != size) {
@@ -41,5 +48,18 @@ class TomlTableAssert(actual: TomlTable) :
 
     companion object {
         fun assertThat(actual: TomlTable): TomlTableAssert = TomlTableAssert(actual)
+
+        fun assertThat(path: Path): TomlTableAssert {
+            Assertions.assertThat(path).exists()
+            return with(Toml.parse(path)) {
+                Assertions.assertThat(hasErrors())
+                    .withFailMessage {
+                        "Expected TOML to not have any parse errors but found ${errors().size}"
+                    }
+                    .isFalse
+
+                assertThat(this)
+            }
+        }
     }
 }

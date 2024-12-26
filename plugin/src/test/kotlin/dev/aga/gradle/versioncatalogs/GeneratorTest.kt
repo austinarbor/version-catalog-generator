@@ -34,7 +34,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.tomlj.Toml
-import org.tomlj.TomlParseResult
 import org.tomlj.TomlTable
 
 internal class GeneratorTest {
@@ -147,7 +146,9 @@ internal class GeneratorTest {
             assertThat(expectedLibraries).containsExactlyInAnyOrderElementsOf(generatedBundles[it])
         }
 
-        assertTomlTableEquals("myLibs", expectedCatalog)
+        val actual = projectDir.resolve("myLibs.versions.toml").toPath()
+        val expected = resourceRoot.resolve(expectedCatalog)
+        TomlTableAssert.assertThat(actual).isEqualTo(expected)
     }
 
     @Test
@@ -213,15 +214,6 @@ internal class GeneratorTest {
         }
     }
 
-    private fun assertTomlTableEquals(name: String, expectedPath: Path) {
-        val cachedLib = projectDir.resolve("${name}.versions.toml")
-        assertThat(cachedLib).exists()
-
-        val cachedToml = Toml.parse(cachedLib.toPath())
-        val expectedToml = getExpectedToml(expectedPath)
-        TomlTableAssert.assertThat(cachedToml).isEqualTo(expectedToml)
-    }
-
     private fun getLibraryAlias(property: String): String {
         val split = property.split(".")
         // if we have version.ref, return last -2
@@ -233,10 +225,6 @@ internal class GeneratorTest {
             result += s
         }
         return result.joinToString(".")
-    }
-
-    private fun getExpectedToml(tomlPath: Path): TomlParseResult {
-        return Toml.parse(resourceRoot.resolve(tomlPath))
     }
 
     private fun getExpectedCatalog(tomlPath: Path): Triple<TomlTable, TomlTable, TomlTable> {
