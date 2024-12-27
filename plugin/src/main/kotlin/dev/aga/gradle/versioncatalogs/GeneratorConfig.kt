@@ -1,5 +1,7 @@
 package dev.aga.gradle.versioncatalogs
 
+import dev.aga.gradle.versioncatalogs.annotation.GeneratorConfigDsl
+import dev.aga.gradle.versioncatalogs.annotation.SourceConfigDsl
 import dev.aga.gradle.versioncatalogs.model.PropertyOverride
 import dev.aga.gradle.versioncatalogs.model.TomlVersionRef
 import dev.aga.gradle.versioncatalogs.service.CatalogParser
@@ -15,6 +17,7 @@ import org.apache.maven.model.Dependency
 import org.gradle.api.Incubating
 import org.gradle.api.initialization.Settings
 
+@GeneratorConfigDsl
 class GeneratorConfig(val settings: Settings) {
     /**
      * The version catalog file to use when no specific file is otherwise set in the `from` block.
@@ -330,7 +333,11 @@ class GeneratorConfig(val settings: Settings) {
      * @param others one or more other BOM dependency notations to include in the generated catalog
      * @param uc the configuration block for the [UsingConfig]
      */
-    fun from(notation: String, vararg others: String, uc: UsingConfig.() -> Unit) {
+    fun from(
+        notation: String,
+        vararg others: String,
+        uc: @GeneratorConfigDsl UsingConfig.() -> Unit,
+    ) {
         from {
             dependency(notation, *others)
             using(uc)
@@ -366,7 +373,7 @@ class GeneratorConfig(val settings: Settings) {
     fun fromToml(
         libraryAliasName: String,
         vararg otherAliases: String,
-        uc: UsingConfig.() -> Unit,
+        uc: @GeneratorConfigDsl UsingConfig.() -> Unit,
     ) {
         from {
             toml { libraryAliases = listOf(libraryAliasName, *otherAliases) }
@@ -413,7 +420,7 @@ class GeneratorConfig(val settings: Settings) {
      * }
      * ```
      */
-    fun using(uc: UsingConfig.() -> Unit) {
+    fun using(uc: @GeneratorConfigDsl UsingConfig.() -> Unit) {
         uc(usingConfig)
     }
 
@@ -442,7 +449,7 @@ class GeneratorConfig(val settings: Settings) {
      *
      * @param sc the config block
      */
-    fun from(sc: SourceConfig.() -> Unit) {
+    fun from(sc: @GeneratorConfigDsl SourceConfig.() -> Unit) {
         from(sc = sc, uc = {})
     }
 
@@ -476,7 +483,10 @@ class GeneratorConfig(val settings: Settings) {
      * @param sc the config block
      * @param uc the configuration block for the [UsingConfig] within [SourceConfig]
      */
-    internal fun from(sc: SourceConfig.() -> Unit, uc: UsingConfig.() -> Unit) {
+    internal fun from(
+        sc: @GeneratorConfigDsl SourceConfig.() -> Unit,
+        uc: @GeneratorConfigDsl UsingConfig.() -> Unit,
+    ) {
         val cfg = SourceConfig(settings, defaultVersionCatalog).apply(sc).apply { using(uc) }
         if (cfg.hasTomlConfig()) {
             // to preserve backwards compatibility, only set the top-level
@@ -678,6 +688,7 @@ class GeneratorConfig(val settings: Settings) {
         }
     }
 
+    @SourceConfigDsl
     class SourceConfig(
         private val settings: Settings,
         private val defaultVersionCatalog: File,
@@ -687,7 +698,7 @@ class GeneratorConfig(val settings: Settings) {
         internal lateinit var catalogParser: CatalogParser
         internal var usingConfig: UsingConfig = UsingConfig()
 
-        fun toml(tc: TomlConfig.() -> Unit) {
+        fun toml(tc: @SourceConfigDsl TomlConfig.() -> Unit) {
             val cfg = TomlConfig(settings, defaultVersionCatalog).apply(tc)
             require(cfg.isValid()) { "One or more library names must be set" }
             tomlConfig = cfg
@@ -710,7 +721,7 @@ class GeneratorConfig(val settings: Settings) {
          * }
          * ```
          */
-        fun using(uc: UsingConfig.() -> Unit) {
+        fun using(uc: @SourceConfigDsl UsingConfig.() -> Unit) {
             uc(usingConfig)
         }
 
