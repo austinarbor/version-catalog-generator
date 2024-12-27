@@ -30,7 +30,7 @@ internal class DeprecatedGeneratorTest : GeneratorTestBase() {
                             settings,
                             settings.rootDir
                                 .toPath()
-                                .resolve(Paths.get("gradle", "libs.versions.toml"))
+                                .resolve(Paths.get("gradle", "tomls", "libs.versions.toml"))
                                 .toFile(),
                         ) to listOf(dep)
                     }
@@ -53,7 +53,9 @@ internal class DeprecatedGeneratorTest : GeneratorTestBase() {
                 from {
                     toml {
                         libraryAlias = "springBootDependencies"
-                        file = Paths.get("src", "test", "resources", "source-toml.toml").toFile()
+                        file =
+                            Paths.get("src", "test", "resources", "tomls", "source-toml.toml")
+                                .toFile()
                     }
                 }
                 propertyOverrides = mapOf("assertj.version" to versionRef("does-not-exist"))
@@ -128,7 +130,8 @@ internal class DeprecatedGeneratorTest : GeneratorTestBase() {
                         toml {
                             libraryAlias = "springBootDependencies"
                             file =
-                                Paths.get("src", "test", "resources", "source-toml.toml").toFile()
+                                Paths.get("src", "test", "resources", "tomls", "source-toml.toml")
+                                    .toFile()
                         }
                     }
                     propertyOverrides =

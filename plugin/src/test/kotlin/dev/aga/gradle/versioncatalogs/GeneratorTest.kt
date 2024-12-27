@@ -54,7 +54,9 @@ internal class GeneratorTest : GeneratorTestBase() {
                 from {
                     toml {
                         libraryAliases = listOf("springBootDependencies")
-                        file = Paths.get("src", "test", "resources", "source-toml.toml").toFile()
+                        file =
+                            Paths.get("src", "test", "resources", "tomls", "source-toml.toml")
+                                .toFile()
                     }
                     val v =
                         when (version) {

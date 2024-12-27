@@ -1,6 +1,7 @@
 package dev.aga.gradle.versioncatalogs.service
 
 import dev.aga.gradle.versioncatalogs.exception.ConfigurationException
+import java.nio.file.Path
 import java.nio.file.Paths
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
@@ -18,7 +19,7 @@ internal class FileCatalogParserTest {
         shouldThrow: Boolean,
         errorContains: String,
     ) {
-        val file = buildPath("libs.versions.toml").toFile()
+        val file = buildPath(Paths.get("tomls", "libs.versions.toml")).toFile()
         val parser = FileCatalogParser(file)
         if (!shouldThrow) {
             val actual = parser.findLibrary(libraryName)
@@ -62,6 +63,6 @@ internal class FileCatalogParserTest {
             )
         }
 
-        private fun buildPath(fileName: String) = Paths.get(srcDir, fileName)
+        private fun buildPath(fileName: Path) = Paths.get(srcDir).resolve(fileName)
     }
 }
