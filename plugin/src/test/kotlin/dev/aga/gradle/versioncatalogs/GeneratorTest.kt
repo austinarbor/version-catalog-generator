@@ -27,15 +27,13 @@ internal class GeneratorTest : GeneratorTestBase() {
                     propertyOverrides = mapOf("jackson-bom.version" to "2.16.1")
                 }
                 from("org.springframework.boot:spring-boot-dependencies:3.1.2") {
-                    using {
-                        aliasPrefixGenerator = GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR
-                        aliasSuffixGenerator = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR
-                        versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
-                        excludeGroups = ""
-                        excludeNames = ""
-                        generateBomEntry = true
-                        propertyOverrides = emptyMap()
-                    }
+                    aliasPrefixGenerator = GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR
+                    aliasSuffixGenerator = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR
+                    versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
+                    excludeGroups = ""
+                    excludeNames = ""
+                    generateBomEntry = true
+                    propertyOverrides = emptyMap()
                 }
             }
         val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
