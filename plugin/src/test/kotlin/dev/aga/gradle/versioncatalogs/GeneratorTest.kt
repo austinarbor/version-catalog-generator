@@ -44,6 +44,31 @@ internal class GeneratorTest : GeneratorTestBase() {
         verifyGeneratedCatalog(config, "myLibs", expected)
     }
 
+    @Test
+    fun `default version catalog`() {
+        val config =
+            GeneratorConfig(settings).apply {
+                defaultVersionCatalog =
+                    Paths.get("src", "test", "resources", "tomls", "source-toml.toml").toFile()
+                saveDirectory = projectDir
+                saveGeneratedCatalog = true
+                fromToml("springBootDependencies") {
+                    generateBomEntry = true
+                    propertyOverrides =
+                        mapOf(
+                            "jackson-bom.version" to versionRef("jackson"),
+                            "assertj.version" to versionRef("assertj"),
+                            "caffeine.version" to "3.1.8",
+                        )
+                }
+            }
+        val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+        container.generate("myLibs", config, resolver)
+        val expected =
+            Paths.get("expectations", "spring-boot-dependencies", "property-overrides.toml")
+        verifyGeneratedCatalog(config, "myLibs", expected)
+    }
+
     @ParameterizedTest
     @ValueSource(strings = ["does-not-exist"])
     @ValueSource(ints = [1])
