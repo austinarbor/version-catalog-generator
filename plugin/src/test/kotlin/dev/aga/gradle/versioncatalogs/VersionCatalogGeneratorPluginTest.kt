@@ -43,6 +43,7 @@ class VersionCatalogGeneratorPluginTest {
             """
             import dev.aga.gradle.versioncatalogs.Generator.generate
             import dev.aga.gradle.versioncatalogs.GeneratorConfig
+            
             buildscript {
               dependencies {
                 classpath(files($classpathString))
@@ -79,6 +80,12 @@ class VersionCatalogGeneratorPluginTest {
                   from(toml("aws-bom"))
                   aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
                 }
+                generate("springLibs") {
+                  from(toml("spring-boot-dependencies"))
+                  propertyOverrides = mapOf(
+                    "jackson-bom.version" to versionRef("jackson")
+                  )
+                }
                 generate("junitLibs") {
                   from {
                     toml {
@@ -100,6 +107,7 @@ class VersionCatalogGeneratorPluginTest {
               java
             }
             dependencies {
+              implementation(springLibs.spring.springBootStarterWeb)
               implementation(jsonLibs.jackson.jacksonDatabind)
               implementation(jsonLibs.bundles.jacksonModule)
               implementation(awsLibs.s3)
@@ -116,8 +124,11 @@ class VersionCatalogGeneratorPluginTest {
             """
                 [versions]
                 aws = "2.21.15"
+                jackson = "2.18.1"
+                spring = "3.4.1"
                 [libraries]
                 aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
+                spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
             """
                 .trimIndent(),
         )
@@ -180,6 +191,12 @@ class VersionCatalogGeneratorPluginTest {
                     it.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
                     it.generateBomEntry = true
                 }
+                generator.generate("springLibs") { gen ->
+                  gen.from(gen.toml("spring-boot-dependencies"))  
+                  gen.propertyOverrides = [
+                    "jackson-bom.version": gen.versionRef("jackson")
+                  ]
+                }
                 generator.generate("junitLibs") {
                   it.from { from ->
                     from.toml { toml ->
@@ -200,6 +217,7 @@ class VersionCatalogGeneratorPluginTest {
               java
             }
             dependencies {
+              implementation(springLibs.spring.springBootStarterWeb)
               implementation(jsonLibs.jackson.jacksonDatabind)
               implementation(jsonLibs.bundles.jacksonModule)
               testImplementation(mockitoLibs.mockito.mockitoCore)
@@ -208,6 +226,18 @@ class VersionCatalogGeneratorPluginTest {
             """
                 .trimIndent(),
         )
+
+        versionCatalogFile.writeText(
+            """
+                [versions]
+                aws = "2.21.15"
+                jackson = "2.18.1"
+                spring = "3.4.1"
+                [libraries]
+                aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
+                spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
+            """
+                .trimIndent())
 
         // Run the build
         val runner =
