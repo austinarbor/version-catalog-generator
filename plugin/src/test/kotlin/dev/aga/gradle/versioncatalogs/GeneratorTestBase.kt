@@ -1,5 +1,6 @@
 package dev.aga.gradle.versioncatalogs
 
+import dev.aga.gradle.versioncatalogs.assertion.TomlTableAssert
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -126,12 +127,22 @@ internal abstract class GeneratorTestBase {
     protected open fun newProject(): Project =
         ProjectBuilder.builder().withProjectDir(projectDir).build()
 
-    protected open fun verifyGeneratedCatalog(name: String, expectedCatalogPath: Path) {
+    protected open fun verifyGeneratedCatalog(
+        config: GeneratorConfig,
+        name: String,
+        expectedCatalogPath: Path,
+    ) {
         verify(container).create(eq(name), any<Action<VersionCatalogBuilder>>())
         val (versions, libraries, bundles) = getExpectedCatalog(expectedCatalogPath)
         verifyVersions(versions)
         verifyLibraries(libraries)
         verifyBundles(bundles)
+
+        if (config.saveGeneratedCatalog) {
+            val actual: Path =
+                config.saveDirectory.toPath().resolve(Paths.get("${name}.versions.toml"))
+            TomlTableAssert.assertThat(actual).isEqualTo(resourceRoot.resolve(expectedCatalogPath))
+        }
     }
 
     protected open fun getExpectedCatalog(tomlPath: Path): Triple<TomlTable, TomlTable, TomlTable> {
