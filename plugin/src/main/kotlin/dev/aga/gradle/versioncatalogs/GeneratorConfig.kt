@@ -158,7 +158,7 @@ class GeneratorConfig(val settings: Settings) {
     var excludeGroups: String? = null
         set(value) {
             field = value
-            usingConfig.excludeGroups = value
+            usingConfig.excludeGroups = value?.takeIf { it.isNotBlank() } ?: ""
         }
 
     /**
@@ -180,7 +180,7 @@ class GeneratorConfig(val settings: Settings) {
     var excludeNames: String? = null
         set(value) {
             field = value
-            usingConfig.excludeNames = value
+            usingConfig.excludeNames = value?.takeIf { it.isNotBlank() } ?: ""
         }
 
     /** When true, an entry for the BOM itself will be added to the catalog. */
@@ -261,6 +261,8 @@ class GeneratorConfig(val settings: Settings) {
             versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
             generateBomEntry = false
             propertyOverrides = emptyMap()
+            excludeGroups = ""
+            excludeNames = ""
         }
 
     /**
@@ -527,20 +529,24 @@ class GeneratorConfig(val settings: Settings) {
 
         /**
          * Regex to filter the groups (groupId) of dependencies which should be included in the
-         * generated catalog. The dependencies which match the regex will be excluded. The default
-         * value is `null`.
+         * generated catalog. The dependencies which match the regex will be excluded. An empty
+         * string `""` will disable the filter.
          */
-        var excludeGroups: String? = null
+        lateinit var excludeGroups: String
 
         /**
          * Regex to filter the name (artifactId) of dependencies which should be included in the
-         * generated catalog. Dependency names which match the regex will be excluded. The default
-         * value is `null`.
+         * generated catalog. Dependency names which match the regex will be excluded. An empty
+         * string `""` will disable the filter.
          */
-        var excludeNames: String? = null
+        lateinit var excludeNames: String
 
         /** When true, an entry for the BOM itself will be added to the catalog. */
         var generateBomEntry: Boolean? = null
+            set(value) {
+                requireNotNull(value) { "generateBomEntry cannot be set to null" }
+                field = value
+            }
 
         /**
          * Override property values that are set in the root BOM you are generating a catalog for.
@@ -559,19 +565,34 @@ class GeneratorConfig(val settings: Settings) {
          * propertyOverrides = mapOf("jackson-bom" to "2.16.1", "mockito-bom" to versionRef("mockito"))
          * ```
          */
-        var propertyOverrides: Map<String, Any> = emptyMap()
+        lateinit var propertyOverrides: Map<String, Any>
 
         internal val excludeFilter: (Dependency) -> Boolean by lazy {
             {
-                val eg = excludeGroups
-                val en = excludeNames
-                if (eg == null && en == null) {
+                if (!::excludeGroups.isInitialized) {
+                    excludeGroups = ""
+                }
+                if (!::excludeNames.isInitialized) {
+                    excludeNames = ""
+                }
+
+                if (excludeGroups.isBlank() && excludeNames.isBlank()) {
                     false
                 } else {
-                    // default to true because if one of the regexes is non-null, then
-                    // the null value should basically be equivalent to always matching
-                    val excludeGroup = eg?.toRegex()?.matches(it.groupId) ?: true
-                    val excludeName = en?.toRegex()?.matches(it.artifactId) ?: true
+                    // default to true because if one of the regexes is non-blank, then
+                    // the blank value should basically be equivalent to always matching
+                    val excludeGroup =
+                        when {
+                            excludeGroups.isBlank() -> true
+                            else -> excludeGroups.toRegex().matches(it.groupId)
+                        }
+
+                    val excludeName =
+                        when {
+                            excludeNames.isBlank() -> true
+                            else -> excludeNames.toRegex().matches(it.artifactId)
+                        }
+
                     excludeGroup && excludeName
                 }
             }
@@ -620,14 +641,14 @@ class GeneratorConfig(val settings: Settings) {
                         }
 
                     excludeGroups =
-                        if (primary.excludeGroups != null) {
+                        if (primary::excludeGroups.isInitialized) {
                             primary.excludeGroups
                         } else {
                             fallback.excludeGroups
                         }
 
                     excludeNames =
-                        if (primary.excludeNames != null) {
+                        if (primary::excludeNames.isInitialized) {
                             primary.excludeNames
                         } else {
                             fallback.excludeNames
@@ -641,7 +662,7 @@ class GeneratorConfig(val settings: Settings) {
                         }
 
                     propertyOverrides =
-                        if (primary.propertyOverrides.isNotEmpty()) {
+                        if (primary::propertyOverrides.isInitialized) {
                             primary.propertyOverrides
                         } else {
                             fallback.propertyOverrides
