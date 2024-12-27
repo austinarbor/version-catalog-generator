@@ -1,6 +1,7 @@
 import io.gitlab.arturbosch.detekt.Detekt
 
 plugins {
+    idea
     alias(libs.plugins.kotlin)
     `kotlin-dsl`
     `java-gradle-plugin`
@@ -108,6 +109,13 @@ publishing {
 
             from(components["java"])
         }
+    }
+}
+
+idea {
+    module {
+        isDownloadJavadoc = true
+        isDownloadSources = true
     }
 }
 
