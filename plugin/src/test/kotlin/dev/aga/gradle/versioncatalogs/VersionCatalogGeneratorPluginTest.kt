@@ -43,7 +43,7 @@ class VersionCatalogGeneratorPluginTest {
             """
             import dev.aga.gradle.versioncatalogs.Generator.generate
             import dev.aga.gradle.versioncatalogs.GeneratorConfig
-            
+                        
             buildscript {
               dependencies {
                 classpath(files($classpathString))
@@ -237,7 +237,8 @@ class VersionCatalogGeneratorPluginTest {
                 aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
                 spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
             """
-                .trimIndent())
+                .trimIndent(),
+        )
 
         // Run the build
         val runner =

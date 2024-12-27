@@ -264,15 +264,22 @@ class GeneratorConfig(val settings: Settings) {
         }
 
     internal var usingConfig =
-        UsingConfig().apply {
-            aliasPrefixGenerator = DEFAULT_ALIAS_PREFIX_GENERATOR
-            aliasSuffixGenerator = DEFAULT_ALIAS_SUFFIX_GENERATOR
-            versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
-            generateBomEntry = false
-            propertyOverrides = emptyMap()
-            excludeGroups = ""
-            excludeNames = ""
-        }
+        UsingConfig {
+                if (::catalogParser.isInitialized) {
+                    catalogParser
+                } else {
+                    FileCatalogParser(defaultVersionCatalog)
+                }
+            }
+            .apply {
+                aliasPrefixGenerator = DEFAULT_ALIAS_PREFIX_GENERATOR
+                aliasSuffixGenerator = DEFAULT_ALIAS_SUFFIX_GENERATOR
+                versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
+                generateBomEntry = false
+                propertyOverrides = emptyMap()
+                excludeGroups = ""
+                excludeNames = ""
+            }
 
     /**
      * Convenience function to construct a [PropertyOverride] that references a version alias from
@@ -282,22 +289,20 @@ class GeneratorConfig(val settings: Settings) {
      * @param alias the version alias to lookup
      */
     @Deprecated(
-        """The functionality of versionRef will be changed in the next major release. 
-            Marking as deprecated to bring attention to the change in functionality.
-            Starting with the next major release, versionRef when called from the GeneratorConfig scope
-            will look up the alias from the TOML defined in defaultVersionCatalog
-            """,
+        """Use "using" block instead""",
         replaceWith =
             ReplaceWith(
                 """
-            defaultVersionCatalog = file("/path/to/somewhere/libs.versions.toml")
-            // someAlias will be fetched from defaultVersionCatalog
-            propertyOverrides = mapOf("my.version" to versionRef("someAlias"))
+            defaultVersionCatalog = file("/path/to/somewhere/libs.versions.toml") // optionally change
+            using {
+              // someAlias will be fetched from defaultVersionCatalog
+              propertyOverrides = mapOf("my.version" to versionRef("someAlias"))
+            }
         """,
             ),
     )
     fun versionRef(alias: String): PropertyOverride {
-        return TomlVersionRef(catalogParser, alias)
+        return TomlVersionRef(alias, catalogParser)
     }
 
     /**
@@ -502,7 +507,41 @@ class GeneratorConfig(val settings: Settings) {
         }
     }
 
-    class UsingConfig {
+    class UsingConfig(private val catalogParserSupplier: () -> CatalogParser) {
+
+        /**
+         * Convenience function to construct a [PropertyOverride] that references a version alias
+         * from the TOML related to the current context. For example
+         *
+         * ```kotlin
+         * generate("myLibs") {
+         *   using {
+         *     propertyOverrides = mapOf(
+         *       "jackson-bom.version" to versionRef("jackson") // look up 'jackson' in defaultVersionCatalog
+         *     )
+         *   }
+         *  }
+         * ```
+         * ```kotlin
+         * from {
+         *   toml {
+         *     file = File("/path/to/libs.versions.toml")
+         *   }
+         *   using {
+         *     propertyOverrides = mapOf(
+         *       "jackson-bom.version" to versionRef("jackson") // look up 'jackson' in /path/to/libs.versions.toml
+         *     )
+         *   }
+         * }
+         * ```
+         *
+         * Attempting to use `versionRef` in a [using] block inside a [from] block without declaring
+         * a `toml` configuration will result in an exception.
+         *
+         * @param alias the version alias to lookup
+         */
+        fun versionRef(alias: String): TomlVersionRef = TomlVersionRef(alias, catalogParserSupplier)
+
         /**
          * Function to generate the name of the library in the generated catalog. The default
          * behavior takes the output of the [aliasPrefixGenerator] and the output of the
@@ -616,7 +655,7 @@ class GeneratorConfig(val settings: Settings) {
 
         companion object {
             fun merge(primary: UsingConfig, fallback: UsingConfig): UsingConfig {
-                return UsingConfig().apply {
+                return UsingConfig(primary.catalogParserSupplier).apply {
                     aliasPrefixGenerator =
                         if (primary::aliasPrefixGenerator.isInitialized) {
                             primary.aliasPrefixGenerator
@@ -696,7 +735,7 @@ class GeneratorConfig(val settings: Settings) {
         internal lateinit var tomlConfig: TomlConfig
         internal lateinit var dependencyNotations: List<Any>
         internal lateinit var catalogParser: CatalogParser
-        internal var usingConfig: UsingConfig = UsingConfig()
+        internal var usingConfig: UsingConfig = UsingConfig { catalogParser }
 
         fun toml(tc: @SourceConfigDsl TomlConfig.() -> Unit) {
             val cfg = TomlConfig(settings, defaultVersionCatalog).apply(tc)
@@ -726,7 +765,7 @@ class GeneratorConfig(val settings: Settings) {
         }
 
         fun versionRef(alias: String): TomlVersionRef {
-            return TomlVersionRef(catalogParser, alias)
+            return TomlVersionRef(alias, catalogParser)
         }
 
         internal fun hasTomlConfig(): Boolean {
