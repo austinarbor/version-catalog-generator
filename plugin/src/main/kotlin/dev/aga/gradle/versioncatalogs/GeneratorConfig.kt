@@ -602,17 +602,17 @@ class GeneratorConfig(val settings: Settings) {
             fun merge(primary: UsingConfig, fallback: UsingConfig): UsingConfig {
                 return UsingConfig().apply {
                     aliasPrefixGenerator =
-                        when {
-                            primary::aliasPrefixGenerator.isInitialized ->
-                                primary.aliasPrefixGenerator
-                            else -> fallback.aliasPrefixGenerator
+                        if (primary::aliasPrefixGenerator.isInitialized) {
+                            primary.aliasPrefixGenerator
+                        } else {
+                            fallback.aliasPrefixGenerator
                         }
 
                     aliasSuffixGenerator =
-                        when {
-                            primary::aliasSuffixGenerator.isInitialized ->
-                                primary.aliasSuffixGenerator
-                            else -> fallback.aliasSuffixGenerator
+                        if (primary::aliasSuffixGenerator.isInitialized) {
+                            primary.aliasSuffixGenerator
+                        } else {
+                            fallback.aliasSuffixGenerator
                         }
 
                     // this one is a little tricky to set
@@ -621,49 +621,51 @@ class GeneratorConfig(val settings: Settings) {
                     // if none of the above conditions are true, re-construct the default
                     // generator logic using the set prefix and suffix generators from above
                     libraryAliasGenerator =
-                        when {
-                            primary::libraryAliasGenerator.isInitialized ->
-                                primary.libraryAliasGenerator
-                            fallback::libraryAliasGenerator.isInitialized ->
-                                fallback.libraryAliasGenerator
-                            else -> {
-                                { groupId, artifactId ->
-                                    val prefix = aliasPrefixGenerator(groupId, artifactId)
-                                    val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
-                                    DEFAULT_ALIAS_GENERATOR(prefix, suffix)
-                                }
+                        if (primary::libraryAliasGenerator.isInitialized) {
+                            primary.libraryAliasGenerator
+                        } else if (fallback::libraryAliasGenerator.isInitialized) {
+                            fallback.libraryAliasGenerator
+                        } else {
+                            { groupId, artifactId ->
+                                val prefix = aliasPrefixGenerator(groupId, artifactId)
+                                val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
+                                DEFAULT_ALIAS_GENERATOR(prefix, suffix)
                             }
                         }
 
                     versionNameGenerator =
-                        when {
-                            primary::versionNameGenerator.isInitialized ->
-                                primary.versionNameGenerator
-                            else -> fallback.versionNameGenerator
+                        if (primary::versionNameGenerator.isInitialized) {
+                            primary.versionNameGenerator
+                        } else {
+                            fallback.versionNameGenerator
                         }
 
                     excludeGroups =
-                        when {
-                            primary::excludeGroups.isInitialized -> primary.excludeGroups
-                            else -> fallback.excludeGroups
+                        if (primary::excludeGroups.isInitialized) {
+                            primary.excludeGroups
+                        } else {
+                            fallback.excludeGroups
                         }
 
                     excludeNames =
-                        when {
-                            primary::excludeNames.isInitialized -> primary.excludeNames
-                            else -> fallback.excludeNames
+                        if (primary::excludeNames.isInitialized) {
+                            primary.excludeNames
+                        } else {
+                            fallback.excludeNames
                         }
 
                     generateBomEntry =
-                        when {
-                            primary.generateBomEntry != null -> primary.generateBomEntry
-                            else -> fallback.generateBomEntry
+                        if (primary.generateBomEntry != null) {
+                            primary.generateBomEntry
+                        } else {
+                            fallback.generateBomEntry
                         }
 
                     propertyOverrides =
-                        when {
-                            primary::propertyOverrides.isInitialized -> primary.propertyOverrides
-                            else -> fallback.propertyOverrides
+                        if (primary::propertyOverrides.isInitialized) {
+                            primary.propertyOverrides
+                        } else {
+                            fallback.propertyOverrides
                         }
                 }
             }
