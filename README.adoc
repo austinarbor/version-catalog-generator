@@ -16,7 +16,7 @@ Easily use any BOM as a https://docs.gradle.org/current/userguide/platforms.html
 |7.6.x
 |1.x
 |8.x
-|1.x, 2.x
+|1.x, 2.x, 3.x
 |===
 
 
@@ -58,16 +58,18 @@ dependencyResolutionManagement {
   }
   versionCatalogs {
     generate("springLibs") { // <2>
-      from(toml("springBootDependencies")) // <3>
-      propertyOverrides = mapOf(
-        "jackson-bom.version" to "2.16.1", // <4>
-        "mockito.version" to versionRef("mockito"), // <5>
-      )
-      generateBomEntry = true // <6>
+      fromToml("springBootDependencies") { // <3>
+        propertyOverrides = mapOf(
+          "jackson-bom.version" to "2.16.1", // <4>
+          "mockito.version" to versionRef("mockito"), // <5>
+        )
+        generateBomEntry = true // <6>
+      }
     }
     generate("awsLibs") {
-      from(toml("awsBom"))
-      aliasPrefixGenerator = GeneratorConfig.NO_PREFIX // <7>
+      fromToml("awsBom") {
+        aliasPrefixGenerator = GeneratorConfig.NO_PREFIX // <7>
+      }
     }
   }
 }

@@ -11,30 +11,32 @@ dependencyResolutionmanagement {
     generate("springLibs") {
       from {
         toml {
-          libraryAlias = "springBootDependencies" // <1>
+          libraryAliases = listOf("springBootDependencies") // <1>
           file = file("gradle/libs.versions.toml") // <2>
         }
       }
     }
     generate("awsLibs") {
-      from(toml("awsBom")) // <3>
+      fromToml("awsBom") { // <3>
+        // excluded for brevity // <4>
+      }
     }
     generate("junitLibs") {
       from {
         toml {
-          libraryAlias = "boms-junit5"
-          file = artifact("io.micronaut.platform:micronaut-platform:4.3.6") // <4>
+          libraryAliases = listOf("boms-junit5")
+          file = artifact("io.micronaut.platform:micronaut-platform:4.3.6") // <5>
         }
       }
     }
   }
 }
 ----
-<1> Required, the alias of the library in the TOML file
-<2> The TOML file to find the provided alias in. This only needs to be provided
-if _not_ using the value `gradle/libs.versions.toml`
-<3> When using the default file, you can use the convenience function `toml(..)` and just provide the alias name
-<4> If your TOML is published to a repository, you can fetch it using the `artifact` function and standard string
+<1> Required, the one or more aliases of BOMs to use from the TOML file
+<2> The TOML file to find the provided alias in. This only needs to be provided if _not_ using the `defaultVersionCatalog` file
+<3> When using the default file, you can use the convenience function `fromToml(..)` and just provide the alias name(s)
+<4> Additional configuration options for the generated sources can be passed in a trailing lambda block
+<5> If your TOML is published to a repository, you can fetch it using the `artifact` function and standard string
 notation.
 
 .settings.gradle
@@ -45,18 +47,18 @@ dependencyResolutionmanagement {
     generator.generate("springLibs") {
       it.from { from ->
         from.toml { toml ->
-          toml.libraryAlias = "springBootDependencies" // <1>
+          toml.libraryAliases = ["springBootDependencies"] // <1>
           toml.file = file("gradle/libs.versions.toml") // <2>
         }
       }
     }
     generator.generate("awsLibs") {
-      it.from(it.toml("spring-boot-dependencies")) // <3>
+      it.fromToml("spring-boot-dependencies") // <3>
     }
     generate("junitLibs") {
       it.from { from ->
         from.toml { toml ->
-          toml.libraryAlias = "boms-junit5"
+          toml.libraryAliases = ["boms-junit5"]
           toml.file = toml.artifact("io.micronaut.platform:micronaut-platform:4.3.6") // <4>
         }
       }
@@ -64,10 +66,9 @@ dependencyResolutionmanagement {
   }
 }
 ----
-<1> Required, the alias of the library in the TOML file
-<2> The TOML file to find the provided alias in. This only needs to be provided
-if _not_ using the value `gradle/libs.versions.toml`
-<3> When using the default file, you can use the convenience function `toml(..)` and just provide the alias name
+<1> Required, the one or more aliases of BOMs to use from the TOML file
+<2> The TOML file to find the provided alias in. This only needs to be provided if _not_ using the `defaultVersionCatalog` file
+<3> When using the default file, you can use the convenience function `fromToml(..)` and just provide the alias name(s)
 <4> If your TOML is published to a repository, you can fetch it using the `artifact` function and standard string
 notation.
 
@@ -86,13 +87,16 @@ dependencyResolutionmanagement {
       }
     }
     generate("awsLibs") {
-      from("software.amazon.awssdk:bom:2.25.6") // <2>
+      from("software.amazon.awssdk:bom:2.25.6") { // <2>
+        // excluded for brevity // <3>
+      }
     }
   }
 }
 ----
 <1> You can also use the standard string notation to specify your dependency
-<2> More conveniently, you can pass the string notation directly into `from()`
+<2> More conveniently, you can pass the string notation directly into `from()`. More than one dependency strings can be passed in.
+<3> Additional configuration options for the generated sources can be passed in a trailing lambda block
 
 .settings.gradle
 [source,groovy,subs="attributes+",role="secondary"]
@@ -111,7 +115,7 @@ dependencyResolutionmanagement {
 }
 ----
 <1> You can also use the standard string notation to specify your dependency
-<2> More conveniently, you can pass the string notation directly into `from()`
+<2> More conveniently, you can pass the string notation directly into `from()`. More than one dependency strings can be passed in.
 
 NOTE: Groovy is not my strong point so it's likely that there is simpler / better syntax I'm not aware of. If you have
 any suggestions to improve the syntax in the documentation please open an issue or a PR.

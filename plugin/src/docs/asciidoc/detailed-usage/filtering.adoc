@@ -10,7 +10,9 @@ dependencies either by `groupId` or by `name` (artifactId)
 ----
 generate("myLibs") {
   // excluded for brevity
-  excludeGroups = ".*spring.*" // <1>
+  using {
+    excludeGroups = ".*spring.*" // <1>
+  }
 }
 ----
 <1> Exclude all dependencies that have "spring" in their groupId
@@ -20,7 +22,9 @@ generate("myLibs") {
 ----
 generator.generate("myLibs") {
   // excluded for brevity
-  it.excludeGroups = ".*spring.*" // <1>
+  it.using { using ->
+    using.excludeGroups = ".*spring.*" // <1>
+  }
 }
 ----
 <1> Exclude all dependencies that have "spring" in their groupId
@@ -32,7 +36,9 @@ generator.generate("myLibs") {
 ----
 generate("myLibs") {
   // excluded for brevity
-  excludeNames = ".*hibernate.*" // <1>
+  using {
+      excludeNames = ".*hibernate.*" // <1>
+  }
 }
 ----
 <1> Exclude all dependencies that have "hibernate" in their name/artifactId
@@ -42,7 +48,9 @@ generate("myLibs") {
 ----
 generator.generate("myLibs") {
   // excluded for brevity
-  it.excludeNames = ".*hibernate.*" // <1>
+  it.using { using ->
+    using.excludeNames = ".*hibernate.*" // <1>
+  }
 }
 ----
 <1> Exclude all dependencies that have "hibernate" in their name/artifactId

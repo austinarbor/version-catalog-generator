@@ -10,29 +10,31 @@ to specify the version{fn-gradle-overrides}
 ----
 generate("myLibs") {
   // excluded for brevity
-  propertyOverrides = mapOf(
+  using {
+    propertyOverrides = mapOf(
       "jackson.version" to "2.16.1", // <1>
       "aws.version" to versionRef("aws") // <2>
-  )
+    )
+  }
 }
 ----
 <1> Specify a string version to use in place of all occurrences of `jackson.version` when processing the BOM
-<2> Specify an existing version alias from your TOML file. The `versionRef` function
-can only be used if your BOM source is a TOML (not a string dependency notation), and the version alias being
-referenced _must_ exist in the same TOML file in which your BOM alias is declared.
+<2> Specify an existing version alias from your `defaultVersionCatalog` file. The version alias being
+referenced _must_ exist in TOML file.
 
 .settings.gradle
 [source,groovy,subs="attributes+",role="secondary"]
 ----
 generator.generate("myLibs") {
   // excluded for brevity
-  it.propertyOverrides = [
+  it.using { using ->
+    using.propertyOverrides = [
       "jackson.version": "2.16.1", // <1>
       "aws.version": it.versionRef("aws") // <2>
-  ]
+    ]
+  }
 }
 ----
 <1> Specify a string version to use in place of all occurrences of `jackson.version` when processing the BOM
-<2> Specify an existing version alias from your TOML file. The `versionRef` function
-can only be used if your BOM source is a TOML (not a string dependency notation), and the version alias being
-referenced _must_ exist in the same TOML file in which your BOM alias is declared.
+<2> Specify an existing version alias from your `defaultVersionCatalog` file. The version alias being
+referenced _must_ exist in TOML file.

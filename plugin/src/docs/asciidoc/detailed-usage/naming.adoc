@@ -72,12 +72,14 @@ The prefix generation logic can be modified by overriding the property `aliasPre
 ----
 generate("myLibs") {
   // excluded for brevity
-  aliasPrefixGenerator = { groupId, artifactId ->
-   if(groupId == "some.group") {
-       "somegroup"
-   } else {
-       GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR(groupId, artifactId) // <1>
-   }
+  using {
+    aliasPrefixGenerator = { groupId, artifactId ->
+     if(groupId == "some.group") {
+         "somegroup"
+     } else {
+         GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR(groupId, artifactId) // <1>
+     }
+    }
   }
 }
 ----
@@ -88,11 +90,13 @@ generate("myLibs") {
 ----
 generator.generate("myLibs") {
   // excluded for brevity
-  it.aliasPrefixGenerator = { groupId, artifactId ->
-    if(groupId == "some.group") {
-      "somegroup"
-    } else {
+  it.using { using ->
+    using.aliasPrefixGenerator = { groupId, artifactId ->
+      if(groupId == "some.group") {
+        "somegroup"
+      } else {
       DEFAULT_ALIAS_PREFIX_GENERATOR.invoke(groupId, artifactId) // <1>
+      }
     }
   }
 }
@@ -107,8 +111,9 @@ not be useful and instead you may want to skip the prefix entirely. A convenienc
 [source,kotlin,subs="attributes+",role="primary"]
 ----
 generate("awsLibs") {
-  from(toml("awsBom"))
-  aliasPrefixGenerator = GeneratorConfig.NO_PREFIX // <1>
+  fromToml("awsBom") {
+    aliasPrefixGenerator = GeneratorConfig.NO_PREFIX // <1>
+  }
 }
 ----
 <1> The resulting generated alias for `software.amazon.awssdk:s3` would just be `s3`. When accessing this library
@@ -118,8 +123,10 @@ in our build file, the accessor would subsequently be `awsLibs.s3` instead of `a
 [source,groovy,subs="attributes+",role="secondary"]
 ----
 generator.generate("awsLibs") {
-  it.from(it.toml("awsBom"))
-  aliasPrefixGenerator = NO_PREFIX // <1>
+  it.fromToml("awsBom")
+  it.using { using ->
+    using.aliasPrefixGenerator = NO_PREFIX // <1>
+  }
 }
 ----
 <1> The resulting generated alias for `software.amazon.awssdk:s3` would just be `s3`. When accessing this library
@@ -133,13 +140,15 @@ The suffix generation logic can be modified by overriding the property `aliasSuf
 ----
 generate("myLibs") {
   // excluded for brevity
-  aliasSuffixGenerator = { prefix, groupId, artifactId -> // <1>
-   val suffix = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR(groupId, artifactId) // <2>
-   if(prefix == "spring") {
+  using {
+    aliasSuffixGenerator = { prefix, groupId, artifactId -> // <1>
+     val suffix = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR(groupId, artifactId) // <2>
+     if(prefix == "spring") {
        suffix.replaceFirst("spring","") // <3>
-   } else {
+     } else {
        suffix
-   }
+     }
+    }
   }
 }
 ----
@@ -153,13 +162,15 @@ For example, instead of `spring-springBootStarterWeb`, we would generate `spring
 ----
 generator.generate("myLibs") {
   // excluded for brevity
-  it.aliasSuffixGenerator = { prefix, groupId, artifactId -> // <1>
-   def suffix = DEFAULT_ALIAS_SUFFIX_GENERATOR.invoke(groupId, artifactId) // <2>
-   if(prefix == "spring") {
-       suffix.replaceFirst("spring","") // <3>
-   } else {
-       suffix
-   }
+  it.using { using ->
+    using.aliasSuffixGenerator = { prefix, groupId, artifactId -> // <1>
+     def suffix = DEFAULT_ALIAS_SUFFIX_GENERATOR.invoke(groupId, artifactId) // <2>
+     if(prefix == "spring") {
+         suffix.replaceFirst("spring","") // <3>
+     } else {
+         suffix
+     }
+    }
   }
 }
 ----
@@ -194,12 +205,14 @@ The version alias generation logic can be customized by overriding the property 
 ----
 generate("myLibs") {
   // excluded for brevity
-  versionNameGenerator = { propertyName -> // <1>
-   if(propertyName == "somethingWeird") {
-       "notAsWeird"
-   } else {
-       GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR(propertyName) // <2>
-   }
+  using {
+    versionNameGenerator = { propertyName -> // <1>
+     if(propertyName == "somethingWeird") {
+         "notAsWeird"
+     } else {
+         GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR(propertyName) // <2>
+     }
+    }
   }
 }
 ----
@@ -211,12 +224,14 @@ generate("myLibs") {
 ----
 generator.generate("myLibs") {
   // excluded for brevity
-  it.versionNameGenerator = { propertyName -> // <1>
-   if(propertyName == "somethingWeird") {
-       "notAsWeird"
-   } else {
-       DEFAULT_VERSION_NAME_GENERATOR.invoke(propertyName) // <2>
-   }
+  it.using { using ->
+    using.versionNameGenerator = { propertyName -> // <1>
+     if(propertyName == "somethingWeird") {
+         "notAsWeird"
+     } else {
+         DEFAULT_VERSION_NAME_GENERATOR.invoke(propertyName) // <2>
+     }
+    }
   }
 }
 ----
@@ -240,7 +255,7 @@ is already available for use when you apply the plugin
 .settings.gradle
 [source,groovy,subs="attributes+",role="secondary"]
 ----
-it.aliasSuffixGenerator = { _, _, artifactId ->
+using.aliasSuffixGenerator = { _, _, artifactId ->
     caseChange(artifactId, CaseFormat.LOWER_HYPEN, CaseFormat.CAMEL) // <1>
 }
 ----

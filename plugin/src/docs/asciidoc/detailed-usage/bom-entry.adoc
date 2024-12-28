@@ -7,8 +7,9 @@ Optionally, you can configure the generator to also generate an entry in the cat
 [source,kotlin,subs="attributes+",role="primary"]
 ----
 generate("springLibs") {
-  from(toml("springBootDependencies"))
-  generateBomEntry = true // <1>
+  fromToml("springBootDependencies") {
+    generateBomEntry = true // <1>
+  }
 }
 ----
 <1> Set `generateBomEntry` to `true` to include an entry for the BOM in the generated catalog
@@ -21,8 +22,10 @@ generator.generate("springLibs") {
     from.toml { toml ->
       toml.libraryAlias = "springBootDependencies"
     }
+    from.using { using ->
+      using.generateBomEntry = true // <1>
+    }
   }
-  it.generateBomEntry = true // <1>
 }
 ----
 <1> Set `generateBomEntry` to `true` to include an entry for the BOM in the generated catalog
