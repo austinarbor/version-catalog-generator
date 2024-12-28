@@ -34,12 +34,6 @@ class GeneratorConfig(val settings: Settings) {
      */
     var defaultVersionCatalog: File =
         settings.rootDir.toPath().resolve(Paths.get("gradle", "libs.versions.toml")).toFile()
-        set(value) {
-            field = value
-            if (!::catalogParser.isInitialized) {
-                catalogParser = FileCatalogParser(value)
-            }
-        }
 
     /**
      * Function to generate the name of the library in the generated catalog. The default behavior
