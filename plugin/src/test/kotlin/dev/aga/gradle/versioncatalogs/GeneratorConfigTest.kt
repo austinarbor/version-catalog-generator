@@ -94,9 +94,9 @@ class GeneratorConfigTest {
     }
 
     @ParameterizedTest
-    @CsvSource("'     ',''", ".*,.*")
+    @CsvSource("'     ',''", ".*,.*", ",''")
     fun `exclude groups setter only sets non blank strings`(
-        toSet: String,
+        toSet: String?,
         expected: String,
         @TempDir tmp: File,
     ) {
@@ -106,9 +106,9 @@ class GeneratorConfigTest {
     }
 
     @ParameterizedTest
-    @CsvSource("'     ',''", ".*,.*")
+    @CsvSource("'     ',''", ".*,.*", ",''")
     fun `exclude names setter only sets non blank strings`(
-        toSet: String,
+        toSet: String?,
         expected: String,
         @TempDir tmp: File,
     ) {
