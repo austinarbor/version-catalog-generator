@@ -787,8 +787,7 @@ class GeneratorConfig(val settings: Settings) {
         )
         var libraryAlias: String? = null
             set(value) {
-                requireNotNull(value) { "libraryAlias cannot be null" }
-                field = value
+                field = requireNotNull(value) { "libraryAlias cannot be null" }
                 libraryAliases = listOf(value)
             }
 
