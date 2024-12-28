@@ -9,34 +9,37 @@
 dependencyResolutionmanagement {
   versionCatalogs {
     generate("springLibs") {
+      defaultVersionCatalog = file("..") // <1>
       from {
         toml {
-          libraryAliases = listOf("springBootDependencies") // <1>
-          file = file("gradle/libs.versions.toml") // <2>
+          libraryAliases = listOf("springBootDependencies") // <2>
+          file = file("gradle/libs.versions.toml") // <3>
         }
       }
     }
     generate("awsLibs") {
-      fromToml("awsBom") { // <3>
-        // excluded for brevity // <4>
+      fromToml("awsBom") { // <4>
+        // excluded for brevity // <5>
       }
     }
     generate("junitLibs") {
       from {
         toml {
           libraryAliases = listOf("boms-junit5")
-          file = artifact("io.micronaut.platform:micronaut-platform:4.3.6") // <5>
+          file = artifact("io.micronaut.platform:micronaut-platform:4.3.6") // <6>
         }
       }
     }
   }
 }
 ----
-<1> Required, the one or more aliases of BOMs to use from the TOML file
-<2> The TOML file to find the provided alias in. This only needs to be provided if _not_ using the `defaultVersionCatalog` file
-<3> When using the default file, you can use the convenience function `fromToml(..)` and just provide the alias name(s)
-<4> Additional configuration options for the generated sources can be passed in a trailing lambda block
-<5> If your TOML is published to a repository, you can fetch it using the `artifact` function and standard string
+<1> Optionally override the `defaultVersionCatalog` file. This defaults to `gradle/libs.versions.toml` relative to the root directory of the project if not otherwise specified.
+This file will be used when the `file` for a TOML source is not specifically provided.
+<2> Required, the one or more aliases of BOMs to use from the TOML file
+<3> The TOML file to find the provided alias in. This only needs to be provided if _not_ using the `defaultVersionCatalog` file
+<4> When using the default file, you can use the convenience function `fromToml(..)` and just provide the alias name(s)
+<5> Additional configuration options for the generated sources can be passed in a trailing lambda block
+<6> If your TOML is published to a repository, you can fetch it using the `artifact` function and standard string
 notation.
 
 .settings.gradle
@@ -45,31 +48,34 @@ notation.
 dependencyResolutionmanagement {
   versionCatalogs {
     generator.generate("springLibs") {
+      it.defaultVersionCatalog = file("..")  // <1>
       it.from { from ->
         from.toml { toml ->
-          toml.libraryAliases = ["springBootDependencies"] // <1>
-          toml.file = file("gradle/libs.versions.toml") // <2>
+          toml.libraryAliases = ["springBootDependencies"] // <2>
+          toml.file = file("gradle/libs.versions.toml") // <3>
         }
       }
     }
     generator.generate("awsLibs") {
-      it.fromToml("spring-boot-dependencies") // <3>
+      it.fromToml("spring-boot-dependencies") // <4>
     }
     generate("junitLibs") {
       it.from { from ->
         from.toml { toml ->
           toml.libraryAliases = ["boms-junit5"]
-          toml.file = toml.artifact("io.micronaut.platform:micronaut-platform:4.3.6") // <4>
+          toml.file = toml.artifact("io.micronaut.platform:micronaut-platform:4.3.6") // <5>
         }
       }
     }
   }
 }
 ----
-<1> Required, the one or more aliases of BOMs to use from the TOML file
-<2> The TOML file to find the provided alias in. This only needs to be provided if _not_ using the `defaultVersionCatalog` file
-<3> When using the default file, you can use the convenience function `fromToml(..)` and just provide the alias name(s)
-<4> If your TOML is published to a repository, you can fetch it using the `artifact` function and standard string
+<1> Optionally override the `defaultVersionCatalog` file. This defaults to `gradle/libs.versions.toml` relative to the root directory of the project if not otherwise specified.
+This file will be used when the `file` for a TOML source is not specifically provided.
+<2> Required, the one or more aliases of BOMs to use from the TOML file
+<3> The TOML file to find the provided alias in. This only needs to be provided if _not_ using the `defaultVersionCatalog` file
+<4> When using the default file, you can use the convenience function `fromToml(..)` and just provide the alias name(s)
+<5> If your TOML is published to a repository, you can fetch it using the `artifact` function and standard string
 notation.
 
 TIP: GitHub's Dependabot only supports automatic updates in the default version catalog `gradle/libs.versions.toml`
@@ -119,3 +125,63 @@ dependencyResolutionmanagement {
 
 NOTE: Groovy is not my strong point so it's likely that there is simpler / better syntax I'm not aware of. If you have
 any suggestions to improve the syntax in the documentation please open an issue or a PR.
+
+==== Combining Multiple Sources
+
+Multiple sources from any combination of TOML files or string notation can be merged into a single generated catalog
+
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
+----
+dependencyResolutionmanagement {
+  versionCatalogs {
+    generate("manyLibs") {
+      using { // <1>
+        // excluded for brevity
+      }
+      from {
+        toml {
+          libraryAliases = listOf("spring-boot-dependencies", "aws-bom") // <2>
+        }
+        using { // <3>
+          // excluded for brevity
+        }
+      }
+      from("org.junit.jupiter:junit-bom:5.11.4") // <4>
+    }
+  }
+}
+----
+<1> Specify the default settings to use in all `from` declarations
+<2> Include all dependencies from `spring-boot-dependencies` and `aws-bom` which are declared in a TOML file
+<3> Override the default configuration options for just these two BOMs
+<4> Also include the dependencies from the JUnit BOM
+
+TIP: In the Kotlin DSL, when using the `defaultVersionCatalog`, the shorthand syntax `fromToml("first-bom", "second-bom") { }` can be used to declare the BOMs and customize the generation options.
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+dependencyResolutionmanagement {
+  versionCatalogs {
+    geneartor.generate("manyLibs") {
+      it.using { // <1>
+        // excluded for brevity
+      }
+      it.from { from ->
+        from.toml { toml ->
+          toml.libraryAliases = ["spring-boot-dependencies", "aws-bom"] // <2>
+        }
+        from.using { // <3>
+          // excluded for brevity
+        }
+      }
+      it.from("org.junit.jupiter:junit-bom:5.11.4") // <4>
+    }
+  }
+}
+----
+<1> Specify the default settings to use in all `from` declarations
+<2> Include all dependencies from `spring-boot-dependencies` and `aws-bom` which are declared in a TOML file
+<3> Override the default configuration options for just these two BOMs
+<4> Also include the dependencies from the JUnit BOM

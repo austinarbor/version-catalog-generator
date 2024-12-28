@@ -10,31 +10,73 @@ to specify the version{fn-gradle-overrides}
 ----
 generate("myLibs") {
   // excluded for brevity
-  using {
-    propertyOverrides = mapOf(
-      "jackson.version" to "2.16.1", // <1>
-      "aws.version" to versionRef("aws") // <2>
+  using { // <1>
+    propertyOverrides = mapOf (
+      "jackson.version" to "2.16.1", // <2>
+      "aws.version" to versionRef("aws") // <3>
     )
+  }
+  val someFile = file("/path/to/libs.versions.toml")
+  from {
+    toml {
+        libraryAliases = listOf("some-bom")
+        file = someFile
+    }
+    using { // <4>
+      propertyOverrides = mapOf (
+        "jackson.version" to versionRef("jackson")  // <5>
+      )
+    }
+  }
+  from {
+    // excluded for brevity
+    using {
+      propertyOverrides = mapOf(
+        "jackson.version" to someFile.versionRef("jackson"), // <6>
+        "aws.version" to defaultVersionCatalog.versionRef("aws") // <7>
+      )
+    }
   }
 }
 ----
-<1> Specify a string version to use in place of all occurrences of `jackson.version` when processing the BOM
-<2> Specify an existing version alias from your `defaultVersionCatalog` file. The version alias being
+<1> Set the default overrides which will be used in all `from` blocks unless overridden
+<2> Specify a string version to use in place of all occurrences of `jackson.version` when processing the BOM
+<3> Specify an existing version alias from your `defaultVersionCatalog` file. The version alias being
 referenced _must_ exist in TOML file.
+<4> Override the default `propertyOverrides` for this `from` block`
+<5> Use a `versionRef` from the TOML file declared in the `toml` block above
+<6> Use a `versionRef` from an arbitrary `File` declared in a variable. Must import the extension function `dev.aga.gradle.versioncatalogs.versionRef`
+<7> Using same extension function as above, the `defaultVersionCatalog` can always be referenced for a `versionRef` lookup
 
 .settings.gradle
 [source,groovy,subs="attributes+",role="secondary"]
 ----
 generator.generate("myLibs") {
   // excluded for brevity
-  it.using { using ->
+  it.using { using -> // <1>
     using.propertyOverrides = [
-      "jackson.version": "2.16.1", // <1>
-      "aws.version": it.versionRef("aws") // <2>
+      "jackson.version": "2.16.1", // <2>
+      "aws.version": it.versionRef("aws") // <3>
     ]
+  }
+  it.from { from ->
+    from.toml { toml ->
+      toml.libraryAliases = listOf("some-bom")
+      toml.file = file("/path/to/libs.versions.toml")
+    }
+    from.using { using -> // <4>
+      using.propertyOverrides = [
+        "jackson.version": using.versionRef("jackson") // <5>
+      ]
+    }
   }
 }
 ----
-<1> Specify a string version to use in place of all occurrences of `jackson.version` when processing the BOM
-<2> Specify an existing version alias from your `defaultVersionCatalog` file. The version alias being
+<1> Set the default overrides which will be used in all `from` blocks unless overridden
+<2> Specify a string version to use in place of all occurrences of `jackson.version` when processing the BOM
+<3> Specify an existing version alias from your `defaultVersionCatalog` file. The version alias being
 referenced _must_ exist in TOML file.
+<4> Override the default `propertyOverrides` for this `from` block`
+<5> Use a `versionRef` from the TOML file declared in the `toml` block above
+
+TIP: You can use the extension function `dev.aga.gradle.versioncatalogs.versionRef` to fetch a `versionRef` from any `File` outside of the current scope.

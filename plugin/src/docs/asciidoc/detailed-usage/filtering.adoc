@@ -10,24 +10,40 @@ dependencies either by `groupId` or by `name` (artifactId)
 ----
 generate("myLibs") {
   // excluded for brevity
-  using {
-    excludeGroups = ".*spring.*" // <1>
+  using { // <1>
+    excludeGroups = ".*spring.*" // <2>
+  }
+  from {
+    // excluded for brevity
+    using { // <3>
+      excludeGroups = "..." // excluded for brevity
+    }
   }
 }
 ----
-<1> Exclude all dependencies that have "spring" in their groupId
+<1> Set the default `excludeGroups` for all `from` blocks
+<2> Exclude all dependencies that have "spring" in their groupId
+<3> Set/override the `excludeGroups` for just this from block
 
 .settings.gradle
 [source,groovy,subs="attributes+",role="secondary"]
 ----
 generator.generate("myLibs") {
   // excluded for brevity
-  it.using { using ->
-    using.excludeGroups = ".*spring.*" // <1>
+  it.using { using ->  // <1>
+    using.excludeGroups = ".*spring.*" // <2>
+  }
+  it.from { from ->
+   // excluded for brevity
+   from.using { using -> // <3>
+     using.excludeGroups = "..." // excluded for brevity
+   }
   }
 }
 ----
-<1> Exclude all dependencies that have "spring" in their groupId
+<1> Set the default `excludeGroups` for all `from` blocks
+<2> Exclude all dependencies that have "spring" in their groupId
+<3> Set/override the `excludeGroups` for just this from block
 
 ==== Filtering By Name
 
@@ -36,21 +52,37 @@ generator.generate("myLibs") {
 ----
 generate("myLibs") {
   // excluded for brevity
-  using {
-      excludeNames = ".*hibernate.*" // <1>
+  using { // <1>
+      excludeNames = ".*hibernate.*" // <2>
+  }
+  from {
+    // excluded for brevity
+    using { // <3>
+      excludeNames = "..." // excluded for brevity
+    }
   }
 }
 ----
-<1> Exclude all dependencies that have "hibernate" in their name/artifactId
+<1> Set the default `excludeNames` for all `from` blocks
+<2> Exclude all dependencies that have "hibernate" in their name/artifactId
+<3> Set/override the `excludeNames` for just this from block
 
 .settings.gradle
 [source,groovy,subs="attributes+",role="secondary"]
 ----
 generator.generate("myLibs") {
   // excluded for brevity
-  it.using { using ->
-    using.excludeNames = ".*hibernate.*" // <1>
+  it.using { using -> // <1>
+    using.excludeNames = ".*hibernate.*" // <2>
+  }
+  it.from { from ->
+    // excluded for brevity
+    from.using { using -> // <3>
+      using.excludeNames = "..."
+    }
   }
 }
 ----
-<1> Exclude all dependencies that have "hibernate" in their name/artifactId
+<1> Set the default `excludeNames` for all `from` blocks
+<2> Exclude all dependencies that have "hibernate" in their name/artifactId
+<3> Set/override the `excludeNames` for just this from block
