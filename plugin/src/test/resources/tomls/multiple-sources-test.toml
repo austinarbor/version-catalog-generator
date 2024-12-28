@@ -1,0 +1,13 @@
+[versions]
+aws = "2.21.21"
+assertj = "3.25.3"
+jackson = "2.16.1"
+junit = "5.11.4"
+spring = "3.1.2"
+
+[libraries]
+assertj-bom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
+aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws" }
+jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
+junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
+spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }

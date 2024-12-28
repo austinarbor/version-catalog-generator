@@ -43,6 +43,69 @@ internal class GeneratorTest : GeneratorTestBase() {
     }
 
     @Test
+    fun `multiple sources and configurations`() {
+        val config =
+            GeneratorConfig(settings).apply {
+                defaultVersionCatalog =
+                    Paths.get(
+                            "src",
+                            "test",
+                            "resources",
+                            "tomls",
+                            "multiple-sources-test.toml",
+                        )
+                        .toFile()
+                saveDirectory = projectDir
+                saveGeneratedCatalog = true
+                using { aliasPrefixGenerator = GeneratorConfig.NO_PREFIX }
+                fromToml("spring-boot-dependencies") {
+                    aliasPrefixGenerator = GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR
+                    excludeGroups = "org\\.assertj|software\\.amazon.*"
+                    propertyOverrides = mapOf("jackson-bom.version" to versionRef("jackson"))
+                }
+                from("org.assertj:assertj-bom:3.25.3") {
+                    aliasPrefixGenerator = GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR
+                    excludeNames = ".*guava"
+                }
+
+                from {
+                    toml {
+                        libraryAliases = listOf("junit-bom", "aws-bom")
+                        file =
+                            Paths.get(
+                                    "src",
+                                    "test",
+                                    "resources",
+                                    "tomls",
+                                    "multiple-sources-test.toml",
+                                )
+                                .toFile()
+                    }
+                    using {
+                        aliasPrefixGenerator = { groupId, artifactId ->
+                            if (artifactId.contains("junit")) {
+                                GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR(groupId, artifactId)
+                            } else {
+                                GeneratorConfig.NO_PREFIX(groupId, artifactId)
+                            }
+                        }
+                        aliasSuffixGenerator = { prefix, groupId, artifactId ->
+                            GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR(
+                                prefix,
+                                groupId,
+                                artifactId.replaceFirst("junit-", ""),
+                            )
+                        }
+                    }
+                }
+            }
+        val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+        container.generate("myLibs", config, resolver)
+        val expected = Paths.get("expectations", "combined", "libs.versions.toml")
+        verifyGeneratedCatalog(config, "myLibs", expected)
+    }
+
+    @Test
     fun `default version catalog`() {
         val config =
             GeneratorConfig(settings).apply {
