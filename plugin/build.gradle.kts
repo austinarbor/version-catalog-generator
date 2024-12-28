@@ -12,6 +12,7 @@ plugins {
     alias(libs.plugins.gradle.publish)
     alias(libs.plugins.shadow)
     alias(libs.plugins.asciidoctorj)
+    alias(libs.plugins.kover)
 }
 
 val jacocoRuntime by configurations.creating
@@ -148,13 +149,10 @@ tasks {
     }
     test {
         dependsOn(createTestkitFiles)
-        finalizedBy(jacocoTestReport) // report is always generated after tests run
+        finalizedBy(koverXmlReport) // report is always generated after tests run
         useJUnitPlatform()
     }
-    jacocoTestReport {
-        dependsOn(test)
-        reports { xml.required = true }
-    }
+
     asciidoctor {
         configurations(asciidoctorExtensions)
         attributes =

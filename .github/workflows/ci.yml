@@ -58,8 +58,11 @@ jobs:
           gradle-version: ${{ matrix.gradle-version }}
           cache-read-only: ${{ github.ref != 'refs/heads/main' || matrix.gradle-version != 'wrapper' }}
 
+      - name: Clean
+        run: ${{ matrix.gradle-command }} clean
+
       - name: Run Tests
-        run: ${{ matrix.gradle-command }} clean test
+        run: ${{ matrix.gradle-command }} test
 
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
