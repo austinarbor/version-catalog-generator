@@ -119,6 +119,19 @@ class GeneratorConfigTest {
 
     @ParameterizedTest
     @NullSource
+    @ValueSource(strings = ["a", "b"])
+    fun `TomlConfig libraryAlias cannot be set to null`(toSet: String?) {
+        val cfg = GeneratorConfig.TomlConfig(mock<Settings>(), mock<File>())
+        if (toSet == null) {
+            assertThatIllegalArgumentException().isThrownBy { cfg.libraryAlias = toSet }
+        } else {
+            cfg.libraryAlias = toSet
+            assertThat(cfg.libraryAlias).isEqualTo(toSet)
+        }
+    }
+
+    @ParameterizedTest
+    @NullSource
     @ValueSource(booleans = [true, false])
     fun `generateBomEntry in using block cannot be set to null`(
         toSet: Boolean?,
