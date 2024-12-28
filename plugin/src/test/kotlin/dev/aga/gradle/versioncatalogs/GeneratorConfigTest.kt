@@ -6,12 +6,17 @@ import java.nio.file.Paths
 import net.pearx.kasechange.CaseFormat
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
+import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.gradle.api.initialization.Settings
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.Arguments.arguments
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.NullSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 
@@ -86,6 +91,48 @@ class GeneratorConfigTest {
         config.saveDirectory = relative
         expected = rootPath.toFile().resolve(relative)
         assertThat(config.saveDirectory).isEqualTo(expected)
+    }
+
+    @ParameterizedTest
+    @CsvSource("'     ',''", ".*,.*")
+    fun `exclude groups setter only sets non blank strings`(
+        toSet: String,
+        expected: String,
+        @TempDir tmp: File,
+    ) {
+        val settings = mock<Settings> { on { rootDir } doReturn tmp }
+        val config = GeneratorConfig(settings).apply { excludeGroups = toSet }
+        assertThat(config.usingConfig.excludeGroups).isEqualTo(expected)
+    }
+
+    @ParameterizedTest
+    @CsvSource("'     ',''", ".*,.*")
+    fun `exclude names setter only sets non blank strings`(
+        toSet: String,
+        expected: String,
+        @TempDir tmp: File,
+    ) {
+        val settings = mock<Settings> { on { rootDir } doReturn tmp }
+        val config = GeneratorConfig(settings).apply { excludeNames = toSet }
+        assertThat(config.usingConfig.excludeNames).isEqualTo(expected)
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(booleans = [true, false])
+    fun `generateBomEntry in using block cannot be set to null`(
+        toSet: Boolean?,
+        @TempDir tmp: File,
+    ) {
+        val settings = mock<Settings> { on { rootDir } doReturn tmp }
+        if (toSet == null) {
+            assertThatIllegalArgumentException().isThrownBy {
+                GeneratorConfig(settings).apply { using { generateBomEntry = toSet } }
+            }
+        } else {
+            val config = GeneratorConfig(settings).apply { using { generateBomEntry = toSet } }
+            assertThat(config.usingConfig.generateBomEntry).isEqualTo(toSet)
+        }
     }
 
     companion object {

@@ -599,8 +599,7 @@ class GeneratorConfig(val settings: Settings) {
         /** When true, an entry for the BOM itself will be added to the catalog. */
         var generateBomEntry: Boolean? = null
             set(value) {
-                requireNotNull(value) { "generateBomEntry cannot be set to null" }
-                field = value
+                field = requireNotNull(value) { "generateBomEntry cannot be set to null" }
             }
 
         /**
