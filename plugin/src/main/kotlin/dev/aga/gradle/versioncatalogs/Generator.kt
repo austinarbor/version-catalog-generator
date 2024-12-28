@@ -92,33 +92,41 @@ object Generator {
         // need to clean up this logic so that we don't double-resolve the first
         // dependency. I think the resolver interface/logic could use some
         // improvement as well
-        val bomDep =
-            when (val src = config.source()) {
-                is Dependency -> src
-                is String -> src.toDependency()
-                else -> throw IllegalArgumentException("Unable to resolve notation ${src}")
+        val rootDeps: List<Pair<GeneratorConfig.UsingConfig, Dependency>> =
+            config.sources.flatMap { src ->
+                val (cfg, sources) = src()
+                val mergedConfig =
+                    GeneratorConfig.UsingConfig.merge(cfg.usingConfig, config.usingConfig)
+                sources.map {
+                    when (it) {
+                        is Dependency -> mergedConfig to it
+                        is String -> mergedConfig to it.toDependency()
+                        else -> throw IllegalArgumentException("Unable to resolve notation ${it}")
+                    }
+                }
             }
 
         return create(name) {
             val seenModules = mutableSetOf<String>()
-            val queue = ArrayDeque(listOf(bomDep))
+            val queue = ArrayDeque<Pair<GeneratorConfig.UsingConfig, Dependency>>(rootDeps)
             val container = TomlContainer()
-            var rootDep = true
-            if (config.generateBomEntry) {
-                createLibrary(
-                    bomDep,
-                    Version(bomDep.version, bomDep.version, bomDep.version),
-                    config,
-                    true,
-                    container,
-                )
-            }
 
             while (queue.isNotEmpty()) {
-                val dep = queue.removeFirst()
+                val (using, dep) = queue.removeFirst()
+                // Note: Dependency does not override equals, so we are relying on referential
+                // equality
+                val rootDep = rootDeps.any { it.second == dep }
+                if (rootDep && using.generateBomEntry == true) {
+                    createLibrary(
+                        dep,
+                        Version(dep.version, dep.version, dep.version),
+                        using,
+                        true,
+                        container,
+                    )
+                }
                 val (model, parentModel) = resolver.resolve(dep)
-                loadBom(model, parentModel, config, queue, seenModules, rootDep, container)
-                rootDep = false
+                loadBom(model, parentModel, using, queue, seenModules, rootDep, container)
             }
 
             if (config.saveGeneratedCatalog) {
@@ -156,7 +164,7 @@ object Generator {
      *
      * @param model the BOM
      * @param parentModel the parent of the BOM
-     * @param config [GeneratorConfig]
+     * @param using [GeneratorConfig.UsingConfig]
      * @param queue the BFS queue to add more BOMs into
      * @param seenModules the set of modules we have already created libraries for
      * @param rootDep true if this is the very first BOM in the tree, otherwise false
@@ -165,15 +173,15 @@ object Generator {
     internal fun VersionCatalogBuilder.loadBom(
         model: Model,
         parentModel: Model?,
-        config: GeneratorConfig,
-        queue: MutableList<Dependency>,
+        using: GeneratorConfig.UsingConfig,
+        queue: MutableList<Pair<GeneratorConfig.UsingConfig, Dependency>>,
         seenModules: MutableSet<String>,
         rootDep: Boolean,
         container: TomlContainer,
     ) {
-        val newProps = getProperties(model, parentModel, config.propertyOverrides)
+        val newProps = getProperties(model, parentModel, using.propertyOverrides)
         val substitutor = newProps.toSubstitutor()
-        loadDependencies(model, config, queue, substitutor, seenModules, rootDep, container)
+        loadDependencies(model, using, queue, substitutor, seenModules, rootDep, container)
     }
 
     /**
@@ -182,7 +190,7 @@ object Generator {
      * BOM that have `type == "pom" && scope == "import"` will be added to the [queue].
      *
      * @param model the BOM
-     * @param config the [GeneratorConfig]
+     * @param using the [GeneratorConfig.UsingConfig]
      * @param queue the BFS queue to add more BOMs into
      * @param substitutor the [StringSubstitutor] for variable resolution
      * @param seenModules the set of modules we have already created libraries for
@@ -191,55 +199,55 @@ object Generator {
      */
     internal fun VersionCatalogBuilder.loadDependencies(
         model: Model,
-        config: GeneratorConfig,
-        queue: MutableList<Dependency>,
+        using: GeneratorConfig.UsingConfig,
+        queue: MutableList<Pair<GeneratorConfig.UsingConfig, Dependency>>,
         substitutor: StringSubstitutor,
         seenModules: MutableSet<String>,
         rootDep: Boolean,
         container: TomlContainer,
     ) {
         val registeredVersions = mutableSetOf<String>()
-        val deps = getNewDependencies(model, seenModules, substitutor, importFilter, config)
+        val deps = getNewDependencies(model, seenModules, substitutor, importFilter, using)
         deps.forEach { (version, boms) ->
             boms.forEach { bom ->
                 logger.info("${model.groupId}:${model.artifactId} contains other BOMs")
                 if (rootDep) {
                     maybeRegisterVersion(
                         version,
-                        config.versionNameGenerator,
+                        using.versionNameGenerator,
                         registeredVersions,
                         container,
                     )
                 }
-                createLibrary(bom, version, config, rootDep, container)
+                createLibrary(bom, version, using, rootDep, container)
                 // if the version is a property, replace it with the
                 // actual version value
                 if (version.isRef) {
                     bom.version = version.resolvedValue
                 }
-                queue.add(bom)
+                queue.add(using to bom)
             }
         }
 
-        getNewDependencies(model, seenModules, substitutor, jarFilter, config).forEach {
+        getNewDependencies(model, seenModules, substitutor, jarFilter, using).forEach {
             (version, deps) ->
             if (rootDep) {
                 maybeRegisterVersion(
                     version,
-                    config.versionNameGenerator,
+                    using.versionNameGenerator,
                     registeredVersions,
                     container,
                 )
             }
             val aliases = mutableListOf<String>()
             deps.forEach { dep ->
-                val alias = createLibrary(dep, version, config, rootDep, container)
+                val alias = createLibrary(dep, version, using, rootDep, container)
                 if (rootDep && version.isRef) {
                     aliases += alias
                 }
             }
             if (aliases.isNotEmpty()) {
-                registerBundle(version, aliases, config.versionNameGenerator, container)
+                registerBundle(version, aliases, using.versionNameGenerator, container)
             }
         }
     }
@@ -275,7 +283,7 @@ object Generator {
      *
      * @param dep the dependency
      * @param version the version of the dependency, may be a property of actual version
-     * @param config the [GeneratorConfig]
+     * @param using the [GeneratorConfig.UsingConfig]
      * @param rootDep true if this is the very first BOM in the tree, otherwise false
      * @param container the container for the TOML file we are generating
      * @return the library's alias and true if the version was a reference, or false if it was not
@@ -283,17 +291,17 @@ object Generator {
     internal fun VersionCatalogBuilder.createLibrary(
         dep: Dependency,
         version: Version,
-        config: GeneratorConfig,
+        using: GeneratorConfig.UsingConfig,
         rootDep: Boolean,
         container: TomlContainer,
     ): String {
-        val alias = config.libraryAliasGenerator(dep.groupId, dep.artifactId)
-        checkAlias(alias, config, container, dep, version)
+        val alias = using.libraryAliasGenerator(dep.groupId, dep.artifactId)
+        checkAlias(alias, using, container, dep, version)
 
         val library = library(alias, dep.groupId, dep.artifactId)
         // only register version aliases if we are in the top-level BOM
         if (rootDep && version.isRef) {
-            val versionAlias = config.versionNameGenerator(version.unwrapped)
+            val versionAlias = using.versionNameGenerator(version.unwrapped)
             library.versionRef(versionAlias)
             container.addLibrary(alias, dep.groupId, dep.artifactId, versionAlias, true)
         } else {
@@ -311,7 +319,7 @@ object Generator {
 
     internal fun checkAlias(
         alias: String,
-        config: GeneratorConfig,
+        using: GeneratorConfig.UsingConfig,
         container: TomlContainer,
         dep: Dependency,
         version: Version,
@@ -323,7 +331,7 @@ object Generator {
             val name = lib.getString("name")
             val newVersion =
                 if (version.isRef) {
-                    config.versionNameGenerator(version.unwrapped)
+                    using.versionNameGenerator(version.unwrapped)
                 } else {
                     version.value
                 }
@@ -344,7 +352,7 @@ object Generator {
         seenModules: MutableSet<String> = mutableSetOf(),
         substitutor: StringSubstitutor,
         filter: (Dependency) -> Boolean,
-        config: GeneratorConfig,
+        using: GeneratorConfig.UsingConfig,
     ): Map<Version, List<Dependency>> {
         val deps = model.dependencyManagement?.dependencies.orEmpty()
         if (deps.isEmpty()) {
@@ -358,7 +366,7 @@ object Generator {
             .asSequence()
             .onEach { it.groupId = mapGroup(model, it.groupId) }
             .filter(filter)
-            .filterNot(config.excludeFilter)
+            .filterNot(using.excludeFilter)
             .filter { seenModules.add("${it.groupId}:${it.artifactId}") }
             .onEach { it.version = mapVersion(model, it.version) }
             .groupBy {

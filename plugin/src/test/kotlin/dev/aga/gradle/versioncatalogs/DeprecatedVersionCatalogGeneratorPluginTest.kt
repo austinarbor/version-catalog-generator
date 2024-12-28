@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
-class VersionCatalogGeneratorPluginTest {
+class DeprecatedVersionCatalogGeneratorPluginTest {
     @field:TempDir lateinit var projectDir: File
 
     private val buildFile by lazy { projectDir.resolve("build.gradle.kts") }
@@ -58,60 +58,43 @@ class VersionCatalogGeneratorPluginTest {
               }
               versionCatalogs {
                 generate("jsonLibs") {
-                  saveGeneratedCatalog = true
                   from("com.fasterxml.jackson:jackson-bom:2.15.2")
-                  using {
-                    libraryAliasGenerator = { groupId, artifactId -> 
-                      val prefix = aliasPrefixGenerator(groupId, artifactId)
-                      val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
-                      GeneratorConfig.DEFAULT_ALIAS_GENERATOR(prefix,suffix)
-                    }
-                    versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
+                  libraryAliasGenerator = { groupId, artifactId -> 
+                    val prefix = aliasPrefixGenerator(groupId, artifactId)
+                    val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
+                    GeneratorConfig.DEFAULT_ALIAS_GENERATOR(prefix,suffix)
                   }
+                  versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
+                  saveGeneratedCatalog = true
                 }
                 generate("mockitoLibs") {
-                  saveGeneratedCatalog = true
-                  from("org.mockito:mockito-bom:5.5.0") {
-                    aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
-                    aliasSuffixGenerator = { _, _, artifact ->
-                      GeneratorConfig.caseChange(artifact, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.LOWER_UNDERSCORE)
-                    }
-                    generateBomEntry = true
+                  from("org.mockito:mockito-bom:5.5.0")
+                  aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+                  aliasSuffixGenerator = { _, _, artifact ->
+                    GeneratorConfig.caseChange(artifact, net.pearx.kasechange.CaseFormat.LOWER_HYPHEN, net.pearx.kasechange.CaseFormat.LOWER_UNDERSCORE)
                   }
+                  saveGeneratedCatalog = true
+                  generateBomEntry = true
                 }
                 generate("awsLibs") {
-                  fromToml("aws-bom") {
-                    aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
-                  }
+                  from(toml("aws-bom"))
+                  aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
                 }
                 generate("springLibs") {
-                  fromToml("spring-boot-dependencies") {
-                    propertyOverrides = mapOf(
-                      "jackson-bom.version" to versionRef("jackson")
-                    )
-                  }
+                  from(toml("spring-boot-dependencies"))
+                  propertyOverrides = mapOf(
+                    "jackson-bom.version" to versionRef("jackson")
+                  )
                 }
                 generate("junitLibs") {
-                  saveGeneratedCatalog = true
                   from {
                     toml {
-                      libraryAliases = listOf("boms-junit5")
+                      libraryAlias = "boms-junit5"
                       file = artifact("io.micronaut.platform:micronaut-platform:4.3.6")
                     }
                   }
-                  using {
-                    aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
-                  }
-                }
-                generate("manyBoms") {
-                  fromToml("spring-boot-dependencies") {
-                    propertyOverrides = mapOf(
-                      "jackson-bom.version" to versionRef("jackson")
-                    )
-                  }
-                  fromToml("aws-bom", "jackson-bom") {
-                    aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
-                  }
+                  aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+                  saveGeneratedCatalog = true
                 }
               }
             }
@@ -128,9 +111,6 @@ class VersionCatalogGeneratorPluginTest {
               implementation(jsonLibs.jackson.jacksonDatabind)
               implementation(jsonLibs.bundles.jacksonModule)
               implementation(awsLibs.s3)
-              implementation(manyBoms.spring.springBootStarterJdbc)
-              implementation(manyBoms.sts)
-              implementation(manyBoms.jacksonDatabind)
               testImplementation(mockitoLibs.mockito.core)
               testImplementation(mockitoLibs.mockito.junit.jupiter)
               testImplementation(junitLibs.junitJupiter)
@@ -144,11 +124,10 @@ class VersionCatalogGeneratorPluginTest {
             """
                 [versions]
                 aws = "2.21.15"
-                jackson = "2.18.2"
+                jackson = "2.18.1"
                 spring = "3.4.1"
                 [libraries]
                 aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
-                jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
                 spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
             """
                 .trimIndent(),
@@ -159,7 +138,6 @@ class VersionCatalogGeneratorPluginTest {
             GradleRunner.create()
                 .forwardOutput()
                 .withPluginClasspath()
-                .withArguments("--stacktrace")
                 .withArguments("clean", "assemble")
                 .withProjectDir(projectDir)
 
@@ -195,67 +173,38 @@ class VersionCatalogGeneratorPluginTest {
               versionCatalogs {
                 generator.generate("jsonLibs") {
                   it.from("com.fasterxml.jackson:jackson-bom:2.15.2")
-                  it.using { u ->
-                    u.libraryAliasGenerator = { groupId, artifactId -> 
-                     def prefix = aliasPrefixGenerator.invoke(groupId, artifactId)
-                     def suffix = aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
-                     DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
-                    }
-                    u.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
+                  it.libraryAliasGenerator = { groupId, artifactId -> 
+                   def prefix = aliasPrefixGenerator.invoke(groupId, artifactId)
+                   def suffix = aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
+                   DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
                   }
+                  it.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
                 }
                 
                 generator.generate("mockitoLibs") {
                     it.from("org.mockito:mockito-bom:5.5.0")
-                    it.using { u ->
-                      u.generateBomEntry = true
-                      u.libraryAliasGenerator = { groupId, artifactId -> 
-                        def prefix = aliasPrefixGenerator.invoke(groupId, artifactId)
-                        def suffix = aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
-                        DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
-                      }
-                      u.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
+                    it.libraryAliasGenerator = { groupId, artifactId -> 
+                      def prefix = aliasPrefixGenerator.invoke(groupId, artifactId)
+                      def suffix = aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
+                      DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
                     }
+                    it.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
+                    it.generateBomEntry = true
                 }
                 generator.generate("springLibs") { gen ->
-                  gen.fromToml("spring-boot-dependencies")
-                  gen.using { u ->
-                    gen.propertyOverrides = [
-                      "jackson-bom.version": u.versionRef("jackson")
-                    ]
-                  }
+                  gen.from(gen.toml("spring-boot-dependencies"))  
+                  gen.propertyOverrides = [
+                    "jackson-bom.version": gen.versionRef("jackson")
+                  ]
                 }
                 generator.generate("junitLibs") {
                   it.from { from ->
                     from.toml { toml ->
-                      toml.libraryAliases = ["boms-junit5"]
+                      toml.libraryAlias = "boms-junit5"
                       toml.file = toml.artifact("io.micronaut.platform:micronaut-platform:4.3.6")
                     }
                   }
-                  it.using { u ->
-                    u.aliasPrefixGenerator = NO_PREFIX
-                  }
-                }
-                generator.generate("manyBoms") {
-                  it.from { from ->
-                   from.toml { toml ->
-                     toml.libraryAliases = ["spring-boot-dependencies"]
-                   }
-                   from.using { u ->
-                    propertyOverrides = [
-                      "jackson-bom.version": u.versionRef("jackson")
-                    ]
-                   }
-                  }
-                  
-                  it.from { from ->
-                    from.toml { toml ->
-                     toml.libraryAliases = ["aws-bom", "jackson-bom"]
-                    }
-                    from.using { u ->
-                      u.aliasPrefixGenerator = NO_PREFIX
-                    }
-                  }
+                  it.aliasPrefixGenerator = NO_PREFIX
                 }
               }
             }
@@ -282,11 +231,10 @@ class VersionCatalogGeneratorPluginTest {
             """
                 [versions]
                 aws = "2.21.15"
-                jackson = "2.18.2"
+                jackson = "2.18.1"
                 spring = "3.4.1"
                 [libraries]
                 aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
-                jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
                 spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
             """
                 .trimIndent(),
@@ -294,11 +242,7 @@ class VersionCatalogGeneratorPluginTest {
 
         // Run the build
         val runner =
-            GradleRunner.create()
-                .forwardOutput()
-                .withPluginClasspath()
-                .withArguments("--stacktrace")
-                .withProjectDir(projectDir)
+            GradleRunner.create().forwardOutput().withPluginClasspath().withProjectDir(projectDir)
 
         val result = runner.build()
 
@@ -307,7 +251,7 @@ class VersionCatalogGeneratorPluginTest {
 
     companion object {
         private fun getResourceAsText(name: String): String {
-            return VersionCatalogGeneratorPluginTest::class
+            return DeprecatedVersionCatalogGeneratorPluginTest::class
                 .java
                 .classLoader
                 .getResource(name)

@@ -9,7 +9,7 @@ import org.tomlj.TomlTable
 
 internal class FileCatalogParser(private val file: File) : CatalogParser {
 
-    private val toml: TomlParseResult = parseCatalog(file)
+    private val toml: TomlParseResult by lazy { parseCatalog(file) }
 
     override fun findLibrary(name: String): Dependency {
         return findBom(toml, name)

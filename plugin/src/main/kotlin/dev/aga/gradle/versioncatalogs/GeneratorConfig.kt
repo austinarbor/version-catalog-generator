@@ -1,5 +1,7 @@
 package dev.aga.gradle.versioncatalogs
 
+import dev.aga.gradle.versioncatalogs.annotation.GeneratorConfigDsl
+import dev.aga.gradle.versioncatalogs.annotation.SourceConfigDsl
 import dev.aga.gradle.versioncatalogs.model.PropertyOverride
 import dev.aga.gradle.versioncatalogs.model.TomlVersionRef
 import dev.aga.gradle.versioncatalogs.service.CatalogParser
@@ -15,7 +17,24 @@ import org.apache.maven.model.Dependency
 import org.gradle.api.Incubating
 import org.gradle.api.initialization.Settings
 
+@GeneratorConfigDsl
 class GeneratorConfig(val settings: Settings) {
+    /**
+     * The version catalog file to use when no specific file is otherwise set in the `from` block.
+     * This will default to "gradle/libs.versions.toml" relative to the root directory of the
+     * project. Starting with the 4.0 release, this will also be used as the source file to use to
+     * look up version aliases when using `versionRef`.
+     *
+     * ```kotlin
+     * defaultVersionCatalog = file("/path/to/libs.versions.toml")
+     * // a-library-alias will be looked up in the above TOML file
+     * from(toml("a-library-alias")) // deprecated
+     * fromToml("a-library-alias"))
+     * ```
+     */
+    var defaultVersionCatalog: File =
+        settings.rootDir.toPath().resolve(Paths.get("gradle", "libs.versions.toml")).toFile()
+
     /**
      * Function to generate the name of the library in the generated catalog. The default behavior
      * takes the output of the [aliasPrefixGenerator] and the output of the [aliasSuffixGenerator]
@@ -26,11 +45,30 @@ class GeneratorConfig(val settings: Settings) {
      *
      * @see DEFAULT_ALIAS_GENERATOR
      */
+    @Deprecated(
+        message = """Use "using" block instead""",
+        replaceWith =
+            ReplaceWith(
+                """
+        using {
+          libraryAliasGenerator = { groupId, artifactId ->
+            val prefix = aliasPrefixGenerator(groupId, artifactId)
+            val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
+            DEFAULT_ALIAS_GENERATOR(prefix, suffix)
+          }
+        }
+    """,
+            ),
+    )
     var libraryAliasGenerator: (String, String) -> String = { groupId, artifactId ->
         val prefix = aliasPrefixGenerator(groupId, artifactId)
         val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
         DEFAULT_ALIAS_GENERATOR(prefix, suffix)
     }
+        set(value) {
+            field = value
+            usingConfig.libraryAliasGenerator = value
+        }
 
     /**
      * Function to generate the prefix of the name of the library in the generated catalog. The
@@ -40,7 +78,22 @@ class GeneratorConfig(val settings: Settings) {
      *
      * @see DEFAULT_ALIAS_PREFIX_GENERATOR
      */
+    @Deprecated(
+        message = """Use "using" block instead""",
+        replaceWith =
+            ReplaceWith(
+                """
+        using {
+          aliasPrefixGenerator = GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR
+        }
+    """,
+            ),
+    )
     var aliasPrefixGenerator = DEFAULT_ALIAS_PREFIX_GENERATOR
+        set(value) {
+            field = value
+            usingConfig.aliasPrefixGenerator = value
+        }
 
     /**
      * Function to generate the suffix of the name of the library in the generated catalog. The
@@ -50,31 +103,106 @@ class GeneratorConfig(val settings: Settings) {
      *
      * @see DEFAULT_ALIAS_SUFFIX_GENERATOR
      */
+    @Deprecated(
+        message = """Use "using" block instead""",
+        replaceWith =
+            ReplaceWith(
+                """
+        using {
+          aliasSuffixGenerator = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR
+        }
+    """,
+            ),
+    )
     var aliasSuffixGenerator = DEFAULT_ALIAS_SUFFIX_GENERATOR
+        set(value) {
+            field = value
+            usingConfig.aliasSuffixGenerator = value
+        }
 
     /**
      * Function to generate the version reference to use in the generated catalog. The default
      * function removes the string 'version' from the name (in any case) and then replaces multiple
      * occurrences of '.' with a single one. It then converts the string to camelCase.
      */
+    @Deprecated(
+        message = """Use "using" block instead""",
+        replaceWith =
+            ReplaceWith(
+                """
+        using {
+          versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
+        }
+    """,
+            ),
+    )
     var versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
+        set(value) {
+            field = value
+            usingConfig.versionNameGenerator = value
+        }
 
     /**
      * Regex to filter the groups (groupId) of dependencies which should be included in the
      * generated catalog. The dependencies which match the regex will be excluded. The default value
      * is `null`.
      */
+    @Deprecated(
+        message = """Use "using" block instead""",
+        replaceWith =
+            ReplaceWith(
+                """
+        using {
+          excludeGroups = ".*"
+        }
+    """,
+            ),
+    )
     var excludeGroups: String? = null
+        set(value) {
+            field = value
+            usingConfig.excludeGroups = value?.takeIf { it.isNotBlank() } ?: ""
+        }
 
     /**
      * Regex to filter the name (artifactId) of dependencies which should be included in the
      * generated catalog. Dependency names which match the regex will be excluded. The default value
      * is `null`.
      */
+    @Deprecated(
+        message = """Use "using" block instead""",
+        replaceWith =
+            ReplaceWith(
+                """
+        using {
+          excludeNames = ".*"
+        }
+    """,
+            ),
+    )
     var excludeNames: String? = null
+        set(value) {
+            field = value
+            usingConfig.excludeNames = value?.takeIf { it.isNotBlank() } ?: ""
+        }
 
     /** When true, an entry for the BOM itself will be added to the catalog. */
+    @Deprecated(
+        message = """Use "using" block instead""",
+        replaceWith =
+            ReplaceWith(
+                """
+        using {
+          generateBomEntry = true
+        }
+    """,
+            ),
+    )
     var generateBomEntry: Boolean = false
+        set(value) {
+            field = value
+            usingConfig.generateBomEntry = value
+        }
 
     /**
      * The directory to store the generated TOML catalog file. By default, it will be stored in
@@ -112,74 +240,197 @@ class GeneratorConfig(val settings: Settings) {
      * propertyOverrides = mapOf("jackson-bom" to "2.16.1", "mockito-bom" to versionRef("mockito"))
      * ```
      */
+    @Deprecated(
+        message = """Use "using" block instead""",
+        replaceWith =
+            ReplaceWith(
+                """
+        using {
+          propertyOverrides = mapOf("a" to "1.0.0")
+        }
+    """,
+            ),
+    )
     var propertyOverrides: Map<String, Any> = emptyMap()
+        set(value) {
+            field = value
+            usingConfig.propertyOverrides = value
+        }
+
+    internal var usingConfig =
+        UsingConfig {
+                if (::catalogParser.isInitialized) {
+                    catalogParser
+                } else {
+                    FileCatalogParser(defaultVersionCatalog)
+                }
+            }
+            .apply {
+                aliasPrefixGenerator = DEFAULT_ALIAS_PREFIX_GENERATOR
+                aliasSuffixGenerator = DEFAULT_ALIAS_SUFFIX_GENERATOR
+                versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
+                generateBomEntry = false
+                propertyOverrides = emptyMap()
+                excludeGroups = ""
+                excludeNames = ""
+            }
 
     /**
      * Convenience function to construct a [PropertyOverride] that references a version alias from
-     * the same TOML file in which the BOM was sourced.
+     * the _first_ TOML that is declared. This is preserved for backwards compatibility in 3.x, but
+     * will be changed or removed in a future release.
      *
      * @param alias the version alias to lookup
      */
-    fun versionRef(alias: String): PropertyOverride {
-        return TomlVersionRef(catalogParser, alias)
-    }
-
-    internal val excludeFilter: (Dependency) -> Boolean by lazy {
-        {
-            val eg = excludeGroups
-            val en = excludeNames
-            if (eg == null && en == null) {
-                false
-            } else {
-                // default to true because if one of the regexes is non-null, then
-                // the null value should basically be equivalent to always matching
-                val excludeGroup = eg?.toRegex()?.matches(it.groupId) ?: true
-                val excludeName = en?.toRegex()?.matches(it.artifactId) ?: true
-                excludeGroup && excludeName
+    @Deprecated(
+        """Use "using" block instead""",
+        replaceWith =
+            ReplaceWith(
+                """
+            defaultVersionCatalog = file("/path/to/somewhere/libs.versions.toml") // optionally change
+            using {
+              // someAlias will be fetched from defaultVersionCatalog
+              propertyOverrides = mapOf("my.version" to versionRef("someAlias"))
             }
-        }
+        """,
+            ),
+    )
+    fun versionRef(alias: String): PropertyOverride {
+        return TomlVersionRef(alias, catalogParser)
     }
 
-    /** The provider for the source BOM to generate the dependency from. */
-    lateinit var source: () -> Any
+    /**
+     * List of lambdas which when invoked will return a [Pair] with the first element being a
+     * [SourceConfig] and the second element being a list of BOMs to load from the [SourceConfig].
+     * Each BOM may be represented as either a [Dependency] or a string notation of a dependency to
+     * resolve.
+     */
+    internal val sources: MutableList<() -> Pair<SourceConfig, List<Any>>> = mutableListOf()
 
     internal lateinit var catalogParser: CatalogParser
 
     /**
-     * Specify the source BOM to generate the version catalog from using standard dependency
-     * notation ```group:artifact:version```
+     * Specify one or more source BOMs to generate the version catalog from using standard
+     * dependency notation `group:artifact:version`
+     *
+     * @param notation the first BOM's dependency notation to generate the catalog from
+     * @param others one or more other BOM dependency notations to include in the generated catalog
      */
-    fun from(notation: String) {
-        from { dependency(notation) }
+    fun from(notation: String, vararg others: String) {
+        from(notation = notation, others = others, uc = {})
     }
 
     /**
-     * Use the library with the given alias from `gradle/libs.versions.toml` as the source of the
+     * Specify one or more source BOMs to generate the version catalog from using standard
+     * dependency notation `group:artifact:version`, and further customize the generation options by
+     * setting the [UsingConfig]
+     *
+     * *Note: Due to the combination of varargs and a trailing lambda, it may not be possible to
+     * call this method from the Groovy DSL.*
+     *
+     * @param notation the first BOM's dependency notation to generate the catalog from
+     * @param others one or more other BOM dependency notations to include in the generated catalog
+     * @param uc the configuration block for the [UsingConfig]
+     */
+    fun from(
+        notation: String,
+        vararg others: String,
+        uc: @GeneratorConfigDsl UsingConfig.() -> Unit,
+    ) {
+        from {
+            dependency(notation, *others)
+            using(uc)
+        }
+    }
+
+    /**
+     * Specify one or more aliases from [defaultVersionCatalog] that are BOMs to generate the
+     * version catalog from.
+     *
+     * @param libraryAliasName the first alias in [defaultVersionCatalog] to use in the generated
+     *   version catalog
+     * @param otherAliases one or more other aliases in [defaultVersionCatalog] to use in the
+     *   generated version catalog
+     */
+    fun fromToml(libraryAliasName: String, vararg otherAliases: String) {
+        fromToml(libraryAliasName = libraryAliasName, otherAliases = otherAliases, uc = {})
+    }
+
+    /**
+     * Specify one or more BOM aliases from [defaultVersionCatalog] that to generate the version
+     * catalog from and further customize the [UsingConfig].
+     *
+     * *Note: Due to the combination of varargs and a trailing lambda, it may not be possible to
+     * call this method from the Groovy DSL.*
+     *
+     * @param libraryAliasName the first alias in [defaultVersionCatalog] to use in the generated
+     *   version catalog
+     * @param otherAliases one or more other aliases in [defaultVersionCatalog] to use in the
+     *   generated version catalog
+     * @param uc the configuration block for the [UsingConfig] inside of the [SourceConfig]
+     */
+    fun fromToml(
+        libraryAliasName: String,
+        vararg otherAliases: String,
+        uc: @GeneratorConfigDsl UsingConfig.() -> Unit,
+    ) {
+        from {
+            toml { libraryAliases = listOf(libraryAliasName, *otherAliases) }
+            using(uc)
+        }
+    }
+
+    /**
+     * Use the library with the given alias from [defaultVersionCatalog] as the source of the
      * generated catalog. This is a shortcut for
      *
      * ```kotlin
      * toml {
-     *  libraryAlias = "the-bom"
+     *  libraryAliases = listOf("my-bom", "another-optional-bom")
      * }
      * ```
      *
      * And is meant to be used as such:
      * ```kotlin
-     * from(toml("my-bom"))
+     * from(toml("my-bom", "another-optional-bom"))
+     * ```
+     *
+     * @param libraryAliasName the first BOM alias to use from the TOML file to generate the catalog
+     *   from
+     * @param otherAliases one or more other BOM aliases to include in the generated catalog
+     */
+    @Deprecated(
+        message = "Use fromToml instead of from(toml(...))",
+        replaceWith = ReplaceWith(expression = """fromToml("my-alias", "my-other-alias")"""),
+    )
+    fun toml(libraryAliasName: String, vararg otherAliases: String): SourceConfig.() -> Unit {
+        return { toml { libraryAliases = listOf(libraryAliasName, *otherAliases) } }
+    }
+
+    /**
+     * Apply customization options to the generation logic. Options set here will be applied to
+     * subsequent sources declared in a `from` function or block unless that option is specifically
+     * overridden within that `from` declaration.
+     *
+     * ```kotlin
+     * using {
+     *   aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+     *   // etc
+     * }
      * ```
      */
-    fun toml(libraryAliasName: String): SourceConfig.() -> Unit {
-        return { toml { libraryAlias = libraryAliasName } }
+    fun using(uc: @GeneratorConfigDsl UsingConfig.() -> Unit) {
+        uc(usingConfig)
     }
 
     /**
      * Specify the source BOM to generate the version catalog from. BOMs can be specified by using a
-     * reference to a library in a toml file, or by using regular dependency notation. To use a toml
+     * reference to a library in a TOML file, or by using regular dependency notation. To use a TOML
      *
      * ```kotlin
      * from {
      *   toml {
-     *     libraryName = "spring-boot-dependencies"
+     *     libraryAliases = listOf("spring-boot-dependencies")
      *     file = File("gradle/libs.versions.toml") // optional, defaults to this value
      *   }
      * }
@@ -197,28 +448,317 @@ class GeneratorConfig(val settings: Settings) {
      *
      * @param sc the config block
      */
-    fun from(sc: SourceConfig.() -> Unit) {
-        val cfg = SourceConfig(settings).apply(sc)
+    fun from(sc: @GeneratorConfigDsl SourceConfig.() -> Unit) {
+        from(sc = sc, uc = {})
+    }
+
+    /**
+     * Specify the source BOM to generate the version catalog from. BOMs can be specified by using a
+     * reference to a library in a TOML file, or by using regular dependency notation. This function
+     * is primarily provided to provide easier access to the [UsingConfig] when using the [fromToml]
+     * shortcut function.
+     *
+     * To use a TOML
+     *
+     * ```kotlin
+     * from {
+     *   toml {
+     *     libraryAliases = listOf("spring-boot-dependencies")
+     *     file = File("gradle/libs.versions.toml") // optional, defaults to this value
+     *   }
+     * }
+     * ```
+     *
+     * To use regular notation
+     *
+     * ```kotlin
+     * from("org.springframework.boot:spring-boot-dependencies:3.1.2")
+     * // or
+     * from {
+     *   dependency("org.springframework.boot:spring-boot-dependencies:3.1.2")
+     * }
+     * ```
+     *
+     * @param sc the config block
+     * @param uc the configuration block for the [UsingConfig] within [SourceConfig]
+     */
+    internal fun from(
+        sc: @GeneratorConfigDsl SourceConfig.() -> Unit,
+        uc: @GeneratorConfigDsl UsingConfig.() -> Unit,
+    ) {
+        val cfg = SourceConfig(settings, defaultVersionCatalog).apply(sc).apply { using(uc) }
         if (cfg.hasTomlConfig()) {
-            catalogParser = FileCatalogParser(cfg.tomlConfig.file)
-            source = { catalogParser.findLibrary(cfg.tomlConfig.libraryAlias) }
+            // to preserve backwards compatibility, only set the top-level
+            // catalogParser from the first TOML config
+            if (!::catalogParser.isInitialized) {
+                catalogParser = FileCatalogParser(cfg.tomlConfig.file)
+            }
+            sources.add {
+                cfg to cfg.tomlConfig.libraryAliases.map { catalogParser.findLibrary(it) }
+            }
         } else if (cfg.hasDependency()) {
-            source = { cfg.dependencyNotation }
+            sources.add { cfg to cfg.dependencyNotations }
         }
     }
 
-    class SourceConfig(private val settings: Settings) {
-        internal lateinit var tomlConfig: TomlConfig
-        internal lateinit var dependencyNotation: Any
+    class UsingConfig(private val catalogParserSupplier: () -> CatalogParser) {
 
-        fun toml(tc: TomlConfig.() -> Unit) {
-            val cfg = TomlConfig(settings).apply(tc)
-            require(cfg.isInitialized()) { "Library name must be set" }
-            tomlConfig = cfg
+        /**
+         * Convenience function to construct a [PropertyOverride] that references a version alias
+         * from the TOML related to the current context. For example
+         *
+         * ```kotlin
+         * generate("myLibs") {
+         *   using {
+         *     propertyOverrides = mapOf(
+         *       "jackson-bom.version" to versionRef("jackson") // look up 'jackson' in defaultVersionCatalog
+         *     )
+         *   }
+         *  }
+         * ```
+         * ```kotlin
+         * from {
+         *   toml {
+         *     file = File("/path/to/libs.versions.toml")
+         *   }
+         *   using {
+         *     propertyOverrides = mapOf(
+         *       "jackson-bom.version" to versionRef("jackson") // look up 'jackson' in /path/to/libs.versions.toml
+         *     )
+         *   }
+         * }
+         * ```
+         *
+         * Attempting to use `versionRef` in a [using] block inside a [from] block without declaring
+         * a `toml` configuration will result in an exception.
+         *
+         * @param alias the version alias to lookup
+         */
+        fun versionRef(alias: String): TomlVersionRef = TomlVersionRef(alias, catalogParserSupplier)
+
+        /**
+         * Function to generate the name of the library in the generated catalog. The default
+         * behavior takes the output of the [aliasPrefixGenerator] and the output of the
+         * [aliasSuffixGenerator] and concatenates them together with a `-`. If the `prefix` is
+         * blank, only the `suffix` is used. Alias generation can be customized by overriding the
+         * [aliasPrefixGenerator] and the [aliasSuffixGenerator]. If this function itself is
+         * overridden, those two functions will not be used unless explicitly invoked by the
+         * overridden function.
+         *
+         * @see DEFAULT_ALIAS_GENERATOR
+         */
+        lateinit var libraryAliasGenerator: (String, String) -> String
+
+        /**
+         * Function to generate the prefix of the name of the library in the generated catalog. The
+         * function takes the `groupId` and `artifactId` of the library and returns a string to use
+         * as the prefix of the alias. The prefix is then concatenated with the suffix generated by
+         * [aliasSuffixGenerator].
+         *
+         * @see DEFAULT_ALIAS_PREFIX_GENERATOR
+         */
+        lateinit var aliasPrefixGenerator: (String, String) -> String
+
+        /**
+         * Function to generate the suffix of the name of the library in the generated catalog. The
+         * function takes the prefix generated by [aliasPrefixGenerator], the `groupId`, and the
+         * `artifactId` as arguments and returns a string to use as the suffix of the alias by
+         * appending it to the prefix.
+         *
+         * @see DEFAULT_ALIAS_SUFFIX_GENERATOR
+         */
+        lateinit var aliasSuffixGenerator: (String, String, String) -> String
+
+        /**
+         * Function to generate the version reference to use in the generated catalog. The default
+         * function removes the string 'version' from the name (in any case) and then replaces
+         * multiple occurrences of '.' with a single one. It then converts the string to camelCase.
+         */
+        lateinit var versionNameGenerator: (String) -> String
+
+        /**
+         * Regex to filter the groups (groupId) of dependencies which should be included in the
+         * generated catalog. The dependencies which match the regex will be excluded. An empty
+         * string `""` will disable the filter.
+         */
+        lateinit var excludeGroups: String
+
+        /**
+         * Regex to filter the name (artifactId) of dependencies which should be included in the
+         * generated catalog. Dependency names which match the regex will be excluded. An empty
+         * string `""` will disable the filter.
+         */
+        lateinit var excludeNames: String
+
+        /** When true, an entry for the BOM itself will be added to the catalog. */
+        var generateBomEntry: Boolean? = null
+            set(value) {
+                field = requireNotNull(value) { "generateBomEntry cannot be set to null" }
+            }
+
+        /**
+         * Override property values that are set in the root BOM you are generating a catalog for.
+         * For example if the BOM has the property `jackson-bom.version` with the value `2.15.3` but
+         * you'd rather use `2.16.1`, you can pass in values to override the BOM.
+         *
+         * The valid types of values that can be set are either [String] or [PropertyOverride]. A
+         * string value will be taken literally, while a [PropertyOverride] can be used for more
+         * advanced use cases. The convenience function [versionRef] is available to create a
+         * [PropertyOverride] that references a version alias from the same TOML file that contains
+         * the source BOM. As such, using this function without sourcing your BOM from a TOML will
+         * cause an exception. Setting a value of any type other than `String` or `PropertyOverride`
+         * will also cause an exception.
+         *
+         * ```kotlin
+         * propertyOverrides = mapOf("jackson-bom" to "2.16.1", "mockito-bom" to versionRef("mockito"))
+         * ```
+         */
+        lateinit var propertyOverrides: Map<String, Any>
+
+        internal val excludeFilter: (Dependency) -> Boolean by lazy {
+            {
+                if (!::excludeGroups.isInitialized) {
+                    excludeGroups = ""
+                }
+                if (!::excludeNames.isInitialized) {
+                    excludeNames = ""
+                }
+
+                if (excludeGroups.isBlank() && excludeNames.isBlank()) {
+                    false
+                } else {
+                    // default to true because if one of the regexes is non-blank, then
+                    // the blank value should basically be equivalent to always matching
+                    val excludeGroup =
+                        when {
+                            excludeGroups.isBlank() -> true
+                            else -> excludeGroups.toRegex().matches(it.groupId)
+                        }
+
+                    val excludeName =
+                        when {
+                            excludeNames.isBlank() -> true
+                            else -> excludeNames.toRegex().matches(it.artifactId)
+                        }
+
+                    excludeGroup && excludeName
+                }
+            }
         }
 
-        fun dependency(notation: Any) {
-            this.dependencyNotation = notation
+        companion object {
+            fun merge(primary: UsingConfig, fallback: UsingConfig): UsingConfig {
+                return UsingConfig(primary.catalogParserSupplier).apply {
+                    aliasPrefixGenerator =
+                        if (primary::aliasPrefixGenerator.isInitialized) {
+                            primary.aliasPrefixGenerator
+                        } else {
+                            fallback.aliasPrefixGenerator
+                        }
+
+                    aliasSuffixGenerator =
+                        if (primary::aliasSuffixGenerator.isInitialized) {
+                            primary.aliasSuffixGenerator
+                        } else {
+                            fallback.aliasSuffixGenerator
+                        }
+
+                    // this one is a little tricky to set
+                    // if the primary config has a custom generator set, use that
+                    // otherwise if the fallback has a custom generator set, use that
+                    // if none of the above conditions are true, re-construct the default
+                    // generator logic using the set prefix and suffix generators from above
+                    libraryAliasGenerator =
+                        if (primary::libraryAliasGenerator.isInitialized) {
+                            primary.libraryAliasGenerator
+                        } else if (fallback::libraryAliasGenerator.isInitialized) {
+                            fallback.libraryAliasGenerator
+                        } else {
+                            { groupId, artifactId ->
+                                val prefix = aliasPrefixGenerator(groupId, artifactId)
+                                val suffix = aliasSuffixGenerator(prefix, groupId, artifactId)
+                                DEFAULT_ALIAS_GENERATOR(prefix, suffix)
+                            }
+                        }
+
+                    versionNameGenerator =
+                        if (primary::versionNameGenerator.isInitialized) {
+                            primary.versionNameGenerator
+                        } else {
+                            fallback.versionNameGenerator
+                        }
+
+                    excludeGroups =
+                        if (primary::excludeGroups.isInitialized) {
+                            primary.excludeGroups
+                        } else {
+                            fallback.excludeGroups
+                        }
+
+                    excludeNames =
+                        if (primary::excludeNames.isInitialized) {
+                            primary.excludeNames
+                        } else {
+                            fallback.excludeNames
+                        }
+
+                    generateBomEntry =
+                        if (primary.generateBomEntry != null) {
+                            primary.generateBomEntry
+                        } else {
+                            fallback.generateBomEntry
+                        }
+
+                    propertyOverrides =
+                        if (primary::propertyOverrides.isInitialized) {
+                            primary.propertyOverrides
+                        } else {
+                            fallback.propertyOverrides
+                        }
+                }
+            }
+        }
+    }
+
+    @SourceConfigDsl
+    class SourceConfig(
+        private val settings: Settings,
+        private val defaultVersionCatalog: File,
+    ) {
+        internal lateinit var tomlConfig: TomlConfig
+        internal lateinit var dependencyNotations: List<Any>
+        internal lateinit var catalogParser: CatalogParser
+        internal var usingConfig: UsingConfig = UsingConfig { catalogParser }
+
+        fun toml(tc: @SourceConfigDsl TomlConfig.() -> Unit) {
+            val cfg = TomlConfig(settings, defaultVersionCatalog).apply(tc)
+            require(cfg.isValid()) { "One or more library names must be set" }
+            tomlConfig = cfg
+            catalogParser = FileCatalogParser(cfg.file)
+        }
+
+        fun dependency(notation: Any, vararg others: Any) {
+            this.dependencyNotations = listOf(notation, *others)
+        }
+
+        /**
+         * Apply customization options to the generation logic. Options set here will be applied
+         * only to the sources declared within this block. Any options which are not explicitly set
+         * will take their values from the parent [GeneratorConfig]
+         *
+         * ```kotlin
+         * using {
+         *   aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+         *   // etc
+         * }
+         * ```
+         */
+        fun using(uc: @SourceConfigDsl UsingConfig.() -> Unit) {
+            uc(usingConfig)
+        }
+
+        fun versionRef(alias: String): TomlVersionRef {
+            return TomlVersionRef(alias, catalogParser)
         }
 
         internal fun hasTomlConfig(): Boolean {
@@ -226,17 +766,36 @@ class GeneratorConfig(val settings: Settings) {
         }
 
         internal fun hasDependency(): Boolean {
-            return ::dependencyNotation.isInitialized
+            return ::dependencyNotations.isInitialized
         }
     }
 
-    class TomlConfig(private val settings: Settings) {
-        /** The name of the library in the TOML catalog file */
-        lateinit var libraryAlias: String
+    class TomlConfig(private val settings: Settings, defaultVersionCatalog: File) {
+        /**
+         * The name of the library in the TOML catalog file. Setting this will override any value(s)
+         * set in [libraryAliases]
+         */
+        @Deprecated(
+            message = "Use libraryAliases instead",
+            replaceWith = ReplaceWith(expression = """libraryAliases = listOf("myAlias")"""),
+        )
+        var libraryAlias: String? = null
+            set(value) {
+                field = requireNotNull(value) { "libraryAlias cannot be null" }
+                libraryAliases = listOf(value)
+            }
 
-        /** The catalog file containing the BOM library entry */
-        var file: File =
-            settings.rootDir.toPath().resolve(Paths.get("gradle", "libs.versions.toml")).toFile()
+        /**
+         * The name of the library aliases in the TOML catalog file to load BOMs from. Setting this
+         * will replace any value previously set by [libraryAlias]
+         */
+        var libraryAliases: List<String> = emptyList()
+
+        /**
+         * The catalog file containing the BOM library entry. If not specified, will be set to
+         * `defaultVersionCatalog` in the parent [GeneratorConfig]
+         */
+        var file: File = defaultVersionCatalog
 
         /**
          * If your TOML is a published artifact that can be found in one of the repositories you
@@ -255,9 +814,7 @@ class GeneratorConfig(val settings: Settings) {
             }
         }
 
-        internal fun isInitialized(): Boolean {
-            return ::libraryAlias.isInitialized
-        }
+        internal fun isValid(): Boolean = libraryAliases.isNotEmpty()
     }
 
     companion object {

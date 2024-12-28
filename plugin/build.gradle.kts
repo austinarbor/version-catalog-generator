@@ -1,6 +1,7 @@
 import io.gitlab.arturbosch.detekt.Detekt
 
 plugins {
+    idea
     alias(libs.plugins.kotlin)
     `kotlin-dsl`
     `java-gradle-plugin`
@@ -12,17 +13,6 @@ plugins {
     alias(libs.plugins.shadow)
     alias(libs.plugins.asciidoctorj)
 }
-
-val GROUP_ID: String by project
-val ARTIFACT_ID: String by project
-val VERSION: String by project
-val SCM_URL: String by project
-val PLUGIN_DISPLAY_NAME: String by project
-val PLUGIN_DESCRIPTION: String by project
-
-group = GROUP_ID
-
-version = VERSION
 
 val jacocoRuntime by configurations.creating
 
@@ -66,14 +56,14 @@ detekt {
 }
 
 gradlePlugin {
-    website = SCM_URL
-    vcsUrl = SCM_URL
+    website = providers.gradleProperty("url")
+    vcsUrl = providers.gradleProperty("url")
     val generator by
         plugins.creating {
             id = "dev.aga.gradle.version-catalog-generator"
             implementationClass = "dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPlugin"
-            displayName = PLUGIN_DISPLAY_NAME
-            description = PLUGIN_DESCRIPTION
+            displayName = providers.gradleProperty("displayName").get()
+            description = providers.gradleProperty("description").get()
             tags =
                 listOf(
                     "version",
@@ -87,23 +77,21 @@ gradlePlugin {
         }
 }
 
-val projectProps = project.properties
-
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = GROUP_ID
-            artifactId = ARTIFACT_ID
-            version = VERSION
+            groupId = "${project.group}"
+            artifactId = project.name
+            version = "${project.version}"
 
             pom {
-                name = PLUGIN_DISPLAY_NAME
-                description = PLUGIN_DESCRIPTION
+                name = providers.gradleProperty("displayName")
+                description = providers.gradleProperty("description")
                 licenses {
                     license {
-                        name = projectProps["LICENSE_NAME"].toString()
-                        url = projectProps["LICENSE_URL"].toString()
-                        distribution = projectProps["LICENSE_DISTRIBUTION"].toString()
+                        name = "The Apache Software License, Version 2.0"
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                        distribution = "repo"
                     }
                 }
                 developers {
@@ -114,13 +102,20 @@ publishing {
                     }
                 }
                 scm {
-                    url = SCM_URL
-                    connection = projectProps["SCM_CONNECTION"].toString()
+                    url = providers.gradleProperty("url")
+                    connection = url.map { it.replaceFirst("https", "scm:git:git") }
                 }
             }
 
             from(components["java"])
         }
+    }
+}
+
+idea {
+    module {
+        isDownloadJavadoc = true
+        isDownloadSources = true
     }
 }
 

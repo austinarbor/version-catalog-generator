@@ -16,7 +16,7 @@ Easily use any BOM as a https://docs.gradle.org/current/userguide/platforms.html
 |7.6.x
 |1.x
 |8.x
-|1.x, 2.x
+|1.x, 2.x, 3.x
 |===
 
 
@@ -58,16 +58,32 @@ dependencyResolutionManagement {
   }
   versionCatalogs {
     generate("springLibs") { // <2>
-      from(toml("springBootDependencies")) // <3>
-      propertyOverrides = mapOf(
-        "jackson-bom.version" to "2.16.1", // <4>
-        "mockito.version" to versionRef("mockito"), // <5>
-      )
-      generateBomEntry = true // <6>
+      fromToml("springBootDependencies") { // <3>
+        propertyOverrides = mapOf(
+          "jackson-bom.version" to "2.16.1", // <4>
+          "mockito.version" to versionRef("mockito"), // <5>
+        )
+        generateBomEntry = true // <6>
+      }
     }
     generate("awsLibs") {
-      from(toml("awsBom"))
-      aliasPrefixGenerator = GeneratorConfig.NO_PREFIX // <7>
+      fromToml("awsBom") {
+        aliasPrefixGenerator = GeneratorConfig.NO_PREFIX // <7>
+      }
+    }
+    generate("manyLibs") {
+      using { // <8>
+        aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+      }
+      fromToml("aws-bom", "jackson-bom") { // <9>
+        aliasSuffixGenerator = { prefix, groupId, artifactId -> // <10>
+          val trimmed = artifactId.replaceFirst("junit-").replaceFirst("jackson-")
+          GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR(prefix, groupId, trimmed)
+        }
+      }
+      from("org.springframework.boot:spring-boot-dependencies:3.4.1") { // <11>
+        aliasPrefixGenerator = GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR // <12>
+      }
     }
   }
 }
@@ -79,6 +95,11 @@ dependencyResolutionManagement {
 <5> Or, you can reference version aliases in the source TOML
 <6> Optionally generate an entry in the catalog for the BOM itself
 <7> All dependencies in the AWS BOM are for AWS so we can skip the prefix
+<8> Set the default generation options that will apply to all sources unless overridden
+<9> Include all dependencies from both `aws-bom` and `jackson-bom`
+<10> Override the default `aliasSuffixGenerator` for dependencies in these two BOMs
+<11> Also include all dependencies from the `spring-boot-dependencies` BOM in the generated catalog
+<12> Override the default `aliasPrefixGenerator` for dependencies in the spring BOM
 ====
 
 _Lastly, use the dependencies in your build_
@@ -93,6 +114,9 @@ dependencies {
   implementation(awsLibs.dynamodb)
   implementation(springLibs.spring.springBootStarterWeb)
   implementation(springLibs.jackson.jacksonDatabind)
+  implementation(manyLibs.sts)
+  implementation(manyLibs.databind)
+  implementation(manyLibs.spring.springBootStarterJdbc)
 }
 ----
 ====

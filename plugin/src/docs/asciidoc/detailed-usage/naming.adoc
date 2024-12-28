@@ -72,32 +72,52 @@ The prefix generation logic can be modified by overriding the property `aliasPre
 ----
 generate("myLibs") {
   // excluded for brevity
-  aliasPrefixGenerator = { groupId, artifactId ->
-   if(groupId == "some.group") {
-       "somegroup"
-   } else {
-       GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR(groupId, artifactId) // <1>
-   }
+  using { // <1>
+    aliasPrefixGenerator = { groupId, artifactId ->
+     if(groupId == "some.group") {
+         "somegroup"
+     } else {
+         GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR(groupId, artifactId) // <2>
+     }
+    }
+  }
+  from {
+    // excluded for brevity
+    using {
+      aliasPrefixGenerator = GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR // <3>
+    }
   }
 }
 ----
-<1> We can always fall back to the default logic if our condition isn't met
+<1> Set the default `aliasPrefixGenerator` for all `from` blocks
+<2> We can always fall back to the default logic if our condition isn't met
+<3> Set/override the `aliasPrefixGenerator` for just this `from` block
 
 .settings.gradle
 [source,groovy,subs="attributes+",role="secondary"]
 ----
 generator.generate("myLibs") {
   // excluded for brevity
-  it.aliasPrefixGenerator = { groupId, artifactId ->
-    if(groupId == "some.group") {
-      "somegroup"
-    } else {
-      DEFAULT_ALIAS_PREFIX_GENERATOR.invoke(groupId, artifactId) // <1>
+  it.using { using -> // <1>
+    using.aliasPrefixGenerator = { groupId, artifactId ->
+      if(groupId == "some.group") {
+        "somegroup"
+      } else {
+      DEFAULT_ALIAS_PREFIX_GENERATOR.invoke(groupId, artifactId) // <2>
+      }
     }
+  }
+  it.from { from ->
+    // excluded for brevity
+   from.using { using ->
+     using.aliasPrefixGenerator = DEFAULT_ALIAS_PREFIX_GENERATOR // <3>
+   }
   }
 }
 ----
-<1> We can always fall back to the default logic if our condition isn't met
+<1> Set the default `aliasPrefixGenerator` for all `from` blocks
+<2> We can always fall back to the default logic if our condition isn't met
+<3> Set/override the `aliasPrefixGenerator` for just this `from` block
 
 ===== Skipping Prefix Generation Entirely
 In some BOMs which _only_ contain their own dependencies, for example the AWS BOM, the inclusion of the prefix may
@@ -107,8 +127,9 @@ not be useful and instead you may want to skip the prefix entirely. A convenienc
 [source,kotlin,subs="attributes+",role="primary"]
 ----
 generate("awsLibs") {
-  from(toml("awsBom"))
-  aliasPrefixGenerator = GeneratorConfig.NO_PREFIX // <1>
+  fromToml("awsBom") {
+    aliasPrefixGenerator = GeneratorConfig.NO_PREFIX // <1>
+  }
 }
 ----
 <1> The resulting generated alias for `software.amazon.awssdk:s3` would just be `s3`. When accessing this library
@@ -118,8 +139,10 @@ in our build file, the accessor would subsequently be `awsLibs.s3` instead of `a
 [source,groovy,subs="attributes+",role="secondary"]
 ----
 generator.generate("awsLibs") {
-  it.from(it.toml("awsBom"))
-  aliasPrefixGenerator = NO_PREFIX // <1>
+  it.fromToml("awsBom")
+  it.using { using ->
+    using.aliasPrefixGenerator = NO_PREFIX // <1>
+  }
 }
 ----
 <1> The resulting generated alias for `software.amazon.awssdk:s3` would just be `s3`. When accessing this library
@@ -133,40 +156,59 @@ The suffix generation logic can be modified by overriding the property `aliasSuf
 ----
 generate("myLibs") {
   // excluded for brevity
-  aliasSuffixGenerator = { prefix, groupId, artifactId -> // <1>
-   val suffix = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR(groupId, artifactId) // <2>
-   if(prefix == "spring") {
-       suffix.replaceFirst("spring","") // <3>
-   } else {
+  using { // <1>
+    aliasSuffixGenerator = { prefix, groupId, artifactId -> // <2>
+     val suffix = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR(groupId, artifactId) // <3>
+     if(prefix == "spring") {
+       suffix.replaceFirst("spring","") // <4>
+     } else {
        suffix
-   }
+     }
+    }
+  }
+  from {
+    // excluded for brevity
+    using {
+      aliasSuffixGenerator = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR // <5>
+    }
   }
 }
 ----
-<1> The prefix argument refers to the generated prefix value for the dependency
-<2> The default logic can always be accessed through `GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR`
-<3> In this example we are extending the default behavior to remove the "duplicate" appearance of the word `spring`.
+<1> Set the default `aliasSuffixGenerator` for all `from` blocks
+<2> The prefix argument refers to the generated prefix value for the dependency
+<3> The default logic can always be accessed through `GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR`
+<4> In this example we are extending the default behavior to remove the "duplicate" appearance of the word `spring`.
 For example, instead of `spring-springBootStarterWeb`, we would generate `spring-bootStarterWeb`
+<5> Set/override the `aliasSuffixGenerator` for just this `from` block
 
 .settings.gradle
 [source,groovy,subs="attributes+",role="secondary"]
 ----
 generator.generate("myLibs") {
   // excluded for brevity
-  it.aliasSuffixGenerator = { prefix, groupId, artifactId -> // <1>
-   def suffix = DEFAULT_ALIAS_SUFFIX_GENERATOR.invoke(groupId, artifactId) // <2>
-   if(prefix == "spring") {
-       suffix.replaceFirst("spring","") // <3>
-   } else {
-       suffix
-   }
+  it.using { using -> // <1>
+    using.aliasSuffixGenerator = { prefix, groupId, artifactId -> // <2>
+     def suffix = DEFAULT_ALIAS_SUFFIX_GENERATOR.invoke(groupId, artifactId) // <3>
+     if(prefix == "spring") {
+         suffix.replaceFirst("spring","") // <4>
+     } else {
+         suffix
+     }
+    }
+  }
+  it.from { from ->
+    from.using { using ->
+      using.aliasSuffixGenerator = DEFAULT_ALIAS_SUFFIX_GENERATOR // <5>
+    }
   }
 }
 ----
-<1> The prefix argument refers to the generated prefix value for the dependency
-<2> The default logic can always be accessed through `DEFAULT_ALIAS_SUFFIX_GENERATOR`
-<3> In this example we are extending the default behavior to remove the "duplicate" appearance of the word `spring`.
+<1> Set the default `aliasSuffixGenerator` for all `from` blocks
+<2> The prefix argument refers to the generated prefix value for the dependency
+<3> The default logic can always be accessed through `DEFAULT_ALIAS_SUFFIX_GENERATOR`
+<4> In this example we are extending the default behavior to remove the "duplicate" appearance of the word `spring`.
 For example, instead of `spring-springBootStarterWeb`, we would generate `spring-bootStarterWeb`
+<5> Set/override the `aliasSuffixGenerator` for just this `from` block
 
 === Customizing Version Aliases
 If any dependencies in the source BOM specify a dependency's version via a property, we will create a version alias in
@@ -194,34 +236,54 @@ The version alias generation logic can be customized by overriding the property 
 ----
 generate("myLibs") {
   // excluded for brevity
-  versionNameGenerator = { propertyName -> // <1>
-   if(propertyName == "somethingWeird") {
-       "notAsWeird"
-   } else {
-       GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR(propertyName) // <2>
-   }
+  using { // <1>
+    versionNameGenerator = { propertyName -> // <2>
+     if(propertyName == "somethingWeird") {
+         "notAsWeird"
+     } else {
+         GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR(propertyName) // <3>
+     }
+    }
+  }
+  from {
+    // excluded for brevity
+    using {
+      versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR // <4>
+    }
   }
 }
 ----
-<1> The property name from the maven POM, i.e. `jackson.version`
-<2> The default logic can always be accessed through `GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR`
+<1> Set the default `versionNameGenerator` for all `from` blocks
+<2> The property name from the maven POM, i.e. `jackson.version`
+<3> The default logic can always be accessed through `GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR`
+<4> Set/override the `versionNameGenerator` for just this `from` block
 
 .settings.gradle
 [source,groovy,subs="attributes+",role="secondary"]
 ----
 generator.generate("myLibs") {
   // excluded for brevity
-  it.versionNameGenerator = { propertyName -> // <1>
-   if(propertyName == "somethingWeird") {
-       "notAsWeird"
-   } else {
-       DEFAULT_VERSION_NAME_GENERATOR.invoke(propertyName) // <2>
-   }
+  it.using { using -> // <1>
+    using.versionNameGenerator = { propertyName -> // <2>
+     if(propertyName == "somethingWeird") {
+         "notAsWeird"
+     } else {
+         DEFAULT_VERSION_NAME_GENERATOR.invoke(propertyName) // <3>
+     }
+    }
+  }
+  it.from { from ->
+    // excluded for brevity
+    from.using { using ->
+      using.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR // <4>
+    }
   }
 }
 ----
-<1> The property name from the maven POM, i.e. `jackson.version`
-<2> The default logic can always be accessed through `DEFAULT_VERSION_NAME_GENERATOR`
+<1> Set the default `versionNameGenerator` for all `from` blocks
+<2> The property name from the maven POM, i.e. `jackson.version`
+<3> The default logic can always be accessed through `DEFAULT_VERSION_NAME_GENERATOR`
+<4> Set/override the `versionNameGenerator` for just this `from` block
 
 === Case Conversion
 For converting between different text cases, for example lower-hyphen to lower-camel, you can use the convenience
@@ -240,7 +302,7 @@ is already available for use when you apply the plugin
 .settings.gradle
 [source,groovy,subs="attributes+",role="secondary"]
 ----
-it.aliasSuffixGenerator = { _, _, artifactId ->
+using.aliasSuffixGenerator = { _, _, artifactId ->
     caseChange(artifactId, CaseFormat.LOWER_HYPEN, CaseFormat.CAMEL) // <1>
 }
 ----

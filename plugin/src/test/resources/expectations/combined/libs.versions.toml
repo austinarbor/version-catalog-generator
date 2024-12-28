@@ -1,0 +1,69 @@
+[versions]
+awsjavasdk = "2.21.21"
+activemq = "5.18.2"
+brave = "5.15.1"
+caffeine = "3.1.6"
+dropwizardMetrics = "4.2.19"
+jacksonBom = "2.16.1"
+
+[libraries]
+# assertj-bom
+assertj-assertjCore = { group = "org.assertj", name = "assertj-core", version = "3.25.3" }
+# spring-boot-dependencies
+activemq-activemqBroker = { group = "org.apache.activemq", name = "activemq-broker", version.ref = "activemq" }
+activemq-activemqClient = { group = "org.apache.activemq", name = "activemq-client", version.ref = "activemq" }
+activemq-activemqJdbcStore = { group = "org.apache.activemq", name = "activemq-jdbc-store", version.ref = "activemq" }
+activemq-activemqSpring = { group = "org.apache.activemq", name = "activemq-spring", version.ref = "activemq" }
+spring-springBoot = { group = "org.springframework.boot", name = "spring-boot", version = "3.1.2" }
+spring-springBootDevtools = { group = "org.springframework.boot", name = "spring-boot-devtools", version = "3.1.2" }
+spring-springBootStarterActuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator", version = "3.1.2" }
+spring-springBootStarterAop = { group = "org.springframework.boot", name = "spring-boot-starter-aop", version = "3.1.2" }
+spring-springBootStarterJdbc = { group = "org.springframework.boot", name = "spring-boot-starter-jdbc", version = "3.1.2" }
+spring-springBootStarterWeb = { group = "org.springframework.boot", name = "spring-boot-starter-web", version = "3.1.2" }
+zipkin-braveBom = { group = "io.zipkin.brave", name = "brave-bom", version.ref = "brave" }
+zipkin-brave = { group = "io.zipkin.brave", name = "brave", version = "5.15.1" }
+zipkin-braveTests = { group = "io.zipkin.brave", name = "brave-tests", version = "5.15.1" }
+zipkin-braveSpringBeans = { group = "io.zipkin.brave", name = "brave-spring-beans", version = "5.15.1" }
+caffeine-caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
+caffeine-guava = { group = "com.github.ben-manes.caffeine", name = "guava", version.ref = "caffeine" }
+caffeine-jcache = { group = "com.github.ben-manes.caffeine", name = "jcache", version.ref = "caffeine" }
+jackson-jacksonAnnotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version = "2.16.1" }
+jackson-jacksonBom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jacksonBom" }
+jackson-jacksonCore = { group = "com.fasterxml.jackson.core", name = "jackson-core", version = "2.16.1" }
+jackson-jacksonDatabind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version = "2.16.1" }
+jackson-jacksonDataformatAvro = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-avro", version = "2.16.1" }
+jackson-jacksonDatatypeJdk8 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jdk8", version = "2.16.1" }
+jackson-jacksonDatatypeJsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version = "2.16.1" }
+jackson-jacksonJaxrsBase = { group = "com.fasterxml.jackson.jaxrs", name = "jackson-jaxrs-base", version = "2.16.1" }
+jackson-jacksonJakartaRsBase = { group = "com.fasterxml.jackson.jakarta.rs", name = "jackson-jakarta-rs-base", version = "2.16.1" }
+jackson-jacksonJrAll = { group = "com.fasterxml.jackson.jr", name = "jackson-jr-all", version = "2.16.1" }
+jackson-jacksonModuleBlackbird = { group = "com.fasterxml.jackson.module", name = "jackson-module-blackbird", version = "2.16.1" }
+jackson-jacksonModuleKotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version = "2.16.1" }
+jackson-jacksonModuleScala211 = { group = "com.fasterxml.jackson.module", name = "jackson-module-scala_2.11", version = "2.16.1" }
+dropwizard-metricsBom = { group = "io.dropwizard.metrics", name = "metrics-bom", version.ref = "dropwizardMetrics" }
+dropwizard-metricsAnnotation = { group = "io.dropwizard.metrics", name = "metrics-annotation", version = "4.2.19" }
+dropwizard-metricsCaffeine = { group = "io.dropwizard.metrics", name = "metrics-caffeine", version = "4.2.19" }
+dropwizard-metricsCaffeine3 = { group = "io.dropwizard.metrics", name = "metrics-caffeine3", version = "4.2.19" }
+dropwizard-metricsCore = { group = "io.dropwizard.metrics", name = "metrics-core", version = "4.2.19" }
+zipkin-zipkinReporterBom = { group = "io.zipkin.reporter2", name = "zipkin-reporter-bom", version = "2.16.3" }
+zipkin-zipkin = { group = "io.zipkin.zipkin2", name = "zipkin", version = "2.23.2" }
+zipkin-zipkinProto3 = { group = "io.zipkin.proto3", name = "zipkin-proto3", version = "1.0.0" }
+zipkin-zipkinReporter = { group = "io.zipkin.reporter2", name = "zipkin-reporter", version = "2.16.3" }
+zipkin-zipkinReporterBrave = { group = "io.zipkin.reporter2", name = "zipkin-reporter-brave", version = "2.16.3" }
+
+# junit-bom
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version = "5.11.4" }
+junit-jupiterApi = { group = "org.junit.jupiter", name = "junit-jupiter-api", version = "5.11.4" }
+junit-jupiterEngine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version = "5.11.4" }
+junit-platformEngine = { group = "org.junit.platform", name = "junit-platform-engine", version = "1.11.4" }
+
+# aws-bom
+sdkCore = { group = "software.amazon.awssdk", name = "sdk-core", version.ref = "awsjavasdk" }
+s3 = { group = "software.amazon.awssdk", name = "s3", version.ref = "awsjavasdk" }
+sqs = { group = "software.amazon.awssdk", name = "sqs", version.ref = "awsjavasdk" }
+sts = { group = "software.amazon.awssdk", name = "sts", version.ref = "awsjavasdk" }
+
+[bundles]
+awsjavasdk = ["sdkCore", "s3", "sqs", "sts"]
+activemq = ["activemq-activemqBroker", "activemq-activemqClient", "activemq-activemqJdbcStore", "activemq-activemqSpring"]
+caffeine = ["caffeine-caffeine", "caffeine-guava", "caffeine-jcache"]
