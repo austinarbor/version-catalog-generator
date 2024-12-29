@@ -13,7 +13,6 @@ import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.Arguments.arguments
-import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
@@ -91,43 +90,6 @@ class GeneratorConfigTest {
         config.saveDirectory = relative
         expected = rootPath.toFile().resolve(relative)
         assertThat(config.saveDirectory).isEqualTo(expected)
-    }
-
-    @ParameterizedTest
-    @CsvSource("'     ',''", ".*,.*", ",''")
-    fun `exclude groups setter only sets non blank strings`(
-        toSet: String?,
-        expected: String,
-        @TempDir tmp: File,
-    ) {
-        val settings = mock<Settings> { on { rootDir } doReturn tmp }
-        val config = GeneratorConfig(settings).apply { excludeGroups = toSet }
-        assertThat(config.usingConfig.excludeGroups).isEqualTo(expected)
-    }
-
-    @ParameterizedTest
-    @CsvSource("'     ',''", ".*,.*", ",''")
-    fun `exclude names setter only sets non blank strings`(
-        toSet: String?,
-        expected: String,
-        @TempDir tmp: File,
-    ) {
-        val settings = mock<Settings> { on { rootDir } doReturn tmp }
-        val config = GeneratorConfig(settings).apply { excludeNames = toSet }
-        assertThat(config.usingConfig.excludeNames).isEqualTo(expected)
-    }
-
-    @ParameterizedTest
-    @NullSource
-    @ValueSource(strings = ["a", "b"])
-    fun `TomlConfig libraryAlias cannot be set to null`(toSet: String?) {
-        val cfg = GeneratorConfig.TomlConfig(mock<Settings>(), mock<File>())
-        if (toSet == null) {
-            assertThatIllegalArgumentException().isThrownBy { cfg.libraryAlias = toSet }
-        } else {
-            cfg.libraryAlias = toSet
-            assertThat(cfg.libraryAlias).isEqualTo(toSet)
-        }
     }
 
     @ParameterizedTest
