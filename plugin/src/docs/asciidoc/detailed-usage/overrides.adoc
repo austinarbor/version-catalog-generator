@@ -11,7 +11,7 @@ to specify the version{fn-gradle-overrides}
 generate("myLibs") {
   // excluded for brevity
   using { // <1>
-    propertyOverrides = mapOf (
+    propertyOverrides = mapOf(
       "jackson.version" to "2.16.1", // <2>
       "aws.version" to versionRef("aws") // <3>
     )
@@ -23,7 +23,7 @@ generate("myLibs") {
         file = someFile
     }
     using { // <4>
-      propertyOverrides = mapOf (
+      propertyOverrides = mapOf(
         "jackson.version" to versionRef("jackson")  // <5>
       )
     }

@@ -77,7 +77,7 @@ dependencyResolutionManagement {
       }
       fromToml("aws-bom", "jackson-bom") { // <9>
         aliasSuffixGenerator = { prefix, groupId, artifactId -> // <10>
-          val trimmed = artifactId.replaceFirst("junit-").replaceFirst("jackson-")
+          val trimmed = artifactId.replaceFirst("junit-", "").replaceFirst("jackson-", "")
           GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR(prefix, groupId, trimmed)
         }
       }
