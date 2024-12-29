@@ -197,8 +197,8 @@ class VersionCatalogGeneratorPluginTest {
                   it.from("com.fasterxml.jackson:jackson-bom:2.15.2")
                   it.using { u ->
                     u.libraryAliasGenerator = { groupId, artifactId -> 
-                     def prefix = aliasPrefixGenerator.invoke(groupId, artifactId)
-                     def suffix = aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
+                     def prefix = u.aliasPrefixGenerator.invoke(groupId, artifactId)
+                     def suffix = u.aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
                      DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
                     }
                     u.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
@@ -210,8 +210,8 @@ class VersionCatalogGeneratorPluginTest {
                     it.using { u ->
                       u.generateBomEntry = true
                       u.libraryAliasGenerator = { groupId, artifactId -> 
-                        def prefix = aliasPrefixGenerator.invoke(groupId, artifactId)
-                        def suffix = aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
+                        def prefix = u.aliasPrefixGenerator.invoke(groupId, artifactId)
+                        def suffix = u.aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
                         DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
                       }
                       u.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
@@ -220,7 +220,7 @@ class VersionCatalogGeneratorPluginTest {
                 generator.generate("springLibs") { gen ->
                   gen.fromToml("spring-boot-dependencies")
                   gen.using { u ->
-                    gen.propertyOverrides = [
+                    u.propertyOverrides = [
                       "jackson-bom.version": u.versionRef("jackson")
                     ]
                   }
@@ -242,7 +242,7 @@ class VersionCatalogGeneratorPluginTest {
                      toml.libraryAliases = ["spring-boot-dependencies"]
                    }
                    from.using { u ->
-                    propertyOverrides = [
+                    u.propertyOverrides = [
                       "jackson-bom.version": u.versionRef("jackson")
                     ]
                    }
