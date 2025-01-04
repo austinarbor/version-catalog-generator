@@ -57,7 +57,7 @@ dependencyResolutionManagement {
     mavenCentral() // <1>
   }
   versionCatalogs {
-    generate("springLibs") { // <2>
+    generate("libs") { // <2>
       fromToml("springBootDependencies") { // <3>
         propertyOverrides = mapOf(
           "jackson-bom.version" to "2.16.1", // <4>
@@ -89,7 +89,7 @@ dependencyResolutionManagement {
 }
 ----
 <1> Must include repositories here for dependency resolution to work from settings
-<2> The name of the generated catalog
+<2> The name of the generated catalog. If a catalog with that name already exists, the entries will be appended to it. Otherwise, a new catalog will be created.
 <3> The name of the bom library in the version catalog
 <4> Optionally override some version properties using a literal value
 <5> Or, you can reference version aliases in the source TOML
