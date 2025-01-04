@@ -121,6 +121,11 @@ internal abstract class GeneratorTestBase {
                         (mock.arguments[1] as Action<VersionCatalogBuilder>).execute(builder)
                         builder
                     }
+                on { getByName(any<String>(), any<Action<VersionCatalogBuilder>>()) }
+                    .then { mock ->
+                        (mock.arguments[1] as Action<VersionCatalogBuilder>).execute(builder)
+                        builder
+                    }
             }
     }
 
@@ -131,8 +136,13 @@ internal abstract class GeneratorTestBase {
         config: GeneratorConfig,
         name: String,
         expectedCatalogPath: Path,
+        existing: Boolean = false,
     ) {
-        verify(container).create(eq(name), any<Action<VersionCatalogBuilder>>())
+        if (existing) {
+            verify(container).getByName(eq(name), any<Action<VersionCatalogBuilder>>())
+        } else {
+            verify(container).create(eq(name), any<Action<VersionCatalogBuilder>>())
+        }
         val (versions, libraries, bundles) = getExpectedCatalog(expectedCatalogPath)
         verifyVersions(versions)
         verifyLibraries(libraries)
