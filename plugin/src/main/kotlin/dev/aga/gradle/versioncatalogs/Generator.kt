@@ -22,6 +22,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.kotlin.dsl.getByName
 import org.gradle.kotlin.dsl.register
 import org.slf4j.LoggerFactory
 import org.tomlj.TomlContainer
@@ -106,34 +107,40 @@ object Generator {
                 }
             }
 
-        return create(name) {
-            val seenModules = mutableSetOf<String>()
-            val queue = ArrayDeque<Pair<GeneratorConfig.UsingConfig, Dependency>>(rootDeps)
-            val container = TomlContainer()
+        val action =
+            Action<VersionCatalogBuilder> {
+                val seenModules = mutableSetOf<String>()
+                val queue = ArrayDeque<Pair<GeneratorConfig.UsingConfig, Dependency>>(rootDeps)
+                val container = TomlContainer()
 
-            while (queue.isNotEmpty()) {
-                val (using, dep) = queue.removeFirst()
-                // Note: Dependency does not override equals, so we are relying on referential
-                // equality
-                val rootDep = rootDeps.any { it.second == dep }
-                if (rootDep && using.generateBomEntry == true) {
-                    createLibrary(
-                        dep,
-                        Version(dep.version, dep.version, dep.version),
-                        using,
-                        true,
-                        container,
-                    )
+                while (queue.isNotEmpty()) {
+                    val (using, dep) = queue.removeFirst()
+                    // Note: Dependency does not override equals, so we are relying on referential
+                    // equality
+                    val rootDep = rootDeps.any { it.second == dep }
+                    if (rootDep && using.generateBomEntry == true) {
+                        createLibrary(
+                            dep,
+                            Version(dep.version, dep.version, dep.version),
+                            using,
+                            true,
+                            container,
+                        )
+                    }
+                    val (model, parentModel) = resolver.resolve(dep)
+                    loadBom(model, parentModel, using, queue, seenModules, rootDep, container)
                 }
-                val (model, parentModel) = resolver.resolve(dep)
-                loadBom(model, parentModel, using, queue, seenModules, rootDep, container)
+
+                if (config.saveGeneratedCatalog) {
+                    config.settings.gradle.projectsEvaluated {
+                        registerSaveTask(rootProject, config.saveDirectory, name, container)
+                    }
+                }
             }
 
-            if (config.saveGeneratedCatalog) {
-                config.settings.gradle.projectsEvaluated {
-                    registerSaveTask(rootProject, config.saveDirectory, name, container)
-                }
-            }
+        return when {
+            name in names -> getByName(name, action)
+            else -> create(name, action)
         }
     }
 
