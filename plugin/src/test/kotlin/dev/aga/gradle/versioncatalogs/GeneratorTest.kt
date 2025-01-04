@@ -3,11 +3,13 @@ package dev.aga.gradle.versioncatalogs
 import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.service.MockGradleDependencyResolver
 import java.nio.file.Paths
+import java.util.TreeSet
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.kotlin.whenever
 
 internal class GeneratorTest : GeneratorTestBase() {
 
@@ -40,6 +42,23 @@ internal class GeneratorTest : GeneratorTestBase() {
         container.generate("myLibs", config, resolver)
         val expected = Paths.get("expectations", "spring-boot-dependencies", "libs.versions.toml")
         verifyGeneratedCatalog(config, "myLibs", expected)
+    }
+
+    @Test
+    fun `appends to existing version catalog`() {
+        whenever(container.names).thenReturn(TreeSet(setOf("libs")))
+        val config =
+            GeneratorConfig(settings).apply {
+                saveDirectory = projectDir
+                saveGeneratedCatalog = true
+                from("org.springframework.boot:spring-boot-dependencies:3.1.2") {
+                    generateBomEntry = true
+                }
+            }
+        val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+        container.generate("libs", config, resolver)
+        val expected = Paths.get("expectations", "spring-boot-dependencies", "libs.versions.toml")
+        verifyGeneratedCatalog(config, "libs", expected, true)
     }
 
     @Test

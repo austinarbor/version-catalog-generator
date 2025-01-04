@@ -113,6 +113,12 @@ class VersionCatalogGeneratorPluginTest {
                     aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
                   }
                 }
+                // test appending to existing catalog
+                generate("libs") {
+                  fromToml("aws-bom") {
+                    aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+                  }
+                }
               }
             }
         """
@@ -131,6 +137,8 @@ class VersionCatalogGeneratorPluginTest {
               implementation(manyBoms.spring.springBootStarterJdbc)
               implementation(manyBoms.sts)
               implementation(manyBoms.jacksonDatabind)
+              compileOnly(libs.spring.boot.dependencies)
+              implementation(libs.s3)
               testImplementation(mockitoLibs.mockito.core)
               testImplementation(mockitoLibs.mockito.junit.jupiter)
               testImplementation(junitLibs.junitJupiter)
