@@ -112,8 +112,8 @@ _Lastly, use the dependencies in your build_
 dependencies {
   implementation(awsLibs.s3)
   implementation(awsLibs.dynamodb)
-  implementation(springLibs.spring.springBootStarterWeb)
-  implementation(springLibs.jackson.jacksonDatabind)
+  implementation(libs.spring.springBootStarterWeb)
+  implementation(libs.jackson.jacksonDatabind)
   implementation(manyLibs.sts)
   implementation(manyLibs.databind)
   implementation(manyLibs.spring.springBootStarterJdbc)
