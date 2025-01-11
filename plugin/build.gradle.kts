@@ -125,6 +125,7 @@ idea {
 // coverage output
 val createTestkitFiles by
     tasks.registering {
+        notCompatibleWithConfigurationCache("cannot serialize Gradle script object references")
         val outputDir = file(layout.buildDirectory.dir("testkit"))
         inputs.files(sourceSets.main.get().runtimeClasspath)
         inputs.files(jacocoRuntime)
