@@ -9,38 +9,36 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
 class VersionCatalogGeneratorPluginTest {
-    @field:TempDir lateinit var projectDir: File
+  @field:TempDir lateinit var projectDir: File
 
-    private val buildFile by lazy { projectDir.resolve("build.gradle.kts") }
-    private val settingsFile by lazy { projectDir.resolve("settings.gradle.kts") }
-    private val groovySettingsFile by lazy { projectDir.resolve("settings.gradle") }
-    private val propertiesFile by lazy { projectDir.resolve("gradle.properties") }
-    private val versionCatalogFile by lazy {
-        projectDir.resolve("gradle").resolve("libs.versions.toml")
-    }
+  private val buildFile by lazy { projectDir.resolve("build.gradle.kts") }
+  private val settingsFile by lazy { projectDir.resolve("settings.gradle.kts") }
+  private val groovySettingsFile by lazy { projectDir.resolve("settings.gradle") }
+  private val propertiesFile by lazy { projectDir.resolve("gradle.properties") }
+  private val versionCatalogFile by lazy {
+    projectDir.resolve("gradle").resolve("libs.versions.toml")
+  }
 
-    private lateinit var classpathString: String
+  private lateinit var classpathString: String
 
-    @BeforeEach
-    fun setup() {
-        // create the classpath string which we use in the buildscript in the test build file
-        val classpathFiles = getResourceAsText("testkit-classpath.txt").lines().map { File(it) }
+  @BeforeEach
+  fun setup() {
+    // create the classpath string which we use in the buildscript in the test build file
+    val classpathFiles = getResourceAsText("testkit-classpath.txt").lines().map { File(it) }
 
-        classpathString =
-            classpathFiles
-                .map { it.absolutePath.replace('\\', '/') }
-                .joinToString(",") { "\"$it\"" }
-        // copy the generated properties file into the runner's directory
-        propertiesFile.writeText(getResourceAsText("testkit-gradle.properties"))
+    classpathString =
+      classpathFiles.map { it.absolutePath.replace('\\', '/') }.joinToString(",") { "\"$it\"" }
+    // copy the generated properties file into the runner's directory
+    propertiesFile.writeText(getResourceAsText("testkit-gradle.properties"))
 
-        versionCatalogFile.parentFile.mkdirs()
-    }
+    versionCatalogFile.parentFile.mkdirs()
+  }
 
-    @Test
-    fun `kotlin dsl usage succeeds`() {
-        // Set up the test build
-        settingsFile.writeText(
-            """
+  @Test
+  fun `kotlin dsl usage succeeds`() {
+    // Set up the test build
+    settingsFile.writeText(
+      """
             import dev.aga.gradle.versioncatalogs.Generator.generate
             import dev.aga.gradle.versioncatalogs.GeneratorConfig
                         
@@ -122,10 +120,10 @@ class VersionCatalogGeneratorPluginTest {
               }
             }
         """
-                .trimIndent(),
-        )
-        buildFile.writeText(
-            """
+        .trimIndent()
+    )
+    buildFile.writeText(
+      """
             plugins {
               java
             }
@@ -145,11 +143,11 @@ class VersionCatalogGeneratorPluginTest {
               testImplementation(junitLibs.junitJupiterParams)
             }
             """
-                .trimIndent(),
-        )
+        .trimIndent()
+    )
 
-        versionCatalogFile.writeText(
-            """
+    versionCatalogFile.writeText(
+      """
                 [versions]
                 aws = "2.21.15"
                 jackson = "2.18.2"
@@ -159,34 +157,34 @@ class VersionCatalogGeneratorPluginTest {
                 jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
                 spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
             """
-                .trimIndent(),
-        )
+        .trimIndent()
+    )
 
-        // Run the build
-        val runner =
-            GradleRunner.create()
-                .forwardOutput()
-                .withPluginClasspath()
-                .withArguments("--stacktrace")
-                .withArguments("clean", "assemble")
-                .withProjectDir(projectDir)
+    // Run the build
+    val runner =
+      GradleRunner.create()
+        .forwardOutput()
+        .withPluginClasspath()
+        .withArguments("--stacktrace")
+        .withArguments("clean", "assemble")
+        .withProjectDir(projectDir)
 
-        val result = runner.build()
+    val result = runner.build()
 
-        assertThat(result.output).contains("BUILD SUCCESSFUL")
+    assertThat(result.output).contains("BUILD SUCCESSFUL")
 
-        assertThat(projectDir.resolve(Paths.get("build", "version-catalogs").toString()))
-            .isDirectoryNotContaining { it.name == "awsLibs.versions.toml" }
-            .isDirectoryContaining { it.name == "jsonLibs.versions.toml" }
-            .isDirectoryContaining { it.name == "junitLibs.versions.toml" }
-            .isDirectoryContaining { it.name == "mockitoLibs.versions.toml" }
-    }
+    assertThat(projectDir.resolve(Paths.get("build", "version-catalogs").toString()))
+      .isDirectoryNotContaining { it.name == "awsLibs.versions.toml" }
+      .isDirectoryContaining { it.name == "jsonLibs.versions.toml" }
+      .isDirectoryContaining { it.name == "junitLibs.versions.toml" }
+      .isDirectoryContaining { it.name == "mockitoLibs.versions.toml" }
+  }
 
-    @Test
-    fun `groovy dsl usage succeeds`() {
-        // Set up the test build
-        groovySettingsFile.writeText(
-            """ 
+  @Test
+  fun `groovy dsl usage succeeds`() {
+    // Set up the test build
+    groovySettingsFile.writeText(
+      """ 
             buildscript {
               dependencies {
                 classpath(files($classpathString))
@@ -268,10 +266,10 @@ class VersionCatalogGeneratorPluginTest {
               }
             }
         """
-                .trimIndent(),
-        )
-        buildFile.writeText(
-            """
+        .trimIndent()
+    )
+    buildFile.writeText(
+      """
             plugins {
               java
             }
@@ -283,11 +281,11 @@ class VersionCatalogGeneratorPluginTest {
               testImplementation(junitLibs.junitJupiter)
             }
             """
-                .trimIndent(),
-        )
+        .trimIndent()
+    )
 
-        versionCatalogFile.writeText(
-            """
+    versionCatalogFile.writeText(
+      """
                 [versions]
                 aws = "2.21.15"
                 jackson = "2.18.2"
@@ -297,29 +295,25 @@ class VersionCatalogGeneratorPluginTest {
                 jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
                 spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
             """
-                .trimIndent(),
-        )
+        .trimIndent()
+    )
 
-        // Run the build
-        val runner =
-            GradleRunner.create()
-                .forwardOutput()
-                .withPluginClasspath()
-                .withArguments("--stacktrace")
-                .withProjectDir(projectDir)
+    // Run the build
+    val runner =
+      GradleRunner.create()
+        .forwardOutput()
+        .withPluginClasspath()
+        .withArguments("--stacktrace")
+        .withProjectDir(projectDir)
 
-        val result = runner.build()
+    val result = runner.build()
 
-        assertThat(result.output).contains("BUILD SUCCESSFUL")
+    assertThat(result.output).contains("BUILD SUCCESSFUL")
+  }
+
+  companion object {
+    private fun getResourceAsText(name: String): String {
+      return VersionCatalogGeneratorPluginTest::class.java.classLoader.getResource(name).readText()
     }
-
-    companion object {
-        private fun getResourceAsText(name: String): String {
-            return VersionCatalogGeneratorPluginTest::class
-                .java
-                .classLoader
-                .getResource(name)
-                .readText()
-        }
-    }
+  }
 }

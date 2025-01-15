@@ -35,6 +35,6 @@ formatting:
   SpacingBetweenDeclarationsWithAnnotations:
     active: false
   TrailingCommaOnCallSite:
-    active: true
+    active: false
   TrailingCommaOnDeclarationSite:
-    active: true
+    active: false
