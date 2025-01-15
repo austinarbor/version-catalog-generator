@@ -9,20 +9,20 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.component.Artifact
 
 internal class ArtifactResult(val root: Path, val source: Dependency) : ResolvedArtifactResult {
-    override fun getId(): ComponentArtifactIdentifier {
-        TODO("Not yet implemented")
-    }
+  override fun getId(): ComponentArtifactIdentifier {
+    TODO("Not yet implemented")
+  }
 
-    override fun getType(): Class<out Artifact> {
-        TODO("Not yet implemented")
-    }
+  override fun getType(): Class<out Artifact> {
+    TODO("Not yet implemented")
+  }
 
-    override fun getFile(): File {
-        val fileName = "${source.artifactId}-${source.version}.pom"
-        return root.resolve(fileName).toFile()
-    }
+  override fun getFile(): File {
+    val fileName = "${source.artifactId}-${source.version}.pom"
+    return root.resolve(fileName).toFile()
+  }
 
-    override fun getVariant(): ResolvedVariantResult {
-        TODO("Not yet implemented")
-    }
+  override fun getVariant(): ResolvedVariantResult {
+    TODO("Not yet implemented")
+  }
 }

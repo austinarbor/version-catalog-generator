@@ -23,41 +23,39 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 class MockGradleDependencyResolver(val rootDir: Path) : DependencyResolver {
-    private val delegate: GradleDependencyResolver
-    private val incoming = mock<ResolvableDependencies>()
-    private val configuration =
-        mock<Configuration> {
-            on { resolutionStrategy } doReturn mock<ResolutionStrategy>()
-            on { attributes } doReturn mock<AttributeContainer>()
-            on { dependencies } doReturn mock<DependencySet>()
-            on { incoming } doReturn incoming
-        }
-
-    private val configurationContainer =
-        mock<ConfigurationContainer> { on { detachedConfiguration() } doReturn configuration }
-
-    private val drs =
-        mock<DependencyResolutionServices> {
-            on { configurationContainer } doReturn configurationContainer
-            on { dependencyHandler } doReturn DependencyHandler()
-        }
-
-    private val dependencyHandler =
-        mock<GradleDependencyHandler> {
-            on { create(any()) } doReturn mock<DefaultMinimalDependency>()
-        }
-    private val objectFactory = mock<ObjectFactory>()
-
-    init {
-        val supp: Supplier<DependencyResolutionServices> = Supplier { drs }
-        val artifactResolver = PublishedArtifactResolver(objectFactory, supp)
-        delegate = GradleDependencyResolver(artifactResolver, this)
+  private val delegate: GradleDependencyResolver
+  private val incoming = mock<ResolvableDependencies>()
+  private val configuration =
+    mock<Configuration> {
+      on { resolutionStrategy } doReturn mock<ResolutionStrategy>()
+      on { attributes } doReturn mock<AttributeContainer>()
+      on { dependencies } doReturn mock<DependencySet>()
+      on { incoming } doReturn incoming
     }
 
-    override fun resolve(source: Dependency): Pair<Model, Model?> {
-        val result = ArtifactResult(rootDir, source)
-        val collection = ArtifactCollection(result)
-        whenever(incoming.artifacts).doReturn(collection)
-        return delegate.resolve(source)
+  private val configurationContainer =
+    mock<ConfigurationContainer> { on { detachedConfiguration() } doReturn configuration }
+
+  private val drs =
+    mock<DependencyResolutionServices> {
+      on { configurationContainer } doReturn configurationContainer
+      on { dependencyHandler } doReturn DependencyHandler()
     }
+
+  private val dependencyHandler =
+    mock<GradleDependencyHandler> { on { create(any()) } doReturn mock<DefaultMinimalDependency>() }
+  private val objectFactory = mock<ObjectFactory>()
+
+  init {
+    val supp: Supplier<DependencyResolutionServices> = Supplier { drs }
+    val artifactResolver = PublishedArtifactResolver(objectFactory, supp)
+    delegate = GradleDependencyResolver(artifactResolver, this)
+  }
+
+  override fun resolve(source: Dependency): Pair<Model, Model?> {
+    val result = ArtifactResult(rootDir, source)
+    val collection = ArtifactCollection(result)
+    whenever(incoming.artifacts).doReturn(collection)
+    return delegate.resolve(source)
+  }
 }

@@ -10,15 +10,15 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
 abstract class SaveTask : DefaultTask() {
-    @get:Input abstract val contents: Property<String>
-    @get:OutputDirectory abstract val destinationDir: DirectoryProperty
-    @get:OutputFile abstract val destinationFile: RegularFileProperty
+  @get:Input abstract val contents: Property<String>
+  @get:OutputDirectory abstract val destinationDir: DirectoryProperty
+  @get:OutputFile abstract val destinationFile: RegularFileProperty
 
-    @TaskAction
-    fun save() {
-        with(destinationDir.get()) {
-            asFile.mkdirs()
-            file(destinationFile.get().asFile.name).asFile.writeText(contents.get())
-        }
+  @TaskAction
+  fun save() {
+    with(destinationDir.get()) {
+      asFile.mkdirs()
+      file(destinationFile.get().asFile.name).asFile.writeText(contents.get())
     }
+  }
 }
