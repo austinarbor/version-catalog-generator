@@ -158,6 +158,7 @@ tasks {
     reports { xml.required = true }
   }
   asciidoctor {
+    notCompatibleWithConfigurationCache("AsciidoctorTask not compatible with configuration cache")
     configurations(asciidoctorExtensions)
     attributes =
       mapOf(
