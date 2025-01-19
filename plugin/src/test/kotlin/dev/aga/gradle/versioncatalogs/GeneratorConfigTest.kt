@@ -145,6 +145,25 @@ class GeneratorConfigTest {
     }
   }
 
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(booleans = [true, false])
+  fun `generateBomEntryForNestedBoms in using block cannot be set to null`(
+    toSet: Boolean?,
+    @TempDir tmp: File,
+  ) {
+    val settings = mock<Settings> { on { rootDir } doReturn tmp }
+    if (toSet == null) {
+      assertThatIllegalArgumentException().isThrownBy {
+        GeneratorConfig(settings).apply { using { generateBomEntryForNestedBoms = toSet } }
+      }
+    } else {
+      val config =
+        GeneratorConfig(settings).apply { using { generateBomEntryForNestedBoms = toSet } }
+      assertThat(config.usingConfig.generateBomEntryForNestedBoms).isEqualTo(toSet)
+    }
+  }
+
   companion object {
     @JvmStatic
     private fun defaultLibraryNameProvider(): List<Arguments> {
