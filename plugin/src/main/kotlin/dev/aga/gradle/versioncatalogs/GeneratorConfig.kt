@@ -272,6 +272,7 @@ class GeneratorConfig(val settings: Settings) {
         propertyOverrides = emptyMap()
         excludeGroups = ""
         excludeNames = ""
+        generateBomEntryForNestedBoms = true
       }
 
   /**
@@ -602,6 +603,17 @@ class GeneratorConfig(val settings: Settings) {
       }
 
     /**
+     * When true, will generate entries for BOMs that appear in other BOMs. For example,
+     * `spring-boot-dependencies` imports `junit-bom`. If this value is `true` then an entry for the
+     * junit BOM itself will appear in the generated catalog. Defaults to `true` for backwards
+     * compatibility.
+     */
+    var generateBomEntryForNestedBoms: Boolean? = null
+      set(value) {
+        field = requireNotNull(value) { "generateEntriesForNestedBoms cannot be set to null" }
+      }
+
+    /**
      * Override property values that are set in the root BOM you are generating a catalog for. For
      * example if the BOM has the property `jackson-bom.version` with the value `2.15.3` but you'd
      * rather use `2.16.1`, you can pass in values to override the BOM.
@@ -651,6 +663,7 @@ class GeneratorConfig(val settings: Settings) {
     }
 
     companion object {
+      @Suppress("detekt:LongMethod")
       fun merge(primary: UsingConfig, fallback: UsingConfig): UsingConfig {
         return UsingConfig(primary.catalogParserSupplier).apply {
           aliasPrefixGenerator =
@@ -707,10 +720,9 @@ class GeneratorConfig(val settings: Settings) {
             }
 
           generateBomEntry =
-            if (primary.generateBomEntry != null) {
-              primary.generateBomEntry
-            } else {
-              fallback.generateBomEntry
+            when (val bool = primary.generateBomEntry) {
+              null -> fallback.generateBomEntry
+              else -> bool
             }
 
           propertyOverrides =
@@ -718,6 +730,12 @@ class GeneratorConfig(val settings: Settings) {
               primary.propertyOverrides
             } else {
               fallback.propertyOverrides
+            }
+
+          generateBomEntryForNestedBoms =
+            when (val bool = primary.generateBomEntryForNestedBoms) {
+              null -> fallback.generateBomEntryForNestedBoms
+              else -> bool
             }
         }
       }
