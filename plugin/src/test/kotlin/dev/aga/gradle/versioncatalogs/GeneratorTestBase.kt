@@ -163,13 +163,13 @@ internal abstract class GeneratorTestBase {
   }
 
   protected open fun verifyLibraries(libraries: TomlTable) {
-    verify(builder, times(libraries.size())).library(any<String>(), any<String>(), any<String>())
     // sort the keys and split into groups of 3, which should give us
     // the group, name, and version properties
     libraries.dottedKeySet().sorted().chunked(3).forEach { libProps ->
       val alias = getLibraryAlias(libProps[0])
       val group = libraries.getString(libProps[0])!!
       val name = libraries.getString(libProps[1])!!
+      verify(builder).library(alias, group, name)
       assertThat(generatedLibraries).containsKey(alias)
       val mock = generatedLibraries[alias]!!
       val versionProp = libProps[2]
@@ -182,6 +182,7 @@ internal abstract class GeneratorTestBase {
         else -> throw RuntimeException("Unexpected property: ${versionProp}")
       }
     }
+    verify(builder, times(libraries.size())).library(any<String>(), any<String>(), any<String>())
   }
 
   protected open fun getLibraryAlias(property: String): String {
@@ -198,16 +199,17 @@ internal abstract class GeneratorTestBase {
   }
 
   protected open fun verifyVersions(versions: TomlTable) {
-    verify(builder, times(versions.size())).version(any<String>(), any<String>())
     versions.dottedKeySet().forEach { v -> verify(builder).version(v, versions.getString(v)!!) }
+    verify(builder, times(versions.size())).version(any<String>(), any<String>())
   }
 
   protected open fun verifyBundles(bundles: TomlTable) {
-    verify(builder, times(bundles.size())).bundle(any<String>(), any<List<String>>())
     bundles.dottedKeySet().forEach {
+      verify(builder).bundle(eq(it), any<List<String>>())
       assertThat(generatedBundles).containsKey(it)
       val expectedLibraries = bundles.getArrayOrEmpty(it).toList()
       assertThat(expectedLibraries).containsExactlyInAnyOrderElementsOf(generatedBundles[it])
     }
+    verify(builder, times(bundles.size())).bundle(any<String>(), any<List<String>>())
   }
 }

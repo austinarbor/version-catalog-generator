@@ -25,6 +25,13 @@ class TomlArrayAssert(actual: TomlArray) :
     return this
   }
 
+  fun containsExactlyInAnyOrderElementsOf(expected: TomlArray): TomlArrayAssert {
+    isNotNull()
+    hasSize(expected.size())
+    Assertions.assertThat(actual.toList()).containsExactlyInAnyOrderElementsOf(expected.toList())
+    return this
+  }
+
   companion object {
     fun assertThat(actual: TomlArray): TomlArrayAssert = TomlArrayAssert(actual)
   }

@@ -59,5 +59,9 @@ zipkin-zipkinReporterBrave = { group = "io.zipkin.reporter2", name = "zipkin-rep
 
 
 [bundles]
+assertj = ["assertj-assertjBom"]
 activemq = ["activemq-activemqBroker", "activemq-activemqClient", "activemq-activemqJdbcStore", "activemq-activemqSpring"]
+brave = ["zipkin-braveBom"]
 caffeine = ["caffeine-caffeine", "caffeine-guava", "caffeine-jcache"]
+dropwizardMetrics = ["dropwizard-metricsBom"]
+jacksonBom = ["jackson-jacksonBom"]
