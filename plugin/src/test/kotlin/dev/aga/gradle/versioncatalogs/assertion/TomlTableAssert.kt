@@ -17,7 +17,9 @@ class TomlTableAssert(actual: TomlTable) :
     hasDottedKeySet(expected.dottedKeySet())
     actual.dottedKeySet().forEach { key ->
       when (val value = actual.get(key)) {
-        is TomlArray -> TomlArrayAssert.assertThat(value).isEqualTo(expected.getArray(key)!!)
+        is TomlArray ->
+          TomlArrayAssert.assertThat(value)
+            .containsExactlyInAnyOrderElementsOf(expected.getArray(key)!!)
         is TomlTable -> assertThat(value).isEqualTo(expected.getTable(key)!!)
         else -> Assertions.assertThat(value).isEqualTo(expected.get(key))
       }
