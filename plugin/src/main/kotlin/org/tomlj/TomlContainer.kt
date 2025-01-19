@@ -1,6 +1,8 @@
 package org.tomlj
 
-class TomlContainer {
+import dev.aga.gradle.versioncatalogs.model.GeneratedLibrary
+
+class TomlContainer : Iterable<GeneratedLibrary> {
   private val oneOne = TomlPosition.positionAt(1, 1)
   private val toml: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)
   private val versions: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)
@@ -54,5 +56,52 @@ class TomlContainer {
 
   fun toToml(): String {
     return toml.toToml()
+  }
+
+  override fun iterator(): Iterator<GeneratedLibrary> {
+    return GeneratedLibraryIterator(libraries, versions)
+  }
+
+  // false positive since we delegate to a different iterator
+  @Suppress("detekt:IteratorNotThrowingNoSuchElementException")
+  private class GeneratedLibraryIterator(
+    private val libraries: TomlTable,
+    private val versions: TomlTable,
+  ) : Iterator<GeneratedLibrary> {
+
+    private val keyIterator: Iterator<String> by lazy {
+      libraries
+        .dottedKeySet(true)
+        .asSequence()
+        .filter { !it.endsWith(".version") && libraries.isTable(it) }
+        .iterator()
+    }
+
+    override fun hasNext(): Boolean = keyIterator.hasNext()
+
+    override fun next(): GeneratedLibrary {
+      val key = keyIterator.next()
+      val lib = libraries.getTable(key)!!
+      val (version, isRef) =
+        when (val v = lib.get("version")) {
+          is String -> v to false
+          is TomlTable -> v.getString("ref")!! to true
+          else -> throw IllegalArgumentException("Unable to resolve version value ${v}")
+        }
+
+      val (actualVersion, refName) =
+        when {
+          isRef -> versions.getString(version)!! to version
+          else -> version to null
+        }
+
+      return GeneratedLibrary(
+        alias = key,
+        group = lib.getString("group")!!,
+        name = lib.getString("name")!!,
+        version = actualVersion,
+        versionRef = refName,
+      )
+    }
   }
 }

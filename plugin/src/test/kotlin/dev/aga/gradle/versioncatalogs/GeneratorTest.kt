@@ -174,4 +174,25 @@ internal class GeneratorTest : GeneratorTestBase() {
         "Attempting: org.ehcache:ehcache:ehcache3",
       )
   }
+
+  @Test
+  fun `custom bundle mapping`() {
+    val config =
+      GeneratorConfig(settings).apply {
+        saveDirectory = projectDir
+        saveGeneratedCatalog = true
+        from("org.springframework.boot:spring-boot-dependencies:3.1.2")
+        bundleMapping = {
+          when {
+            it.alias.startsWith("caffeine-") -> "caffeine"
+            it.alias.startsWith("awssdk-") -> "awssdk"
+            else -> null
+          }
+        }
+      }
+    val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+    container.generate("myLibs", config, resolver)
+    val expected = Paths.get("expectations", "spring-boot-dependencies", "custom-bundles.toml")
+    verifyGeneratedCatalog(config, "myLibs", expected)
+  }
 }

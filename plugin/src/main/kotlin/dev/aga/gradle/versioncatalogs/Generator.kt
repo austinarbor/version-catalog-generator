@@ -127,6 +127,8 @@ object Generator {
           loadBom(model, parentModel, using, queue, seenModules, rootDep, container)
         }
 
+        createBundles(container, config)
+
         if (config.saveGeneratedCatalog) {
           config.settings.gradle.projectsEvaluated {
             registerSaveTask(rootProject, config.saveDirectory, name, container)
@@ -138,6 +140,23 @@ object Generator {
       name in names -> getByName(name, action)
       else -> create(name, action)
     }
+  }
+
+  private fun VersionCatalogBuilder.createBundles(
+    container: TomlContainer,
+    config: GeneratorConfig,
+  ) {
+    container
+      .groupBy {
+        when (val bundleName = config.bundleMapping(it)) {
+          null -> ""
+          else -> bundleName
+        }
+      }
+      .filterKeys { it.isNotBlank() }
+      .mapValues { (_, values) -> values.map { it.alias } }
+      .filterValues { it.isNotEmpty() }
+      .forEach { (bundleName, aliases) -> createBundle(bundleName, aliases, container) }
   }
 
   private fun registerSaveTask(
@@ -232,16 +251,7 @@ object Generator {
       if (rootDep) {
         maybeRegisterVersion(version, using.versionNameGenerator, registeredVersions, container)
       }
-      val aliases = mutableListOf<String>()
-      deps.forEach { dep ->
-        val alias = createLibrary(dep, version, using, rootDep, container)
-        if (rootDep && version.isRef) {
-          aliases += alias
-        }
-      }
-      if (aliases.isNotEmpty()) {
-        registerBundle(version, aliases, using.versionNameGenerator, container)
-      }
+      deps.forEach { dep -> createLibrary(dep, version, using, rootDep, container) }
     }
   }
 
@@ -258,15 +268,13 @@ object Generator {
     }
   }
 
-  internal fun VersionCatalogBuilder.registerBundle(
-    version: Version,
-    aliases: List<String>,
-    versionNameGenerator: (String) -> String,
+  internal fun VersionCatalogBuilder.createBundle(
+    name: String,
+    libraryAliases: List<String>,
     container: TomlContainer,
   ) {
-    val bundleName = versionNameGenerator(version.unwrapped).replace('.', '-')
-    bundle(bundleName, aliases)
-    container.addBundle(bundleName, aliases)
+    bundle(name, libraryAliases)
+    container.addBundle(name, libraryAliases)
   }
 
   /**

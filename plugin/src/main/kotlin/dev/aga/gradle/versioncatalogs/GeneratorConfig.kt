@@ -2,6 +2,7 @@ package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.annotation.GeneratorConfigDsl
 import dev.aga.gradle.versioncatalogs.annotation.SourceConfigDsl
+import dev.aga.gradle.versioncatalogs.model.GeneratedLibrary
 import dev.aga.gradle.versioncatalogs.model.PropertyOverride
 import dev.aga.gradle.versioncatalogs.model.TomlVersionRef
 import dev.aga.gradle.versioncatalogs.service.CatalogParser
@@ -449,6 +450,15 @@ class GeneratorConfig(val settings: Settings) {
   fun from(sc: @GeneratorConfigDsl SourceConfig.() -> Unit) {
     from(sc = sc, uc = {})
   }
+
+  /**
+   * Provide a mapping function to create bundles from the generated libraries. The return value of
+   * the lambda is the name of the bundle the library will be registered under. A null or blank
+   * string will be ignored. By default (for backwards compatibility), a library will be mapped to a
+   * bundle if and only if it was registered with a `versionRef`, and the name of the bundle will be
+   * the `versionRef` value.
+   */
+  var bundleMapping: (GeneratedLibrary) -> String? = { it.versionRef }
 
   /**
    * Specify the source BOM to generate the version catalog from. BOMs can be specified by using a
