@@ -27,6 +27,7 @@ internal class GeneratorTest : GeneratorTestBase() {
           excludeNames = ".*"
           generateBomEntry = false
           propertyOverrides = mapOf("jackson-bom.version" to "2.16.1")
+          generateBomEntryForNestedBoms = false
         }
         from("org.springframework.boot:spring-boot-dependencies:3.1.2") {
           aliasPrefixGenerator = GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR
@@ -36,6 +37,7 @@ internal class GeneratorTest : GeneratorTestBase() {
           excludeNames = ""
           generateBomEntry = true
           propertyOverrides = emptyMap()
+          generateBomEntryForNestedBoms = true
         }
       }
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
@@ -193,6 +195,21 @@ internal class GeneratorTest : GeneratorTestBase() {
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)
     val expected = Paths.get("expectations", "spring-boot-dependencies", "custom-bundles.toml")
+    verifyGeneratedCatalog(config, "myLibs", expected)
+  }
+
+  @Test
+  fun `no nested BOMs`() {
+    val config =
+      GeneratorConfig(settings).apply {
+        saveDirectory = projectDir
+        saveGeneratedCatalog = true
+        from("org.springframework.boot:spring-boot-dependencies:3.1.2")
+        using { generateBomEntryForNestedBoms = false }
+      }
+    val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+    container.generate("myLibs", config, resolver)
+    val expected = Paths.get("expectations", "spring-boot-dependencies", "no-nested-boms.toml")
     verifyGeneratedCatalog(config, "myLibs", expected)
   }
 }

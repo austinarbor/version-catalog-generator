@@ -1,0 +1,42 @@
+
+=== Entries for Nested BOMs
+
+Optionally, you can configure the generator to not generate entries for BOMs that are found
+_within_ the parent BOM(s). For example, The spring boot dependencies BOM imports other BOMs
+such as junit (`junit-bom`), jackson (`jackson-bom`) etc. By default, the generator will create entries for these just like any
+other dependency.
+
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
+----
+generate("springLibs") {
+  using {
+    generateBomEntryForNestedBoms = true // <1>
+  }
+  fromToml("springBootDependencies") {
+    generateBomEntryForNestedBoms = false // <2>
+  }
+}
+----
+<1> Set the default value of `generateBomEntryForNestedBoms` to `true` to include an entry for BOMs that are imported by
+the root-level BOMs
+<2> Or set / override the value for just this `from` declaration
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+generator.generate("springLibs") {
+  it.generateBomEntryForNestedBoms = true // <1>
+  it.from { from ->
+    from.toml { toml ->
+      toml.libraryAliases = ["springBootDependencies"]
+    }
+    from.using { using ->
+      using.generateBomEntryForNestedBoms = true // <2>
+    }
+  }
+}
+----
+<1> Set the default value of `generateBomEntryForNestedBoms` to `true` to include an entry for BOMs that are imported by
+the root-level BOMs
+<2> Or set / override the value for just this `from` declaration

@@ -22,7 +22,6 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.kotlin.dsl.getByName
 import org.gradle.kotlin.dsl.register
 import org.slf4j.LoggerFactory
 import org.tomlj.TomlContainer
@@ -219,6 +218,7 @@ object Generator {
    * @param rootDep true if this is the very first BOM in the tree, otherwise false
    * @param container the container for the TOML file we are generating
    */
+  @Suppress("detekt:NestedBlockDepth")
   internal fun VersionCatalogBuilder.loadDependencies(
     model: Model,
     using: GeneratorConfig.UsingConfig,
@@ -233,10 +233,12 @@ object Generator {
     deps.forEach { (version, boms) ->
       boms.forEach { bom ->
         logger.info("${model.groupId}:${model.artifactId} contains other BOMs")
-        if (rootDep) {
-          maybeRegisterVersion(version, using.versionNameGenerator, registeredVersions, container)
+        if (using.generateBomEntryForNestedBoms == true) {
+          if (rootDep) {
+            maybeRegisterVersion(version, using.versionNameGenerator, registeredVersions, container)
+          }
+          createLibrary(bom, version, using, rootDep, container)
         }
-        createLibrary(bom, version, using, rootDep, container)
         // if the version is a property, replace it with the
         // actual version value
         if (version.isRef) {
