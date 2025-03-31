@@ -31,6 +31,7 @@ dependencies {
   testImplementation(libs.bundles.mockito)
   testImplementation(gradleTestKit())
   testRuntimeOnly(files(layout.buildDirectory.dir("testkit")))
+  testRuntimeOnly(libs.junitPlatformLauncher)
   jacocoRuntime(variantOf(libs.jacoco.agent) { classifier("runtime") })
 
   asciidoctorExtensions(libs.asciidoctor.tabbedCode)
