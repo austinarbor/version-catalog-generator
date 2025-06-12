@@ -1,3 +1,4 @@
+import dev.aga.gradle.versioncatalogs.tasks.CreateTestKitFilesTask
 import io.gitlab.arturbosch.detekt.Detekt
 
 plugins {
@@ -7,7 +8,6 @@ plugins {
   `java-gradle-plugin`
   `maven-publish`
   jacoco
-  alias(libs.plugins.spotless)
   alias(libs.plugins.detekt)
   alias(libs.plugins.gradle.publish)
   alias(libs.plugins.shadow)
@@ -15,8 +15,6 @@ plugins {
 }
 
 val jacocoRuntime by configurations.creating
-
-repositories { mavenCentral() }
 
 val asciidoctorExtensions by configurations.registering
 
@@ -38,17 +36,6 @@ dependencies {
 }
 
 jacoco { toolVersion = libs.versions.jacoco.get() }
-
-spotless {
-  kotlin {
-    ktfmt().googleStyle()
-    endWithNewline()
-  }
-  kotlinGradle {
-    ktfmt().googleStyle()
-    endWithNewline()
-  }
-}
 
 detekt {
   buildUponDefaultConfig = true
@@ -125,22 +112,9 @@ idea {
 // the Testkit runner with jacoco so we get test
 // coverage output
 val createTestkitFiles by
-  tasks.registering {
-    notCompatibleWithConfigurationCache("cannot serialize Gradle script object references")
-    val outputDir = file(layout.buildDirectory.dir("testkit"))
-    inputs.files(sourceSets.main.get().runtimeClasspath)
-    inputs.files(jacocoRuntime)
-    outputs.dir(outputDir)
-    doLast {
-      outputDir.mkdirs()
-      val jacocoPath = jacocoRuntime.asPath.replace('\\', '/')
-      file("$outputDir/testkit-classpath.txt")
-        .writeText(sourceSets.main.get().runtimeClasspath.joinToString("\n"))
-      file("$outputDir/testkit-gradle.properties")
-        .writeText(
-          "org.gradle.jvmargs=-javaagent:${jacocoPath}=destfile=$buildDir/jacoco/test.exec"
-        )
-    }
+  tasks.registering(CreateTestKitFilesTask::class) {
+    jacocoClasspath = jacocoRuntime.asPath
+    runtimeClasspath.from(sourceSets.main.get().runtimeClasspath)
   }
 
 tasks {
