@@ -1,17 +1,3 @@
-plugins {
-  `kotlin-dsl`
-  alias(libs.plugins.spotless)
-}
+plugins { `kotlin-dsl` }
 
 repositories { gradlePluginPortal() }
-
-spotless {
-  kotlin {
-    ktfmt().googleStyle()
-    endWithNewline()
-  }
-  kotlinGradle {
-    ktfmt().googleStyle()
-    endWithNewline()
-  }
-}

@@ -30,10 +30,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
-      - name: Run BuildSrc Spotless Check
-        run: ./gradlew clean :buildSrc:spotlessCheck
       - name: Run Spotless Check
-        run: ./gradlew spotlessCheck
+        run: ./gradlew clean spotlessCheck
 
   run-tests:
     runs-on: ubuntu-latest

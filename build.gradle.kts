@@ -1,11 +1,4 @@
 plugins {
-  idea
-  java
-}
-
-idea {
-  module {
-    isDownloadJavadoc = true
-    isDownloadSources = true
-  }
+  alias(libs.plugins.kotlin)
+  id("spotless")
 }
