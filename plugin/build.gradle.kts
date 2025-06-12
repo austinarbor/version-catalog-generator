@@ -8,7 +8,6 @@ plugins {
   `java-gradle-plugin`
   `maven-publish`
   jacoco
-  alias(libs.plugins.spotless)
   alias(libs.plugins.detekt)
   alias(libs.plugins.gradle.publish)
   alias(libs.plugins.shadow)
@@ -16,8 +15,6 @@ plugins {
 }
 
 val jacocoRuntime by configurations.creating
-
-repositories { mavenCentral() }
 
 val asciidoctorExtensions by configurations.registering
 
@@ -39,17 +36,6 @@ dependencies {
 }
 
 jacoco { toolVersion = libs.versions.jacoco.get() }
-
-spotless {
-  kotlin {
-    ktfmt().googleStyle()
-    endWithNewline()
-  }
-  kotlinGradle {
-    ktfmt().googleStyle()
-    endWithNewline()
-  }
-}
 
 detekt {
   buildUponDefaultConfig = true
