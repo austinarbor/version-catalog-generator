@@ -12,6 +12,7 @@ plugins {
   alias(libs.plugins.gradle.publish)
   alias(libs.plugins.shadow)
   alias(libs.plugins.asciidoctorj)
+  id("spotless")
 }
 
 val jacocoRuntime by configurations.creating
