@@ -5,9 +5,13 @@ import java.nio.file.Paths
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.FieldSource
 
+@Execution(ExecutionMode.CONCURRENT)
 class VersionCatalogGeneratorPluginTest {
   @field:TempDir lateinit var projectDir: File
 
@@ -34,8 +38,9 @@ class VersionCatalogGeneratorPluginTest {
     versionCatalogFile.parentFile.mkdirs()
   }
 
-  @Test
-  fun `kotlin dsl usage succeeds`() {
+  @ParameterizedTest
+  @FieldSource("GRADLE_VERSIONS")
+  fun `kotlin dsl usage succeeds`(version: String) {
     // Set up the test build
     settingsFile.writeText(
       """
@@ -168,6 +173,7 @@ class VersionCatalogGeneratorPluginTest {
         .withArguments("--stacktrace")
         .withArguments("clean", "assemble")
         .withProjectDir(projectDir)
+        .withGradleVersion(version)
 
     val result = runner.build()
 
@@ -180,8 +186,9 @@ class VersionCatalogGeneratorPluginTest {
       .isDirectoryContaining { it.name == "mockitoLibs.versions.toml" }
   }
 
-  @Test
-  fun `groovy dsl usage succeeds`() {
+  @ParameterizedTest
+  @FieldSource("GRADLE_VERSIONS")
+  fun `groovy dsl usage succeeds`(version: String) {
     // Set up the test build
     groovySettingsFile.writeText(
       """ 
@@ -305,6 +312,7 @@ class VersionCatalogGeneratorPluginTest {
         .withPluginClasspath()
         .withArguments("--stacktrace")
         .withProjectDir(projectDir)
+        .withGradleVersion(version)
 
     val result = runner.build()
 
@@ -315,5 +323,8 @@ class VersionCatalogGeneratorPluginTest {
     private fun getResourceAsText(name: String): String {
       return VersionCatalogGeneratorPluginTest::class.java.classLoader.getResource(name).readText()
     }
+
+    private val GRADLE_VERSIONS =
+      listOf("8.4", "8.5", "8.6", "8.7", "8.8", "8.9", "8.10", "8.11", "8.12", "8.13", "8.14")
   }
 }

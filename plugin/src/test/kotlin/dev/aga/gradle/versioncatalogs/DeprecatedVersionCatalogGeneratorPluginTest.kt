@@ -5,8 +5,9 @@ import java.nio.file.Paths
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.FieldSource
 
 class DeprecatedVersionCatalogGeneratorPluginTest {
   @field:TempDir lateinit var projectDir: File
@@ -34,8 +35,9 @@ class DeprecatedVersionCatalogGeneratorPluginTest {
     versionCatalogFile.parentFile.mkdirs()
   }
 
-  @Test
-  fun `kotlin dsl usage succeeds`() {
+  @ParameterizedTest
+  @FieldSource("GRADLE_VERSIONS")
+  fun `kotlin dsl usage succeeds`(version: String) {
     // Set up the test build
     settingsFile.writeText(
       """
@@ -138,6 +140,7 @@ class DeprecatedVersionCatalogGeneratorPluginTest {
         .withPluginClasspath()
         .withArguments("clean", "assemble")
         .withProjectDir(projectDir)
+        .withGradleVersion(version)
 
     val result = runner.build()
 
@@ -150,8 +153,9 @@ class DeprecatedVersionCatalogGeneratorPluginTest {
       .isDirectoryContaining { it.name == "mockitoLibs.versions.toml" }
   }
 
-  @Test
-  fun `groovy dsl usage succeeds`() {
+  @ParameterizedTest
+  @FieldSource("GRADLE_VERSIONS")
+  fun `groovy dsl usage succeeds`(version: String) {
     // Set up the test build
     groovySettingsFile.writeText(
       """ 
@@ -240,7 +244,11 @@ class DeprecatedVersionCatalogGeneratorPluginTest {
 
     // Run the build
     val runner =
-      GradleRunner.create().forwardOutput().withPluginClasspath().withProjectDir(projectDir)
+      GradleRunner.create()
+        .forwardOutput()
+        .withPluginClasspath()
+        .withProjectDir(projectDir)
+        .withGradleVersion(version)
 
     val result = runner.build()
 
@@ -255,5 +263,8 @@ class DeprecatedVersionCatalogGeneratorPluginTest {
         .getResource(name)
         .readText()
     }
+
+    private val GRADLE_VERSIONS =
+      listOf("8.4", "8.5", "8.6", "8.7", "8.8", "8.9", "8.10", "8.11", "8.12", "8.13", "8.14")
   }
 }
