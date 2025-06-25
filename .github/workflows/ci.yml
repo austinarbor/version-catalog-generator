@@ -123,6 +123,9 @@ jobs:
           name: m2
           path: /home/runner/.m2/repository
 
+      - name: List
+        run: find /home/runner/.m2
+
       - name: Assemble
         working-directory: kotlin-example
         run: gradle assemble
