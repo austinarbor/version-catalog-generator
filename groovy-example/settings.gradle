@@ -1,0 +1,75 @@
+pluginManagement { repositories { mavenLocal() } }
+
+plugins { id("dev.aga.gradle.version-catalog-generator") version "3.2.1-SNAPSHOT" }
+
+dependencyResolutionManagement {
+  repositories {
+    mavenCentral()
+  }
+  versionCatalogs {
+    generator.generate("jsonLibs") {
+      it.from("com.fasterxml.jackson:jackson-bom:2.15.2")
+      it.using { u ->
+        u.libraryAliasGenerator = { groupId, artifactId ->
+          def prefix = u.aliasPrefixGenerator.invoke(groupId, artifactId)
+          def suffix = u.aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
+          DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
+        }
+        u.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
+      }
+    }
+
+    generator.generate("mockitoLibs") {
+      it.from("org.mockito:mockito-bom:5.5.0")
+      it.using { u ->
+        u.generateBomEntry = true
+        u.libraryAliasGenerator = { groupId, artifactId ->
+          def prefix = u.aliasPrefixGenerator.invoke(groupId, artifactId)
+          def suffix = u.aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
+          DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
+        }
+        u.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
+      }
+    }
+    generator.generate("springLibs") { gen ->
+      gen.fromToml("spring-boot-dependencies")
+      gen.using { u ->
+        u.propertyOverrides = [
+                "jackson-bom.version": u.versionRef("jackson")
+        ]
+      }
+    }
+    generator.generate("junitLibs") {
+      it.from { from ->
+        from.toml { toml ->
+          toml.libraryAliases = ["boms-junit5"]
+          toml.file = toml.artifact("io.micronaut.platform:micronaut-platform:4.3.6")
+        }
+      }
+      it.using { u ->
+        u.aliasPrefixGenerator = NO_PREFIX
+      }
+    }
+    generator.generate("manyBoms") {
+      it.from { from ->
+        from.toml { toml ->
+          toml.libraryAliases = ["spring-boot-dependencies"]
+        }
+        from.using { u ->
+          u.propertyOverrides = [
+                  "jackson-bom.version": u.versionRef("jackson")
+          ]
+        }
+      }
+
+      it.from { from ->
+        from.toml { toml ->
+          toml.libraryAliases = ["aws-bom", "jackson-bom"]
+        }
+        from.using { u ->
+          u.aliasPrefixGenerator = NO_PREFIX
+        }
+      }
+    }
+  }
+}
