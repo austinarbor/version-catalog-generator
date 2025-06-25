@@ -66,8 +66,38 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+  publish-local:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout
+
+      - uses: actions/setup-java@v4
+        name: Setup Java
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: wrapper
+
+      - name: Publish To Maven
+        run: |
+          version=$(cat gradle.properties | grep version= | cut -d = -f 2)
+          version="${version}-SNAPSHOT"
+          ./gradlew -Pversion=${version} publishToMavenLocal
+          echo "VERSION=${version}" >> $GITHUB_OUTPUT
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: m2
+          path: /home/runner/.m2/repository
+
   kotlin-dsl:
     runs-on: ubuntu-latest
+    needs: [ publish-local ]
     strategy:
       matrix:
         gradle-version: [ "8.4", "8.5", "8.6", "8.7", "8.8", "8.9", "8.10", "8.11", "8.12", "8.13", "8.14" ,"release-nightly", "release-candidate" ]
@@ -84,20 +114,14 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: wrapper
-          cache-read-only: true
-
-      - name: Publish To Local Maven
-        run: |
-          version=$(cat gradle.properties | grep version= | cut -d = -f 2)
-          version="${version}-SNAPSHOT"
-          ./gradlew -Pversion=${version} publishToMavenLocal
-
-      - uses: gradle/actions/setup-gradle@v4
-        with:
           gradle-version: ${{ matrix.gradle-version }}
-          cache-overwrite-existing: true
           cache-read-only: true
+
+      - name: Download
+        uses: actions/download-artifact@v4
+        with:
+          name: m2
+          path: /home/runner/.m2/repository
 
       - name: Assemble
         working-directory: kotlin-example
