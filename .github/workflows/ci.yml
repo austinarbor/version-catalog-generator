@@ -77,7 +77,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'maven'
 
       - uses: gradle/actions/setup-gradle@v4
         with:
@@ -89,6 +88,12 @@ jobs:
           version="${version}-SNAPSHOT"
           ./gradlew -Pversion=${version} publishToMavenLocal
           echo "VERSION=${version}" >> $GITHUB_OUTPUT
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: m2
+          path: /home/runner/.m2/repository
 
   kotlin-dsl:
     runs-on: ubuntu-latest
@@ -106,12 +111,17 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'maven'
 
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: ${{ matrix.gradle-version }}
           cache-read-only: true
+
+      - name: Download
+        uses: actions/download-artifact@v4
+        with:
+          name: m2
+          path: /home/runner/.m2/repository
 
       - name: Assemble
         working-directory: kotlin-example
