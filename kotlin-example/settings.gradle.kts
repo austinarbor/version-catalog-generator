@@ -3,7 +3,7 @@ import dev.aga.gradle.versioncatalogs.GeneratorConfig
 
 pluginManagement { repositories { mavenLocal() } }
 
-plugins { id("dev.aga.gradle.version-catalog-generator") version "3.2.1-SNAPSHOT" }
+plugins { id("dev.aga.gradle.version-catalog-generator") version "3.2.2-SNAPSHOT" }
 
 dependencyResolutionManagement {
   repositories { mavenCentral() }
