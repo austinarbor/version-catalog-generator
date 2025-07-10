@@ -14,7 +14,7 @@ maven = "3.9.10"
 mockito = "5.18.0"
 mockito-kotlin = "5.4.0"
 shadow = "8.1.1"
-spotless = "7.0.4"
+spotless = "7.1.0"
 tomlj = "1.1.1"
 
 [libraries]
