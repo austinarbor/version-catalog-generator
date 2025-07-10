@@ -8,6 +8,12 @@ updates:
       day: "monday"
       time: "10:00"
     open-pull-requests-limit: 10
+    groups:
+      testing:
+        patterns:
+          - "*junit*"
+          - "*mockito*"
+          - "*assertj*"
 
   - package-ecosystem: gradle
     directory: "/"
