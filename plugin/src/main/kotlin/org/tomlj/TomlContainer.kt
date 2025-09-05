@@ -24,10 +24,9 @@ class TomlContainer : Iterable<GeneratedLibrary> {
     lib.set("group", group, oneOne)
     lib.set("name", name, oneOne)
     val v: Any =
-      if (isRef) {
-        MutableTomlTable(TomlVersion.LATEST).apply { set("ref", version, oneOne) }
-      } else {
-        version
+      when {
+        isRef -> MutableTomlTable(TomlVersion.LATEST).apply { set("ref", version, oneOne) }
+        else -> version
       }
     lib.set("version", v, oneOne)
     libraries.set(alias, lib, oneOne)
@@ -74,6 +73,7 @@ class TomlContainer : Iterable<GeneratedLibrary> {
         .dottedKeySet(true)
         .asSequence()
         .filter { !it.endsWith(".version") && libraries.isTable(it) }
+        .filter { libraries.getTable(it)?.contains("version") == true }
         .iterator()
     }
 

@@ -38,3 +38,7 @@ formatting:
     active: false
   TrailingCommaOnDeclarationSite:
     active: false
+
+performance:
+  SpreadOperator:
+    active: false

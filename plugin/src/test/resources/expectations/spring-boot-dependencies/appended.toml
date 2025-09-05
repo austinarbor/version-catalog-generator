@@ -1,4 +1,5 @@
 [versions]
+generator = "3.2.2"
 activemq = "5.18.2"
 assertj = "3.24.2"
 brave = "5.15.1"
@@ -56,8 +57,12 @@ zipkin-zipkin = { group = "io.zipkin.zipkin2", name = "zipkin", version = "2.23.
 zipkin-zipkinProto3 = { group = "io.zipkin.proto3", name = "zipkin-proto3", version = "1.0.0" }
 zipkin-zipkinReporter = { group = "io.zipkin.reporter2", name = "zipkin-reporter", version = "2.16.3" }
 zipkin-zipkinReporterBrave = { group = "io.zipkin.reporter2", name = "zipkin-reporter-brave", version = "2.16.3" }
+sqlite.jdbc = { group = "dev.aga.sqlite", name = "sqlite-jdbc", version = "3.50.3.0" }
+version.catalog.generator = { group = "dev.aga.gradle.version-catalog-generator", name = "dev.aga.gradle.version-catalog-generator.gradle.plugin", version.ref = "generator" }
 
 [bundles]
+existing = ["sqlite.jdbc", "version.catalog.generator"]
+generator = ["version.catalog.generator"]
 assertj = ["assertj-assertjBom"]
 activemq = ["activemq-activemqBroker", "activemq-activemqClient", "activemq-activemqJdbcStore", "activemq-activemqSpring"]
 brave = ["zipkin-braveBom"]

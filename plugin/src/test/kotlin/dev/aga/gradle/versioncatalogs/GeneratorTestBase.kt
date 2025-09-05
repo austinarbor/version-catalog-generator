@@ -4,9 +4,11 @@ import dev.aga.gradle.versioncatalogs.assertion.TomlTableAssert
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.text.split
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.artifacts.MutableVersionConstraint
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder.LibraryAliasBuilder
@@ -136,17 +138,20 @@ internal abstract class GeneratorTestBase {
     config: GeneratorConfig,
     name: String,
     expectedCatalogPath: Path,
-    existing: Boolean = false,
+    existing: Boolean,
+    libraryAliasesFromSource: List<String> = emptyList(),
+    versionAliasesFromSource: List<String> = emptyList(),
   ) {
     if (existing) {
-      verify(container).getByName(eq(name), any<Action<VersionCatalogBuilder>>())
+      verify(container).getByName(eq(name))
+      verify(container).remove(any<VersionCatalogBuilder>())
     } else {
       verify(container).create(eq(name), any<Action<VersionCatalogBuilder>>())
     }
     val (versions, libraries, bundles) = getExpectedCatalog(expectedCatalogPath)
-    verifyVersions(versions)
-    verifyLibraries(libraries)
-    verifyBundles(bundles)
+    verifyVersions(versions, versionAliasesFromSource)
+    verifyLibraries(libraries, libraryAliasesFromSource)
+    verifyBundles(bundles, libraryAliasesFromSource)
 
     if (config.saveGeneratedCatalog) {
       val actual: Path = config.saveDirectory.toPath().resolve(Paths.get("${name}.versions.toml"))
@@ -162,7 +167,7 @@ internal abstract class GeneratorTestBase {
     return Triple(versions, libraries, bundles)
   }
 
-  protected open fun verifyLibraries(libraries: TomlTable) {
+  protected open fun verifyLibraries(libraries: TomlTable, libraryAliasesFromSource: List<String>) {
     // sort the keys and split into groups of 3, which should give us
     // the group, name, and version properties
     libraries.dottedKeySet().sorted().chunked(3).forEach { libProps ->
@@ -174,11 +179,16 @@ internal abstract class GeneratorTestBase {
       val mock = generatedLibraries[alias]!!
       val versionProp = libProps[2]
       val versionValue = libraries.getString(versionProp)!!
-      verify(builder).library(alias, group, name)
 
       when {
         versionProp.endsWith(".ref") -> verify(mock).versionRef(versionValue)
-        versionProp.endsWith(".version") -> verify(mock).version(versionValue)
+        versionProp.endsWith(".version") -> {
+          if (alias in libraryAliasesFromSource) {
+            verify(mock).version(any<Action<MutableVersionConstraint>>())
+          } else {
+            verify(mock).version(versionValue)
+          }
+        }
         else -> throw RuntimeException("Unexpected property: ${versionProp}")
       }
     }
@@ -186,24 +196,31 @@ internal abstract class GeneratorTestBase {
   }
 
   protected open fun getLibraryAlias(property: String): String {
-    val split = property.split(".")
-    // if we have version.ref, return last -2
-    val result = mutableListOf<String>()
-    for (s in split) {
-      if (s in listOf("name", "group", "version")) {
-        break
+    // trim off .version.ref, .version, .group, .name
+    // from the property
+    return property
+      .split(".")
+      .reversed()
+      .dropWhile { it in listOf("group", "name", "version", "ref") }
+      .reversed()
+      .joinToString(".")
+  }
+
+  protected open fun verifyVersions(versions: TomlTable, versionAliasesFromSource: List<String>) {
+    versions.dottedKeySet().forEach { v ->
+      if (v in versionAliasesFromSource) {
+        verify(builder).version(eq(v), any<Action<MutableVersionConstraint>>())
+      } else {
+        verify(builder).version(v, versions.getString(v)!!)
       }
-      result += s
     }
-    return result.joinToString(".")
+    verify(builder, times(versions.size() - versionAliasesFromSource.size))
+      .version(any<String>(), any<String>())
+    verify(builder, times(versionAliasesFromSource.size))
+      .version(any<String>(), any<Action<MutableVersionConstraint>>())
   }
 
-  protected open fun verifyVersions(versions: TomlTable) {
-    versions.dottedKeySet().forEach { v -> verify(builder).version(v, versions.getString(v)!!) }
-    verify(builder, times(versions.size())).version(any<String>(), any<String>())
-  }
-
-  protected open fun verifyBundles(bundles: TomlTable) {
+  protected open fun verifyBundles(bundles: TomlTable, libraryAliasesFromSource: List<String>) {
     bundles.dottedKeySet().forEach {
       verify(builder).bundle(eq(it), any<List<String>>())
       assertThat(generatedBundles).containsKey(it)
