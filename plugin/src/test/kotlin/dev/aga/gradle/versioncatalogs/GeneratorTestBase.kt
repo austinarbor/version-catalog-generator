@@ -4,6 +4,8 @@ import dev.aga.gradle.versioncatalogs.assertion.TomlTableAssert
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.collections.chunked
+import kotlin.text.endsWith
 import kotlin.text.split
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Action
@@ -12,6 +14,7 @@ import org.gradle.api.artifacts.MutableVersionConstraint
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder.LibraryAliasBuilder
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder.PluginAliasBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
@@ -44,6 +47,8 @@ internal abstract class GeneratorTestBase {
    * map is cleared before each test.
    */
   protected val generatedBundles = mutableMapOf<String, List<String>>()
+
+  protected val generatedPlugins = mutableMapOf<String, PluginAliasBuilder>()
 
   /**
    * A temporary directory created by Junit which will automatically get cleaned up after each test.
@@ -79,6 +84,7 @@ internal abstract class GeneratorTestBase {
   fun beforeEach() {
     generatedLibraries.clear()
     generatedBundles.clear()
+    generatedPlugins.clear()
 
     project = newProject()
     objectFactory = project.objects
@@ -104,9 +110,7 @@ internal abstract class GeneratorTestBase {
         on { library(any<String>(), any<String>(), any<String>()) } doAnswer
           { mock ->
             val alias = mock.arguments[0] as String
-            val mockBuilder = mock<LibraryAliasBuilder>()
-            generatedLibraries[alias] = mockBuilder
-            mockBuilder
+            mock<LibraryAliasBuilder>().also { generatedLibraries[alias] = it }
           }
         on { version(any<String>(), any<String>()) } doAnswer { it.arguments[0] as String }
         on { bundle(any<String>(), any<List<String>>()) } doAnswer
@@ -114,6 +118,11 @@ internal abstract class GeneratorTestBase {
             val alias = it.arguments[0] as String
             generatedBundles[alias] = it.arguments[1] as List<String>
             null
+          }
+        on { plugin(any<String>(), any<String>()) } doAnswer
+          { mock ->
+            val alias = mock.arguments[0] as String
+            mock<PluginAliasBuilder>().also { generatedPlugins[alias] = it }
           }
       }
     container =
@@ -141,6 +150,7 @@ internal abstract class GeneratorTestBase {
     existing: Boolean,
     libraryAliasesFromSource: List<String> = emptyList(),
     versionAliasesFromSource: List<String> = emptyList(),
+    pluginAliasesFromSource: List<String> = emptyList(),
   ) {
     if (existing) {
       verify(container).getByName(eq(name))
@@ -148,10 +158,13 @@ internal abstract class GeneratorTestBase {
     } else {
       verify(container).create(eq(name), any<Action<VersionCatalogBuilder>>())
     }
-    val (versions, libraries, bundles) = getExpectedCatalog(expectedCatalogPath)
+    val (versions, libraries, bundles, plugins) = getExpectedCatalog(expectedCatalogPath)
     verifyVersions(versions, versionAliasesFromSource)
     verifyLibraries(libraries, libraryAliasesFromSource)
     verifyBundles(bundles, libraryAliasesFromSource)
+    if (existing) {
+      verifyPlugins(plugins, pluginAliasesFromSource)
+    }
 
     if (config.saveGeneratedCatalog) {
       val actual: Path = config.saveDirectory.toPath().resolve(Paths.get("${name}.versions.toml"))
@@ -159,12 +172,13 @@ internal abstract class GeneratorTestBase {
     }
   }
 
-  protected open fun getExpectedCatalog(tomlPath: Path): Triple<TomlTable, TomlTable, TomlTable> {
+  protected open fun getExpectedCatalog(tomlPath: Path): TomlParseResult {
     val parseResult = Toml.parse(resourceRoot.resolve(tomlPath))
     val versions = parseResult.getTableOrEmpty("versions")
     val libraries = parseResult.getTableOrEmpty("libraries")
     val bundles = parseResult.getTableOrEmpty("bundles")
-    return Triple(versions, libraries, bundles)
+    val plugins = parseResult.getTableOrEmpty("plugins")
+    return TomlParseResult(versions, libraries, bundles, plugins)
   }
 
   protected open fun verifyLibraries(libraries: TomlTable, libraryAliasesFromSource: List<String>) {
@@ -201,7 +215,7 @@ internal abstract class GeneratorTestBase {
     return property
       .split(".")
       .reversed()
-      .dropWhile { it in listOf("group", "name", "version", "ref") }
+      .dropWhile { it in listOf("group", "name", "version", "ref", "id") }
       .reversed()
       .joinToString(".")
   }
@@ -229,4 +243,38 @@ internal abstract class GeneratorTestBase {
     }
     verify(builder, times(bundles.size())).bundle(any<String>(), any<List<String>>())
   }
+
+  protected open fun verifyPlugins(plugins: TomlTable, pluginAliasesFromSource: List<String>) {
+    // sort the keys and split into groups of 2, which should give us
+    // the id and version properties
+    plugins.dottedKeySet().sorted().chunked(2).forEach { props ->
+      val alias = getLibraryAlias(props[0])
+      val id = plugins.getString(props[0])!!
+      verify(builder).plugin(alias, id)
+      assertThat(generatedPlugins).containsKey(alias)
+      val mock = generatedPlugins[alias]!!
+      val versionProp = props[1]
+      val versionValue = plugins.getString(versionProp)!!
+
+      when {
+        versionProp.endsWith(".ref") -> verify(mock).versionRef(versionValue)
+        versionProp.endsWith(".version") -> {
+          if (alias in pluginAliasesFromSource) {
+            verify(mock).version(any<Action<MutableVersionConstraint>>())
+          } else {
+            verify(mock).version(versionValue)
+          }
+        }
+        else -> throw RuntimeException("Unexpected property: ${versionProp}")
+      }
+    }
+    verify(builder, times(plugins.size())).plugin(any<String>(), any<String>())
+  }
+
+  data class TomlParseResult(
+    val versions: TomlTable,
+    val libraries: TomlTable,
+    val bundles: TomlTable,
+    val plugins: TomlTable,
+  )
 }

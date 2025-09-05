@@ -8,11 +8,15 @@ class TomlContainer : Iterable<GeneratedLibrary> {
   private val versions: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)
   private val libraries: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)
   private val bundles: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)
+  private val plugins: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)
 
   init {
-    toml.set("versions", versions, oneOne)
-    toml.set("libraries", libraries, oneOne)
-    toml.set("bundles", bundles, oneOne)
+    toml.apply {
+      set("versions", versions, oneOne)
+      set("libraries", libraries, oneOne)
+      set("bundles", bundles, oneOne)
+      set("plugins", plugins, oneOne)
+    }
   }
 
   fun addVersion(alias: String, value: String) {
@@ -23,13 +27,21 @@ class TomlContainer : Iterable<GeneratedLibrary> {
     val lib = MutableTomlTable(TomlVersion.LATEST)
     lib.set("group", group, oneOne)
     lib.set("name", name, oneOne)
-    val v: Any =
-      when {
-        isRef -> MutableTomlTable(TomlVersion.LATEST).apply { set("ref", version, oneOne) }
-        else -> version
-      }
-    lib.set("version", v, oneOne)
+    lib.set("version", createVersion(version, isRef), oneOne)
     libraries.set(alias, lib, oneOne)
+  }
+
+  fun addBundle(alias: String, libraries: Iterable<String>) {
+    val array = MutableTomlArray(false)
+    libraries.forEach { array.append(it, oneOne) }
+    bundles.set(alias, array, oneOne)
+  }
+
+  fun addPlugin(alias: String, id: String, version: String, isRef: Boolean) {
+    val plugin = MutableTomlTable(TomlVersion.LATEST)
+    plugin.set("id", id, oneOne)
+    plugin.set("version", createVersion(version, isRef), oneOne)
+    plugins.set(alias, plugin, oneOne)
   }
 
   fun containsLibraryAlias(alias: String) = libraries.contains(alias)
@@ -47,18 +59,19 @@ class TomlContainer : Iterable<GeneratedLibrary> {
     }
   }
 
-  fun addBundle(alias: String, libraries: Iterable<String>) {
-    val array = MutableTomlArray(false)
-    libraries.forEach { array.append(it, oneOne) }
-    bundles.set(alias, array, oneOne)
-  }
-
   fun toToml(): String {
     return toml.toToml()
   }
 
   override fun iterator(): Iterator<GeneratedLibrary> {
     return GeneratedLibraryIterator(libraries, versions)
+  }
+
+  private fun createVersion(version: String, isRef: Boolean): Any {
+    return when {
+      isRef -> MutableTomlTable(TomlVersion.LATEST).apply { set("ref", version, oneOne) }
+      else -> version
+    }
   }
 
   // false positive since we delegate to a different iterator

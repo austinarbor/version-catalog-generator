@@ -69,3 +69,6 @@ brave = ["zipkin-braveBom"]
 caffeine = ["caffeine-caffeine", "caffeine-guava", "caffeine-jcache"]
 dropwizardMetrics = ["dropwizard-metricsBom"]
 jacksonBom = ["jackson-jacksonBom"]
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version = "9.1.0" }

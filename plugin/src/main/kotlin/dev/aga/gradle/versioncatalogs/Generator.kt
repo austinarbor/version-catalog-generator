@@ -199,8 +199,15 @@ object Generator {
       val versionBuilder = plugin(alias, sourcePlugin.id)
       if (sourcePlugin.versionRef != null) {
         versionBuilder.versionRef(sourcePlugin.versionRef!!)
+        container.addPlugin(alias, sourcePlugin.id, sourcePlugin.versionRef!!, true)
       } else {
         versionBuilder.version(copyVersion(sourcePlugin.version))
+        val versionToUse =
+          when {
+            sourcePlugin.version.strictVersion.isNotBlank() -> sourcePlugin.version.strictVersion
+            else -> sourcePlugin.version.requiredVersion
+          }
+        container.addPlugin(alias, sourcePlugin.id, versionToUse, false)
       }
     }
     source.bundleAliases.forEach { alias ->

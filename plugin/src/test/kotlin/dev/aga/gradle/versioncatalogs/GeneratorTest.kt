@@ -62,6 +62,7 @@ internal class GeneratorTest : GeneratorTestBase() {
           .versionRef("generator")
         library("sqlite.jdbc", "dev.aga.sqlite", "sqlite-jdbc").version("3.50.3.0")
         bundle("existing", listOf("sqlite.jdbc", "version.catalog.generator"))
+        plugin("shadow", "com.gradleup.shadow").version("9.1.0")
       }
 
     whenever(container.getByName("libs")).thenReturn(builder)
@@ -82,6 +83,7 @@ internal class GeneratorTest : GeneratorTestBase() {
       true,
       listOf("version.catalog.generator", "sqlite.jdbc"),
       listOf("generator"),
+      listOf("shadow"),
     )
   }
 
