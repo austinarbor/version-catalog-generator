@@ -5,6 +5,11 @@ complexity:
   LongParameterList:
     constructorThreshold: 10
     functionThreshold: 10
+  TooManyFunctions:
+    excludes: ['**/test/**']
+    ignoreDeprecated: true
+    ignoreOverridden: true
+
 
 exceptions:
   TooGenericExceptionThrown:

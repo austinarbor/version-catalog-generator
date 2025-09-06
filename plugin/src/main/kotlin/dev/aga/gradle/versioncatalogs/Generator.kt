@@ -186,12 +186,7 @@ object Generator {
         )
       } else {
         versionBuilder.version(copyVersion(sourceLibrary.version))
-        val versionToUse =
-          when {
-            sourceLibrary.version.strictVersion.isNotBlank() -> sourceLibrary.version.strictVersion
-            else -> sourceLibrary.version.requiredVersion
-          }
-        container.addLibrary(alias, sourceLibrary.group, sourceLibrary.name, versionToUse, false)
+        container.addLibrary(alias, sourceLibrary.group, sourceLibrary.name, sourceLibrary.version)
       }
     }
     source.pluginAliases.forEach { alias ->

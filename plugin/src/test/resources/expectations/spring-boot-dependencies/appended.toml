@@ -59,6 +59,7 @@ zipkin-zipkinReporter = { group = "io.zipkin.reporter2", name = "zipkin-reporter
 zipkin-zipkinReporterBrave = { group = "io.zipkin.reporter2", name = "zipkin-reporter-brave", version = "2.16.3" }
 sqlite.jdbc = { group = "dev.aga.sqlite", name = "sqlite-jdbc", version = "3.50.3.0" }
 version.catalog.generator = { group = "dev.aga.gradle.version-catalog-generator", name = "dev.aga.gradle.version-catalog-generator.gradle.plugin", version.ref = "generator" }
+commons.lang3 = { group = "org.apache.commons", name = "commons-lang3", version = { strictly = "[3.8, 4.0[", prefer = "3.9" } }
 
 [bundles]
 existing = ["sqlite.jdbc", "version.catalog.generator"]

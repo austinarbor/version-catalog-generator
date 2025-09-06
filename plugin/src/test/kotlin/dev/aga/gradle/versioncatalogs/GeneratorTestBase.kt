@@ -4,7 +4,6 @@ import dev.aga.gradle.versioncatalogs.assertion.TomlTableAssert
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.collections.chunked
 import kotlin.text.endsWith
 import kotlin.text.split
 import org.assertj.core.api.Assertions.assertThat
@@ -181,31 +180,55 @@ internal abstract class GeneratorTestBase {
     return TomlParseResult(versions, libraries, bundles, plugins)
   }
 
+  @Suppress("detekt:NestedBlockDepth")
   protected open fun verifyLibraries(libraries: TomlTable, libraryAliasesFromSource: List<String>) {
     // sort the keys and split into groups of 3, which should give us
     // the group, name, and version properties
-    libraries.dottedKeySet().sorted().chunked(3).forEach { libProps ->
-      val alias = getLibraryAlias(libProps[0])
-      val group = libraries.getString(libProps[0])!!
-      val name = libraries.getString(libProps[1])!!
-      verify(builder).library(alias, group, name)
-      assertThat(generatedLibraries).containsKey(alias)
-      val mock = generatedLibraries[alias]!!
-      val versionProp = libProps[2]
-      val versionValue = libraries.getString(versionProp)!!
-
-      when {
-        versionProp.endsWith(".ref") -> verify(mock).versionRef(versionValue)
-        versionProp.endsWith(".version") -> {
-          if (alias in libraryAliasesFromSource) {
-            verify(mock).version(any<Action<MutableVersionConstraint>>())
-          } else {
-            verify(mock).version(versionValue)
+    libraries
+      .dottedKeySet()
+      .sorted()
+      .groupBy { getLibraryAlias(it) }
+      .forEach { (alias, properties) ->
+        val usedProps = mutableListOf<String>()
+        val group =
+          properties
+            .first { it.endsWith(".group") }
+            .let {
+              usedProps += it
+              libraries.getString(it)!!
+            }
+        val name =
+          properties
+            .first { it.endsWith(".name") }
+            .let {
+              usedProps += it
+              libraries.getString(it)!!
+            }
+        verify(builder).library(alias, group, name)
+        assertThat(generatedLibraries).containsKey(alias)
+        val mock = generatedLibraries[alias]!!
+        properties
+          .filterNot { it in usedProps }
+          .forEach { prop ->
+            when {
+              prop.endsWith(".ref") -> {
+                val ref = libraries.getString(prop)!!
+                verify(mock).versionRef(ref)
+              }
+              prop.endsWith(".version") ||
+                prop.endsWith(".strictly") ||
+                prop.endsWith(".prefer") -> {
+                if (alias in libraryAliasesFromSource) {
+                  verify(mock).version(any<Action<MutableVersionConstraint>>())
+                } else {
+                  val value = libraries.getString(prop)!!
+                  verify(mock).version(value)
+                }
+              }
+              else -> throw RuntimeException("Unexpected property: ${prop}")
+            }
           }
-        }
-        else -> throw RuntimeException("Unexpected property: ${versionProp}")
       }
-    }
     verify(builder, times(libraries.size())).library(any<String>(), any<String>(), any<String>())
   }
 
@@ -215,7 +238,7 @@ internal abstract class GeneratorTestBase {
     return property
       .split(".")
       .reversed()
-      .dropWhile { it in listOf("group", "name", "version", "ref", "id") }
+      .dropWhile { it in listOf("group", "name", "version", "ref", "id", "strictly", "prefer") }
       .reversed()
       .joinToString(".")
   }
@@ -247,27 +270,30 @@ internal abstract class GeneratorTestBase {
   protected open fun verifyPlugins(plugins: TomlTable, pluginAliasesFromSource: List<String>) {
     // sort the keys and split into groups of 2, which should give us
     // the id and version properties
-    plugins.dottedKeySet().sorted().chunked(2).forEach { props ->
-      val alias = getLibraryAlias(props[0])
-      val id = plugins.getString(props[0])!!
-      verify(builder).plugin(alias, id)
-      assertThat(generatedPlugins).containsKey(alias)
-      val mock = generatedPlugins[alias]!!
-      val versionProp = props[1]
-      val versionValue = plugins.getString(versionProp)!!
+    plugins
+      .dottedKeySet()
+      .sorted()
+      .groupBy { getLibraryAlias(it) }
+      .forEach { (alias, props) ->
+        val id = props.first { it.endsWith(".id") }.let { plugins.getString(it)!! }
+        verify(builder).plugin(alias, id)
+        assertThat(generatedPlugins).containsKey(alias)
+        val mock = generatedPlugins[alias]!!
+        val versionProp = props.first { it.endsWith(".ref") || it.endsWith(".version") }
+        val versionValue = plugins.getString(versionProp)!!
 
-      when {
-        versionProp.endsWith(".ref") -> verify(mock).versionRef(versionValue)
-        versionProp.endsWith(".version") -> {
-          if (alias in pluginAliasesFromSource) {
-            verify(mock).version(any<Action<MutableVersionConstraint>>())
-          } else {
-            verify(mock).version(versionValue)
+        when {
+          versionProp.endsWith(".ref") -> verify(mock).versionRef(versionValue)
+          versionProp.endsWith(".version") -> {
+            if (alias in pluginAliasesFromSource) {
+              verify(mock).version(any<Action<MutableVersionConstraint>>())
+            } else {
+              verify(mock).version(versionValue)
+            }
           }
+          else -> throw RuntimeException("Unexpected property: ${versionProp}")
         }
-        else -> throw RuntimeException("Unexpected property: ${versionProp}")
       }
-    }
     verify(builder, times(plugins.size())).plugin(any<String>(), any<String>())
   }
 
