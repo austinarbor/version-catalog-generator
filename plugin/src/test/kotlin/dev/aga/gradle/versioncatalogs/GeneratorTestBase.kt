@@ -15,6 +15,7 @@ import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder.LibraryAliasBuilder
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder.PluginAliasBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.testfixtures.ProjectBuilder
@@ -109,9 +110,22 @@ internal abstract class GeneratorTestBase {
         on { library(any<String>(), any<String>(), any<String>()) } doAnswer
           { mock ->
             val alias = mock.arguments[0] as String
-            mock<LibraryAliasBuilder>().also { generatedLibraries[alias] = it }
+            mock<LibraryAliasBuilder> {
+                on { version(any<Action<MutableVersionConstraint>>()) } doAnswer
+                  {
+                    val action = it.arguments[0] as Action<MutableVersionConstraint>
+                    action.execute(DefaultMutableVersionConstraint(""))
+                  }
+              }
+              .also { generatedLibraries[alias] = it }
           }
         on { version(any<String>(), any<String>()) } doAnswer { it.arguments[0] as String }
+        on { version(any<String>(), any<Action<MutableVersionConstraint>>()) } doAnswer
+          {
+            val action = it.arguments[1] as Action<MutableVersionConstraint>
+            action.execute(DefaultMutableVersionConstraint(""))
+            it.arguments[0] as String
+          }
         on { bundle(any<String>(), any<List<String>>()) } doAnswer
           {
             val alias = it.arguments[0] as String
@@ -121,7 +135,14 @@ internal abstract class GeneratorTestBase {
         on { plugin(any<String>(), any<String>()) } doAnswer
           { mock ->
             val alias = mock.arguments[0] as String
-            mock<PluginAliasBuilder>().also { generatedPlugins[alias] = it }
+            mock<PluginAliasBuilder> {
+                on { version(any<Action<MutableVersionConstraint>>()) } doAnswer
+                  {
+                    val action = it.arguments[0] as Action<MutableVersionConstraint>
+                    action.execute(DefaultMutableVersionConstraint(""))
+                  }
+              }
+              .also { generatedPlugins[alias] = it }
           }
       }
     container =
