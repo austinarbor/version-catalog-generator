@@ -94,7 +94,7 @@ class TomlContainer : Iterable<GeneratedLibrary> {
       version.rejectedVersions
         .takeIf { it.isNotEmpty() }
         ?.also {
-          val arr = MutableTomlArray(false).apply { it.forEach { v -> append(it, oneOne) } }
+          val arr = MutableTomlArray(false).apply { it.forEach { v -> append(v, oneOne) } }
           set("reject", arr)
         }
     }
