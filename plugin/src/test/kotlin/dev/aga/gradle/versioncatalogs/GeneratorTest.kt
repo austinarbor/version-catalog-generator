@@ -54,6 +54,7 @@ internal class GeneratorTest : GeneratorTestBase() {
     val builder =
       MockVersionCatalogBuilder("libs").apply {
         version("generator", "3.2.2")
+        version("springBoot", "3.5.5")
         library(
             "version.catalog.generator",
             "dev.aga.gradle.version-catalog-generator",
@@ -67,6 +68,7 @@ internal class GeneratorTest : GeneratorTestBase() {
         }
         bundle("existing", listOf("sqlite.jdbc", "version.catalog.generator"))
         plugin("shadow", "com.gradleup.shadow").version("9.1.0")
+        plugin("springBoot", "org.springframework.boot").versionRef("springBoot")
       }
 
     whenever(container.getByName("libs")).thenReturn(builder)
@@ -86,8 +88,8 @@ internal class GeneratorTest : GeneratorTestBase() {
       expected,
       true,
       listOf("version.catalog.generator", "sqlite.jdbc", "commons.lang3"),
-      listOf("generator"),
-      listOf("shadow"),
+      listOf("generator", "springBoot"),
+      listOf("shadow", "springBoot"),
     )
   }
 

@@ -6,6 +6,7 @@ brave = "5.15.1"
 caffeine = "3.1.6"
 dropwizardMetrics = "4.2.19"
 jacksonBom = "2.15.2"
+springBoot = "3.5.5"
 
 [libraries]
 activemq-activemqBroker = { group = "org.apache.activemq", name = "activemq-broker", version.ref = "activemq" }
@@ -73,3 +74,4 @@ jacksonBom = ["jackson-jacksonBom"]
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version = "9.1.0" }
+springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
