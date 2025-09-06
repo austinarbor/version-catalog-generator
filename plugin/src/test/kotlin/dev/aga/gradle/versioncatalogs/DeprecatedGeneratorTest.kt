@@ -43,7 +43,7 @@ internal class DeprecatedGeneratorTest : GeneratorTestBase() {
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)
 
-    verifyGeneratedCatalog(config, "myLibs", expectedCatalog)
+    verifyGeneratedCatalog(config, "myLibs", expectedCatalog, false)
   }
 
   @Test

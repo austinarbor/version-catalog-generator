@@ -57,7 +57,6 @@ zipkin-zipkinProto3 = { group = "io.zipkin.proto3", name = "zipkin-proto3", vers
 zipkin-zipkinReporter = { group = "io.zipkin.reporter2", name = "zipkin-reporter", version = "2.16.3" }
 zipkin-zipkinReporterBrave = { group = "io.zipkin.reporter2", name = "zipkin-reporter-brave", version = "2.16.3" }
 
-
 [bundles]
 assertj = ["assertj-assertjBom"]
 activemq = ["activemq-activemqBroker", "activemq-activemqClient", "activemq-activemqJdbcStore", "activemq-activemqSpring"]
@@ -65,3 +64,5 @@ brave = ["zipkin-braveBom"]
 caffeine = ["caffeine-caffeine", "caffeine-guava", "caffeine-jcache"]
 dropwizardMetrics = ["dropwizard-metricsBom"]
 jacksonBom = ["jackson-jacksonBom"]
+
+[plugins]

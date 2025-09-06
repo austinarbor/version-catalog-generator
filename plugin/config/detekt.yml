@@ -5,6 +5,11 @@ complexity:
   LongParameterList:
     constructorThreshold: 10
     functionThreshold: 10
+  TooManyFunctions:
+    excludes: ['**/test/**']
+    ignoreDeprecated: true
+    ignoreOverridden: true
+
 
 exceptions:
   TooGenericExceptionThrown:
@@ -15,6 +20,8 @@ exceptions:
       - '**/test/**'
 
 style:
+  DestructuringDeclarationWithTooManyEntries:
+    active: false
   MagicNumber:
     ignoreNumbers: ['-1', '0', '1', '2', '3']
   ReturnCount:
@@ -37,4 +44,8 @@ formatting:
   TrailingCommaOnCallSite:
     active: false
   TrailingCommaOnDeclarationSite:
+    active: false
+
+performance:
+  SpreadOperator:
     active: false

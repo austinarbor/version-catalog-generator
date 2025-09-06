@@ -4,3 +4,5 @@
 assertj-assertjBom = { group = "org.assertj", name = "assertj-bom", version = "3.24.2" }
 
 [bundles]
+
+[plugins]

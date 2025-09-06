@@ -1,6 +1,7 @@
 package dev.aga.gradle.versioncatalogs
 
 import dev.aga.gradle.versioncatalogs.Generator.generate
+import dev.aga.gradle.versioncatalogs.mock.MockVersionCatalogBuilder
 import dev.aga.gradle.versioncatalogs.service.MockGradleDependencyResolver
 import java.nio.file.Paths
 import java.util.TreeSet
@@ -43,12 +44,35 @@ internal class GeneratorTest : GeneratorTestBase() {
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)
     val expected = Paths.get("expectations", "spring-boot-dependencies", "libs.versions.toml")
-    verifyGeneratedCatalog(config, "myLibs", expected)
+    verifyGeneratedCatalog(config, "myLibs", expected, false)
   }
 
   @Test
   fun `appends to existing version catalog`() {
     whenever(container.names).thenReturn(TreeSet(setOf("libs")))
+
+    val builder =
+      MockVersionCatalogBuilder("libs").apply {
+        version("generator", "3.2.2")
+        version("springBoot", "3.5.5")
+        library(
+            "version.catalog.generator",
+            "dev.aga.gradle.version-catalog-generator",
+            "dev.aga.gradle.version-catalog-generator.gradle.plugin",
+          )
+          .versionRef("generator")
+        library("sqlite.jdbc", "dev.aga.sqlite", "sqlite-jdbc").version("3.50.3.0")
+        library("commons.lang3", "org.apache.commons", "commons-lang3").version {
+          strictly("[3.8, 4.0[")
+          prefer("3.9")
+        }
+        bundle("existing", listOf("sqlite.jdbc", "version.catalog.generator"))
+        plugin("shadow", "com.gradleup.shadow").version("9.1.0")
+        plugin("springBoot", "org.springframework.boot").versionRef("springBoot")
+      }
+
+    whenever(container.getByName("libs")).thenReturn(builder)
+
     val config =
       GeneratorConfig(settings).apply {
         saveDirectory = projectDir
@@ -57,8 +81,16 @@ internal class GeneratorTest : GeneratorTestBase() {
       }
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("libs", config, resolver)
-    val expected = Paths.get("expectations", "spring-boot-dependencies", "libs.versions.toml")
-    verifyGeneratedCatalog(config, "libs", expected, true)
+    val expected = Paths.get("expectations", "spring-boot-dependencies", "appended.toml")
+    verifyGeneratedCatalog(
+      config,
+      "libs",
+      expected,
+      true,
+      listOf("version.catalog.generator", "sqlite.jdbc", "commons.lang3"),
+      listOf("generator", "springBoot"),
+      listOf("shadow", "springBoot"),
+    )
   }
 
   @Test
@@ -107,7 +139,7 @@ internal class GeneratorTest : GeneratorTestBase() {
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)
     val expected = Paths.get("expectations", "combined", "libs.versions.toml")
-    verifyGeneratedCatalog(config, "myLibs", expected)
+    verifyGeneratedCatalog(config, "myLibs", expected, false)
   }
 
   @Test
@@ -131,7 +163,7 @@ internal class GeneratorTest : GeneratorTestBase() {
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)
     val expected = Paths.get("expectations", "spring-boot-dependencies", "property-overrides.toml")
-    verifyGeneratedCatalog(config, "myLibs", expected)
+    verifyGeneratedCatalog(config, "myLibs", expected, false)
   }
 
   @ParameterizedTest
@@ -195,7 +227,7 @@ internal class GeneratorTest : GeneratorTestBase() {
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)
     val expected = Paths.get("expectations", "spring-boot-dependencies", "custom-bundles.toml")
-    verifyGeneratedCatalog(config, "myLibs", expected)
+    verifyGeneratedCatalog(config, "myLibs", expected, false)
   }
 
   @Test
@@ -210,6 +242,6 @@ internal class GeneratorTest : GeneratorTestBase() {
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)
     val expected = Paths.get("expectations", "spring-boot-dependencies", "no-nested-boms.toml")
-    verifyGeneratedCatalog(config, "myLibs", expected)
+    verifyGeneratedCatalog(config, "myLibs", expected, false)
   }
 }

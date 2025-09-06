@@ -70,3 +70,5 @@ activemq = ["activemq-activemqBroker", "activemq-activemqClient", "activemq-acti
 brave = ["zipkin-braveBom"]
 caffeine = ["caffeine-caffeine", "caffeine-guava", "caffeine-jcache"]
 jacksonBom = ["jackson-jacksonBom"]
+
+[plugins]

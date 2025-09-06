@@ -18,10 +18,14 @@ import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.artifacts.MutableVersionConstraint
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
+import org.gradle.api.internal.catalog.DefaultVersionCatalog
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.internal.management.VersionCatalogBuilderInternal
 import org.gradle.kotlin.dsl.register
 import org.slf4j.LoggerFactory
 import org.tomlj.TomlContainer
@@ -53,7 +57,6 @@ object Generator {
     }
 
     (this as ExtensionAware).extensions.configure("generator", action)
-
     return this.dependencyResolutionManagement.versionCatalogs.generate(name, generatorExt)
   }
 
@@ -102,44 +105,127 @@ object Generator {
         }
       }
 
-    val action =
-      Action<VersionCatalogBuilder> {
-        val seenModules = mutableSetOf<String>()
-        val queue = ArrayDeque<Pair<GeneratorConfig.UsingConfig, Dependency>>(rootDeps)
-        val container = TomlContainer()
-
-        while (queue.isNotEmpty()) {
-          val (using, dep) = queue.removeFirst()
-          // Note: Dependency does not override equals, so we are relying on referential
-          // equality
-          val rootDep = rootDeps.any { it.second == dep }
-          if (rootDep && using.generateBomEntry == true) {
-            createLibrary(
-              dep,
-              Version(dep.version, dep.version, dep.version),
-              using,
-              true,
-              container,
-            )
-          }
-          val (model, parentModel) = resolver.resolve(dep)
-          loadBom(model, parentModel, using, queue, seenModules, rootDep, container)
+    val sourceCatalog: DefaultVersionCatalog =
+      when {
+        name in names -> {
+          val builder = getByName(name) as VersionCatalogBuilderInternal
+          remove(builder)
+          builder.build()
         }
-
-        createBundles(container, config)
-
-        if (config.saveGeneratedCatalog) {
-          config.settings.gradle.projectsEvaluated {
-            registerSaveTask(rootProject, config.saveDirectory, name, container)
-          }
-        }
+        else -> DefaultVersionCatalog(name, "", emptyMap(), emptyMap(), emptyMap(), emptyMap())
       }
 
-    return when {
-      name in names -> getByName(name, action)
-      else -> create(name, action)
+    val action = getCreateAction(name, config, rootDeps, resolver, sourceCatalog)
+    return create(name, action)
+  }
+
+  fun getCreateAction(
+    catalogName: String,
+    config: GeneratorConfig,
+    rootDeps: List<Pair<GeneratorConfig.UsingConfig, Dependency>>,
+    resolver: DependencyResolver,
+    sourceCatalog: DefaultVersionCatalog,
+  ) =
+    Action<VersionCatalogBuilder> {
+      val container = TomlContainer()
+      loadSourceCatalog(sourceCatalog, container)
+
+      val seenModules = mutableSetOf<String>()
+      val queue = ArrayDeque(rootDeps)
+
+      while (queue.isNotEmpty()) {
+        val (using, dep) = queue.removeFirst()
+        // Note: Dependency does not override equals, so we are relying on referential
+        // equality
+        val rootDep = rootDeps.any { it.second == dep }
+        if (rootDep && using.generateBomEntry == true) {
+          createLibrary(dep, Version(dep.version, dep.version, dep.version), using, true, container)
+        }
+        val (model, parentModel) = resolver.resolve(dep)
+        loadBom(model, parentModel, using, queue, seenModules, rootDep, container)
+      }
+
+      createBundles(container, config)
+
+      if (config.saveGeneratedCatalog) {
+        config.settings.gradle.projectsEvaluated {
+          registerSaveTask(rootProject, config.saveDirectory, catalogName, container)
+        }
+      }
+    }
+
+  /**
+   * If [source] is not null, it will load all the entries from that catalog into this
+   * [VersionCatalogBuilder]
+   */
+  fun VersionCatalogBuilder.loadSourceCatalog(
+    source: DefaultVersionCatalog,
+    container: TomlContainer,
+  ) {
+    source.versionAliases.forEach { alias ->
+      val sourceVersion = source.getVersion(alias).version
+      version(alias, copyVersion(sourceVersion))
+      val versionToAdd =
+        when {
+          sourceVersion.strictVersion.isNotBlank() -> sourceVersion.strictVersion
+          else -> sourceVersion.requiredVersion
+        }
+      container.addVersion(alias, versionToAdd)
+    }
+    source.libraryAliases.forEach { alias ->
+      val sourceLibrary = source.getDependencyData(alias)
+      val versionBuilder = library(alias, sourceLibrary.group, sourceLibrary.name)
+      if (sourceLibrary.versionRef != null) {
+        versionBuilder.versionRef(sourceLibrary.versionRef!!)
+        container.addLibrary(
+          alias,
+          sourceLibrary.group,
+          sourceLibrary.name,
+          sourceLibrary.versionRef!!,
+          true,
+        )
+      } else {
+        versionBuilder.version(copyVersion(sourceLibrary.version))
+        container.addLibrary(alias, sourceLibrary.group, sourceLibrary.name, sourceLibrary.version)
+      }
+    }
+    source.pluginAliases.forEach { alias ->
+      val sourcePlugin = source.getPlugin(alias)
+      val versionBuilder = plugin(alias, sourcePlugin.id)
+      if (sourcePlugin.versionRef != null) {
+        versionBuilder.versionRef(sourcePlugin.versionRef!!)
+        container.addPlugin(alias, sourcePlugin.id, sourcePlugin.versionRef!!, true)
+      } else {
+        versionBuilder.version(copyVersion(sourcePlugin.version))
+        val versionToUse =
+          when {
+            sourcePlugin.version.strictVersion.isNotBlank() -> sourcePlugin.version.strictVersion
+            else -> sourcePlugin.version.requiredVersion
+          }
+        container.addPlugin(alias, sourcePlugin.id, versionToUse, false)
+      }
+    }
+    source.bundleAliases.forEach { alias ->
+      val sourceBundle = source.getBundle(alias)
+      bundle(alias, sourceBundle.components)
+      container.addBundle(alias, sourceBundle.components)
     }
   }
+
+  fun copyVersion(source: ImmutableVersionConstraint) =
+    Action<MutableVersionConstraint> {
+      if (source.strictVersion.isNotBlank()) {
+        strictly(source.strictVersion)
+      } else if (source.requiredVersion.isNotBlank()) {
+        require(source.requiredVersion)
+      }
+
+      if (source.preferredVersion.isNotBlank()) {
+        prefer(source.preferredVersion)
+      }
+      reject(*source.rejectedVersions.toTypedArray())
+      branch = source.branch
+    }
 
   private fun VersionCatalogBuilder.createBundles(
     container: TomlContainer,
