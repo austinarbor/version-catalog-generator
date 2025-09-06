@@ -78,6 +78,13 @@ internal class GeneratorTest : GeneratorTestBase() {
         saveDirectory = projectDir
         saveGeneratedCatalog = true
         from("org.springframework.boot:spring-boot-dependencies:3.1.2") { generateBomEntry = true }
+        bundleMapping = {
+          if (it.alias in listOf("sqlite.jdbc", "commons.lang3", "dropwizard-metricsCaffeine")) {
+            "combined"
+          } else {
+            it.versionRef
+          }
+        }
       }
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("libs", config, resolver)
