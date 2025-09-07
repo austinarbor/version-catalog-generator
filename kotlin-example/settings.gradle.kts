@@ -1,13 +1,31 @@
 import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.GeneratorConfig
 
-pluginManagement { repositories { mavenLocal() } }
+pluginManagement {
+  repositories {
+    mavenLocal()
+    gradlePluginPortal()
+  }
+}
 
 plugins { id("dev.aga.gradle.version-catalog-generator") version "3.2.2-SNAPSHOT" }
 
 dependencyResolutionManagement {
   repositories { mavenCentral() }
   versionCatalogs {
+    create("myLibs") { from(files("gradle/catalog.versions.toml")) }
+    // test appending to existing catalog
+    generate("myLibs") {
+      fromToml("aws-bom") { aliasPrefixGenerator = GeneratorConfig.NO_PREFIX }
+      bundleMapping = {
+        if (it.alias == "sts" || it.alias == "commons-csv") {
+          "merged"
+        } else {
+          it.versionRef
+        }
+      }
+    }
+
     generate("jsonLibs") {
       saveGeneratedCatalog = true
       from("com.fasterxml.jackson:jackson-bom:2.15.2")
@@ -56,7 +74,5 @@ dependencyResolutionManagement {
       }
       fromToml("aws-bom", "jackson-bom") { aliasPrefixGenerator = GeneratorConfig.NO_PREFIX }
     }
-    // test appending to existing catalog
-    generate("libs") { fromToml("aws-bom") { aliasPrefixGenerator = GeneratorConfig.NO_PREFIX } }
   }
 }
