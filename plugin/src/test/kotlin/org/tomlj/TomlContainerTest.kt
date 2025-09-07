@@ -57,15 +57,20 @@ class TomlContainerTest {
 
     return tests.map { (name, version, expected) ->
       DynamicTest.dynamicTest(name) {
-        val actual =
-          TomlContainer()
-            .apply { addLibrary("sqlite", "dev.aga.sqlite", "sqlite-jdbc", version) }
-            .getLibrary("sqlite")
-            .get("version")
+        val container =
+          TomlContainer().apply { addLibrary("sqlite", "dev.aga.sqlite", "sqlite-jdbc", version) }
 
-        when (actual) {
+        when (val actual = container.getLibrary("sqlite").get("version")) {
           is TomlTable -> TomlTableAssert.assertThat(actual).isEqualTo(expected as TomlTable)
           else -> assertThat(actual).isEqualTo(expected)
+        }
+        val lib = container.first()
+        if (version.strictVersion.isNotBlank()) {
+          assertThat(lib.version).isEqualTo(version.strictVersion)
+        } else if (version.requiredVersion.isNotBlank()) {
+          assertThat(lib.version).isEqualTo(version.requiredVersion)
+        } else if (version.preferredVersion.isNotBlank()) {
+          assertThat(lib.version).isEqualTo(version.preferredVersion)
         }
       }
     }
