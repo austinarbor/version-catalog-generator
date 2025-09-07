@@ -1,4 +1,9 @@
-pluginManagement { repositories { mavenLocal() } }
+pluginManagement {
+  repositories {
+    mavenLocal()
+    gradlePluginPortal()
+  }
+}
 
 plugins { id("dev.aga.gradle.version-catalog-generator") version "3.2.2-SNAPSHOT" }
 
@@ -7,15 +12,30 @@ dependencyResolutionManagement {
     mavenCentral()
   }
   versionCatalogs {
-    generator.generate("jsonLibs") {
-      it.from("com.fasterxml.jackson:jackson-bom:2.15.2")
-      it.using { u ->
-        u.libraryAliasGenerator = { groupId, artifactId ->
-          def prefix = u.aliasPrefixGenerator.invoke(groupId, artifactId)
-          def suffix = u.aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
-          DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
+      create("myLibs") { from(files("gradle/catalog.versions.toml")) }
+      // test appending to existing catalog
+      generator.generate("myLibs") {
+        it.fromToml("aws-bom")
+        it.using { u ->
+          u.aliasPrefixGenerator = NO_PREFIX
         }
-        u.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
+        it.bundleMapping = { lib ->
+          if (lib.alias == "sts" || lib.alias == "commons-csv") {
+            "merged"
+          } else {
+            lib.versionRef
+          }
+        }
+      }
+      generator.generate("jsonLibs") {
+        it.from("com.fasterxml.jackson:jackson-bom:2.15.2")
+        it.using { u ->
+          u.libraryAliasGenerator = { groupId, artifactId ->
+            def prefix = u.aliasPrefixGenerator.invoke(groupId, artifactId)
+            def suffix = u.aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
+            DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
+          }
+          u.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
       }
     }
 
@@ -29,6 +49,12 @@ dependencyResolutionManagement {
           DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
         }
         u.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
+      }
+    }
+    generator.generate("awsLibs") {
+      it.fromToml("aws-bom")
+      it.using { u->
+          u.aliasPrefixGenerator = NO_PREFIX
       }
     }
     generator.generate("springLibs") { gen ->
