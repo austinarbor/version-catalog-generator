@@ -1,36 +1,57 @@
 package org.tomlj
 
 import dev.aga.gradle.versioncatalogs.model.GeneratedLibrary
+import org.gradle.api.artifacts.VersionConstraint
 
+@Suppress("detekt:TooManyFunctions")
 class TomlContainer : Iterable<GeneratedLibrary> {
   private val oneOne = TomlPosition.positionAt(1, 1)
   private val toml: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)
   private val versions: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)
   private val libraries: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)
   private val bundles: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)
+  private val plugins: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)
 
   init {
-    toml.set("versions", versions, oneOne)
-    toml.set("libraries", libraries, oneOne)
-    toml.set("bundles", bundles, oneOne)
+    toml.apply {
+      set("versions", versions)
+      set("libraries", libraries)
+      set("bundles", bundles)
+      set("plugins", plugins)
+    }
   }
 
   fun addVersion(alias: String, value: String) {
-    versions.set(alias, value, oneOne)
+    versions.set(alias, value)
   }
 
   fun addLibrary(alias: String, group: String, name: String, version: String, isRef: Boolean) {
+    addLibrary(alias, group, name, createVersion(version, isRef))
+  }
+
+  fun addLibrary(alias: String, group: String, name: String, version: VersionConstraint) {
+    addLibrary(alias, group, name, createVersion(version))
+  }
+
+  private fun addLibrary(alias: String, group: String, name: String, version: Any) {
     val lib = MutableTomlTable(TomlVersion.LATEST)
-    lib.set("group", group, oneOne)
-    lib.set("name", name, oneOne)
-    val v: Any =
-      if (isRef) {
-        MutableTomlTable(TomlVersion.LATEST).apply { set("ref", version, oneOne) }
-      } else {
-        version
-      }
-    lib.set("version", v, oneOne)
-    libraries.set(alias, lib, oneOne)
+    lib.set("group", group)
+    lib.set("name", name)
+    lib.set("version", version)
+    libraries.set(alias, lib)
+  }
+
+  fun addBundle(alias: String, libraries: Iterable<String>) {
+    val array = MutableTomlArray(false)
+    libraries.forEach { array.append(it, oneOne) }
+    bundles.set(alias, array)
+  }
+
+  fun addPlugin(alias: String, id: String, version: String, isRef: Boolean) {
+    val plugin = MutableTomlTable(TomlVersion.LATEST)
+    plugin.set("id", id)
+    plugin.set("version", createVersion(version, isRef))
+    plugins.set(alias, plugin)
   }
 
   fun containsLibraryAlias(alias: String) = libraries.contains(alias)
@@ -48,15 +69,47 @@ class TomlContainer : Iterable<GeneratedLibrary> {
     }
   }
 
-  fun addBundle(alias: String, libraries: Iterable<String>) {
-    val array = MutableTomlArray(false)
-    libraries.forEach { array.append(it, oneOne) }
-    bundles.set(alias, array, oneOne)
-  }
-
   fun toToml(): String {
     return toml.toToml()
   }
+
+  private fun createVersion(version: String, isRef: Boolean): Any {
+    return when {
+      isRef -> MutableTomlTable(TomlVersion.LATEST).apply { set("ref", version) }
+      else -> version
+    }
+  }
+
+  private fun createVersion(version: VersionConstraint): Any {
+    if (!isRichVersion(version)) {
+      return version.requiredVersion
+    }
+    return MutableTomlTable(TomlVersion.LATEST).apply {
+      version.requiredVersion
+        .takeIf { it.isNotBlank() && it != version.strictVersion }
+        ?.also { set("require", it) }
+      version.strictVersion.takeIf { it.isNotBlank() }?.also { set("strictly", it) }
+      version.preferredVersion.takeIf { it.isNotBlank() }?.also { set("prefer", it) }
+      version.branch?.takeIf { it.isNotBlank() }?.also { set("branch", it) }
+      version.rejectedVersions
+        .takeIf { it.isNotEmpty() }
+        ?.also {
+          val arr = MutableTomlArray(false).apply { it.forEach { v -> append(v, oneOne) } }
+          set("reject", arr)
+        }
+    }
+  }
+
+  private fun isRichVersion(version: VersionConstraint): Boolean {
+    return with(version) {
+      strictVersion.isNotBlank() ||
+        preferredVersion.isNotBlank() ||
+        !branch.isNullOrBlank() ||
+        rejectedVersions.isNotEmpty()
+    }
+  }
+
+  private fun MutableTomlTable.set(key: String, value: Any) = set(key, value, oneOne)
 
   override fun iterator(): Iterator<GeneratedLibrary> {
     return GeneratedLibraryIterator(libraries, versions)
@@ -74,6 +127,7 @@ class TomlContainer : Iterable<GeneratedLibrary> {
         .dottedKeySet(true)
         .asSequence()
         .filter { !it.endsWith(".version") && libraries.isTable(it) }
+        .filter { libraries.getTable(it)?.contains("version") == true }
         .iterator()
     }
 
@@ -85,7 +139,13 @@ class TomlContainer : Iterable<GeneratedLibrary> {
       val (version, isRef) =
         when (val v = lib.get("version")) {
           is String -> v to false
-          is TomlTable -> v.getString("ref")!! to true
+          is TomlTable ->
+            when {
+              v.contains("strictly") -> v.getString("strictly")!! to false
+              v.contains("require") -> v.getString("require")!! to false
+              v.contains("prefer") -> v.getString("prefer")!! to false
+              else -> v.getString("ref")!! to true
+            }
           else -> throw IllegalArgumentException("Unable to resolve version value ${v}")
         }
 

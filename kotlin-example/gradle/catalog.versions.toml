@@ -1,0 +1,9 @@
+[versions]
+kotlin = "2.2.10"
+commons-csv = "1.14.1"
+
+[libraries]
+commons-csv = { group = "org.apache.commons", name = "commons-csv", version.ref = "commons-csv" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

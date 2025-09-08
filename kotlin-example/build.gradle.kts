@@ -1,4 +1,7 @@
-plugins { java }
+plugins {
+  java
+  alias(myLibs.plugins.kotlin.jvm)
+}
 
 dependencies {
   implementation(springLibs.spring.springBootStarterWeb)
@@ -9,7 +12,8 @@ dependencies {
   implementation(manyBoms.sts)
   implementation(manyBoms.jacksonDatabind)
   compileOnly(libs.spring.boot.dependencies)
-  implementation(libs.s3)
+  implementation(myLibs.sqs)
+  implementation(myLibs.bundles.merged)
   testImplementation(mockitoLibs.mockito.core)
   testImplementation(mockitoLibs.mockito.junit.jupiter)
   testImplementation(junitLibs.junitJupiter)
