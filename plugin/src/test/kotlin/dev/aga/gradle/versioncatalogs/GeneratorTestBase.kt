@@ -253,9 +253,13 @@ internal abstract class GeneratorTestBase {
     verify(builder, times(libraries.size())).library(any<String>(), any<String>(), any<String>())
   }
 
+  /**
+   * Determines the library alias based on the given property name. To determine the library alias
+   * we split the property name by `.` and then remove elements from the end until one of them is
+   * _not_ `group`, `name`, `version`, `ref`, `id`, `strictly`, or `prefer`. The remaining strings
+   * are then combined back together (in original order) with `.`.
+   */
   protected open fun getLibraryAlias(property: String): String {
-    // trim off .version.ref, .version, .group, .name
-    // from the property
     return property
       .split(".")
       .reversed()
