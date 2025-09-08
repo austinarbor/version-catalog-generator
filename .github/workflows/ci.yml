@@ -140,13 +140,12 @@ jobs:
 
       - name: Copy Plugin
         run: |
-          cp plugin*.jar kotlin-example/libs/
-          cp plugin*.jar groovy-example/libs/
+          echo examples/{kotlin,groovy}/libs | xargs -n 1 cp plugin*.jar
 
       - name: Kotlin DSL
-        working-directory: kotlin-example
+        working-directory: examples/kotlin
         run: gradle assemble
 
       - name: Groovy DSL
-        working-directory: groovy-example
+        working-directory: examples/groovy
         run: gradle assemble
