@@ -66,7 +66,7 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  publish-local:
+  upload-plugin:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -82,23 +82,25 @@ jobs:
         with:
           gradle-version: wrapper
 
-      - name: Publish To Maven Local
+      - name: Get Version
         run: |
           version=$(cat gradle.properties | grep version= | cut -d = -f 2)
-          version="${version}-SNAPSHOT"
-          ./gradlew -Pversion=${version} publishToMavenLocal
-          echo "VERSION=${version}" >> $GITHUB_OUTPUT
+          echo "VERSION=${version}" >> $GITHUB_ENV
 
-      - name: Upload
+      - name: Publish To Maven Local
+        run: ./gradlew clean publishToMavenLocal
+
+      - name: Upload Plugin
         uses: actions/upload-artifact@v4
         with:
-          name: m2
-          path: /home/runner/.m2/repository
+          name: plugin
+          path: /home/runner/.m2/repository/dev/aga/gradle/plugin/plugin/${{ env.VERSION }}/plugin-${{ env.VERSION }}.jar
           retention-days: 1
+          if-no-files-found: error
 
   dsl-tests:
     runs-on: ubuntu-latest
-    needs: [ publish-local ]
+    needs: [ upload-plugin ]
     strategy:
       matrix:
         gradle-version: [ "8.4", "8.5", "8.6", "8.7", "8.8", "8.9", "8.10", "8.11", "8.12", "8.13", "8.14", "9.0.0", "release-nightly", "release-candidate" ]
@@ -121,8 +123,12 @@ jobs:
       - name: Download
         uses: actions/download-artifact@v5
         with:
-          name: m2
-          path: /home/runner/.m2/repository
+          name: plugin
+
+      - name: Copy Plugin
+        run: |
+          cp plugin*.jar kotlin-example/libs/
+          cp plugin*.jar groovy-example/libs/
 
       - name: Kotlin DSL
         working-directory: kotlin-example

@@ -1,14 +1,12 @@
 import dev.aga.gradle.versioncatalogs.Generator.generate
 import dev.aga.gradle.versioncatalogs.GeneratorConfig
 
-pluginManagement {
-  repositories {
-    mavenLocal()
-    gradlePluginPortal()
-  }
+buildscript {
+  repositories { flatDir { dirs("libs") } }
+  dependencies { classpath("dev.aga.gradle.plugin:plugin") }
 }
 
-plugins { id("dev.aga.gradle.version-catalog-generator") version "3.2.2-SNAPSHOT" }
+apply(plugin = "dev.aga.gradle.version-catalog-generator")
 
 dependencyResolutionManagement {
   repositories { mavenCentral() }
