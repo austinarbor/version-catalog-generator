@@ -4,13 +4,18 @@ import dev.aga.gradle.versioncatalogs.assertion.TomlTableAssert
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.text.endsWith
+import kotlin.text.split
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.artifacts.MutableVersionConstraint
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder.LibraryAliasBuilder
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder.PluginAliasBuilder
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.testfixtures.ProjectBuilder
@@ -42,6 +47,8 @@ internal abstract class GeneratorTestBase {
    * map is cleared before each test.
    */
   protected val generatedBundles = mutableMapOf<String, List<String>>()
+
+  protected val generatedPlugins = mutableMapOf<String, PluginAliasBuilder>()
 
   /**
    * A temporary directory created by Junit which will automatically get cleaned up after each test.
@@ -77,6 +84,7 @@ internal abstract class GeneratorTestBase {
   fun beforeEach() {
     generatedLibraries.clear()
     generatedBundles.clear()
+    generatedPlugins.clear()
 
     project = newProject()
     objectFactory = project.objects
@@ -102,16 +110,39 @@ internal abstract class GeneratorTestBase {
         on { library(any<String>(), any<String>(), any<String>()) } doAnswer
           { mock ->
             val alias = mock.arguments[0] as String
-            val mockBuilder = mock<LibraryAliasBuilder>()
-            generatedLibraries[alias] = mockBuilder
-            mockBuilder
+            mock<LibraryAliasBuilder> {
+                on { version(any<Action<MutableVersionConstraint>>()) } doAnswer
+                  {
+                    val action = it.arguments[0] as Action<MutableVersionConstraint>
+                    action.execute(DefaultMutableVersionConstraint(""))
+                  }
+              }
+              .also { generatedLibraries[alias] = it }
           }
         on { version(any<String>(), any<String>()) } doAnswer { it.arguments[0] as String }
+        on { version(any<String>(), any<Action<MutableVersionConstraint>>()) } doAnswer
+          {
+            val action = it.arguments[1] as Action<MutableVersionConstraint>
+            action.execute(DefaultMutableVersionConstraint(""))
+            it.arguments[0] as String
+          }
         on { bundle(any<String>(), any<List<String>>()) } doAnswer
           {
             val alias = it.arguments[0] as String
             generatedBundles[alias] = it.arguments[1] as List<String>
             null
+          }
+        on { plugin(any<String>(), any<String>()) } doAnswer
+          { mock ->
+            val alias = mock.arguments[0] as String
+            mock<PluginAliasBuilder> {
+                on { version(any<Action<MutableVersionConstraint>>()) } doAnswer
+                  {
+                    val action = it.arguments[0] as Action<MutableVersionConstraint>
+                    action.execute(DefaultMutableVersionConstraint(""))
+                  }
+              }
+              .also { generatedPlugins[alias] = it }
           }
       }
     container =
@@ -136,17 +167,24 @@ internal abstract class GeneratorTestBase {
     config: GeneratorConfig,
     name: String,
     expectedCatalogPath: Path,
-    existing: Boolean = false,
+    existing: Boolean,
+    libraryAliasesFromSource: List<String> = emptyList(),
+    versionAliasesFromSource: List<String> = emptyList(),
+    pluginAliasesFromSource: List<String> = emptyList(),
   ) {
     if (existing) {
-      verify(container).getByName(eq(name), any<Action<VersionCatalogBuilder>>())
+      verify(container).getByName(eq(name))
+      verify(container).remove(any<VersionCatalogBuilder>())
     } else {
       verify(container).create(eq(name), any<Action<VersionCatalogBuilder>>())
     }
-    val (versions, libraries, bundles) = getExpectedCatalog(expectedCatalogPath)
-    verifyVersions(versions)
-    verifyLibraries(libraries)
-    verifyBundles(bundles)
+    val (versions, libraries, bundles, plugins) = getExpectedCatalog(expectedCatalogPath)
+    verifyVersions(versions, versionAliasesFromSource)
+    verifyLibraries(libraries, libraryAliasesFromSource)
+    verifyBundles(bundles, libraryAliasesFromSource)
+    if (existing) {
+      verifyPlugins(plugins, pluginAliasesFromSource)
+    }
 
     if (config.saveGeneratedCatalog) {
       val actual: Path = config.saveDirectory.toPath().resolve(Paths.get("${name}.versions.toml"))
@@ -154,56 +192,97 @@ internal abstract class GeneratorTestBase {
     }
   }
 
-  protected open fun getExpectedCatalog(tomlPath: Path): Triple<TomlTable, TomlTable, TomlTable> {
+  protected open fun getExpectedCatalog(tomlPath: Path): TomlParseResult {
     val parseResult = Toml.parse(resourceRoot.resolve(tomlPath))
     val versions = parseResult.getTableOrEmpty("versions")
     val libraries = parseResult.getTableOrEmpty("libraries")
     val bundles = parseResult.getTableOrEmpty("bundles")
-    return Triple(versions, libraries, bundles)
+    val plugins = parseResult.getTableOrEmpty("plugins")
+    return TomlParseResult(versions, libraries, bundles, plugins)
   }
 
-  protected open fun verifyLibraries(libraries: TomlTable) {
+  @Suppress("detekt:NestedBlockDepth")
+  protected open fun verifyLibraries(libraries: TomlTable, libraryAliasesFromSource: List<String>) {
     // sort the keys and split into groups of 3, which should give us
     // the group, name, and version properties
-    libraries.dottedKeySet().sorted().chunked(3).forEach { libProps ->
-      val alias = getLibraryAlias(libProps[0])
-      val group = libraries.getString(libProps[0])!!
-      val name = libraries.getString(libProps[1])!!
-      verify(builder).library(alias, group, name)
-      assertThat(generatedLibraries).containsKey(alias)
-      val mock = generatedLibraries[alias]!!
-      val versionProp = libProps[2]
-      val versionValue = libraries.getString(versionProp)!!
-      verify(builder).library(alias, group, name)
-
-      when {
-        versionProp.endsWith(".ref") -> verify(mock).versionRef(versionValue)
-        versionProp.endsWith(".version") -> verify(mock).version(versionValue)
-        else -> throw RuntimeException("Unexpected property: ${versionProp}")
+    libraries
+      .dottedKeySet()
+      .sorted()
+      .groupBy { getLibraryAlias(it) }
+      .forEach { (alias, properties) ->
+        val usedProps = mutableListOf<String>()
+        val group =
+          properties
+            .first { it.endsWith(".group") }
+            .let {
+              usedProps += it
+              libraries.getString(it)!!
+            }
+        val name =
+          properties
+            .first { it.endsWith(".name") }
+            .let {
+              usedProps += it
+              libraries.getString(it)!!
+            }
+        verify(builder).library(alias, group, name)
+        assertThat(generatedLibraries).containsKey(alias)
+        val mock = generatedLibraries[alias]!!
+        properties
+          .filterNot { it in usedProps }
+          .forEach { prop ->
+            when {
+              prop.endsWith(".ref") -> {
+                val ref = libraries.getString(prop)!!
+                verify(mock).versionRef(ref)
+              }
+              prop.endsWith(".version") ||
+                prop.endsWith(".strictly") ||
+                prop.endsWith(".prefer") -> {
+                if (alias in libraryAliasesFromSource) {
+                  verify(mock).version(any<Action<MutableVersionConstraint>>())
+                } else {
+                  val value = libraries.getString(prop)!!
+                  verify(mock).version(value)
+                }
+              }
+              else -> throw RuntimeException("Unexpected property: ${prop}")
+            }
+          }
       }
-    }
     verify(builder, times(libraries.size())).library(any<String>(), any<String>(), any<String>())
   }
 
+  /**
+   * Determines the library alias based on the given property name. To determine the library alias
+   * we split the property name by `.` and then remove elements from the end until one of them is
+   * _not_ `group`, `name`, `version`, `ref`, `id`, `strictly`, or `prefer`. The remaining strings
+   * are then combined back together (in original order) with `.`.
+   */
   protected open fun getLibraryAlias(property: String): String {
-    val split = property.split(".")
-    // if we have version.ref, return last -2
-    val result = mutableListOf<String>()
-    for (s in split) {
-      if (s in listOf("name", "group", "version")) {
-        break
+    return property
+      .split(".")
+      .reversed()
+      .dropWhile { it in listOf("group", "name", "version", "ref", "id", "strictly", "prefer") }
+      .reversed()
+      .joinToString(".")
+  }
+
+  protected open fun verifyVersions(versions: TomlTable, versionAliasesFromSource: List<String>) {
+    versions.dottedKeySet().forEach { v ->
+      if (v in versionAliasesFromSource) {
+        verify(builder).version(eq(v), any<Action<MutableVersionConstraint>>())
+      } else {
+        verify(builder).version(v, versions.getString(v)!!)
       }
-      result += s
     }
-    return result.joinToString(".")
+    verify(builder, times(versions.size() - versionAliasesFromSource.size))
+      .version(any<String>(), any<String>())
+    verify(builder, times(versionAliasesFromSource.size))
+      .version(any<String>(), any<Action<MutableVersionConstraint>>())
   }
 
-  protected open fun verifyVersions(versions: TomlTable) {
-    versions.dottedKeySet().forEach { v -> verify(builder).version(v, versions.getString(v)!!) }
-    verify(builder, times(versions.size())).version(any<String>(), any<String>())
-  }
-
-  protected open fun verifyBundles(bundles: TomlTable) {
+  protected open fun verifyBundles(bundles: TomlTable, libraryAliasesFromSource: List<String>) {
     bundles.dottedKeySet().forEach {
       verify(builder).bundle(eq(it), any<List<String>>())
       assertThat(generatedBundles).containsKey(it)
@@ -212,4 +291,41 @@ internal abstract class GeneratorTestBase {
     }
     verify(builder, times(bundles.size())).bundle(any<String>(), any<List<String>>())
   }
+
+  protected open fun verifyPlugins(plugins: TomlTable, pluginAliasesFromSource: List<String>) {
+    // sort the keys and split into groups of 2, which should give us
+    // the id and version properties
+    plugins
+      .dottedKeySet()
+      .sorted()
+      .groupBy { getLibraryAlias(it) }
+      .forEach { (alias, props) ->
+        val id = props.first { it.endsWith(".id") }.let { plugins.getString(it)!! }
+        verify(builder).plugin(alias, id)
+        assertThat(generatedPlugins).containsKey(alias)
+        val mock = generatedPlugins[alias]!!
+        val versionProp = props.first { it.endsWith(".ref") || it.endsWith(".version") }
+        val versionValue = plugins.getString(versionProp)!!
+
+        when {
+          versionProp.endsWith(".ref") -> verify(mock).versionRef(versionValue)
+          versionProp.endsWith(".version") -> {
+            if (alias in pluginAliasesFromSource) {
+              verify(mock).version(any<Action<MutableVersionConstraint>>())
+            } else {
+              verify(mock).version(versionValue)
+            }
+          }
+          else -> throw RuntimeException("Unexpected property: ${versionProp}")
+        }
+      }
+    verify(builder, times(plugins.size())).plugin(any<String>(), any<String>())
+  }
+
+  data class TomlParseResult(
+    val versions: TomlTable,
+    val libraries: TomlTable,
+    val bundles: TomlTable,
+    val plugins: TomlTable,
+  )
 }

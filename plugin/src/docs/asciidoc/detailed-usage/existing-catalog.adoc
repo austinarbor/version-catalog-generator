@@ -1,0 +1,56 @@
+
+=== Appending to an Existing Catalog
+
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
+----
+import dev.aga.gradle.versioncatalogs.Generator.generate // <1>
+
+plugins {
+  id("dev.aga.gradle.version-catalog-generator") version "{version}"
+}
+
+dependencyResolutionManagement {
+  versionCatalogs {
+    create("libs") { // <1>
+      from(files("gradle/libs.versions.toml"))
+    }
+    generate("libs") {
+      bundleMapping = { // <2>
+        // excluded for brevity
+      }
+    }
+  }
+}
+----
+<1> If you want to _append_ to an existing catalog, the catalog must be created before using that same name in a `generate` declaration.
+This is true even if you want to append to the default `libs` catalog.
+<2> When appending to an existing catalog, you can create bundles composed of dependencies from both the original catalog
+and the new entries from the BOMs you are generating from.
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+plugins {
+  id 'dev.aga.gradle.version-catalog-generator' version '{version}'
+}
+
+dependencyResolutionManagement {
+  versionCatalogs {
+    libs { // <1>
+      from(files("gradle/libs.versions.toml"))
+    }
+    generator.generate("myLibs") { // <2>
+      it.bundleMapping = {
+        // excluded for brevity
+      }
+    }
+  }
+}
+----
+<1> If you want to _append_ to an existing catalog, the catalog must be created before using that same name in a `generate` declaration.
+This is true even if you want to append to the default `libs` catalog.
+<2> When appending to an existing catalog, you can create bundles composed of dependencies from both the original catalog
+and the new entries from the BOMs you are generating from.
+
+IMPORTANT: When appending to an existing catalog, you must _explicitly_ declare the catalog first, even if it is the default `libs` catalog.
