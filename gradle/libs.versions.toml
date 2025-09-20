@@ -13,7 +13,7 @@ kotlin = "2.2.10"
 maven = "3.9.11"
 mockito = "5.19.0"
 mockito-kotlin = "6.0.0"
-shadow = "8.1.1"
+shadow = "9.1.0"
 spotless = "7.2.1"
 tomlj = "1.1.1"
 
@@ -41,5 +41,5 @@ asciidoctorj = { id = "org.asciidoctor.jvm.convert", version.ref = "asciidoctorj
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 gradle-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-publish" }
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

@@ -18,6 +18,7 @@ import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
+import org.gradle.internal.management.VersionCatalogBuilderInternal
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
@@ -174,10 +175,10 @@ internal abstract class GeneratorTestBase {
   ) {
     if (existing) {
       verify(container).getByName(eq(name))
-      verify(container).remove(any<VersionCatalogBuilder>())
-    } else {
-      verify(container).create(eq(name), any<Action<VersionCatalogBuilder>>())
+      verify(container).remove(any<VersionCatalogBuilderInternal>())
     }
+
+    verify(container).create(eq(name), any<Action<VersionCatalogBuilder>>())
     val (versions, libraries, bundles, plugins) = getExpectedCatalog(expectedCatalogPath)
     verifyVersions(versions, versionAliasesFromSource)
     verifyLibraries(libraries, libraryAliasesFromSource)

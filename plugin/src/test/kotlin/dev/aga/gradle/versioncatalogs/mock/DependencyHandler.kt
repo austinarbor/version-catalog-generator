@@ -42,7 +42,7 @@ internal class DependencyHandler : org.gradle.api.artifacts.dsl.DependencyHandle
     TODO("Not yet implemented")
   }
 
-  override fun <T : Any?, U : ExternalModuleDependency?> addProvider(
+  override fun <T : Any, U : ExternalModuleDependency> addProvider(
     configurationName: String,
     dependencyNotation: Provider<T>,
     configuration: Action<in U>,
@@ -50,11 +50,11 @@ internal class DependencyHandler : org.gradle.api.artifacts.dsl.DependencyHandle
     TODO("Not yet implemented")
   }
 
-  override fun <T : Any?> addProvider(configurationName: String, dependencyNotation: Provider<T>) {
+  override fun <T : Any> addProvider(configurationName: String, dependencyNotation: Provider<T>) {
     TODO("Not yet implemented")
   }
 
-  override fun <T : Any?, U : ExternalModuleDependency?> addProviderConvertible(
+  override fun <T : Any, U : ExternalModuleDependency> addProviderConvertible(
     configurationName: String,
     dependencyNotation: ProviderConvertible<T>,
     configuration: Action<in U>,
@@ -62,7 +62,7 @@ internal class DependencyHandler : org.gradle.api.artifacts.dsl.DependencyHandle
     TODO("Not yet implemented")
   }
 
-  override fun <T : Any?> addProviderConvertible(
+  override fun <T : Any> addProviderConvertible(
     configurationName: String,
     dependencyNotation: ProviderConvertible<T>,
   ) {
@@ -75,17 +75,6 @@ internal class DependencyHandler : org.gradle.api.artifacts.dsl.DependencyHandle
 
   override fun create(
     dependencyNotation: Any,
-    configureClosure: Closure<*>,
-  ): org.gradle.api.artifacts.Dependency {
-    TODO("Not yet implemented")
-  }
-
-  override fun module(notation: Any): org.gradle.api.artifacts.Dependency {
-    TODO("Not yet implemented")
-  }
-
-  override fun module(
-    notation: Any,
     configureClosure: Closure<*>,
   ): org.gradle.api.artifacts.Dependency {
     TODO("Not yet implemented")
@@ -151,7 +140,7 @@ internal class DependencyHandler : org.gradle.api.artifacts.dsl.DependencyHandle
     TODO("Not yet implemented")
   }
 
-  override fun <T : TransformParameters?> registerTransform(
+  override fun <T : TransformParameters> registerTransform(
     actionType: Class<out TransformAction<T>>,
     registrationAction: Action<in TransformSpec<T>>,
   ) {
