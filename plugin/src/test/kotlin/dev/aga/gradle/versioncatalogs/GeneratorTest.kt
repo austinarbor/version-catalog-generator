@@ -56,21 +56,22 @@ internal class GeneratorTest : GeneratorTestBase() {
         version("generator", "3.2.2")
         version("springBoot", "3.5.5")
         library(
-            "version.catalog.generator",
+            "version-catalog-generator",
             "dev.aga.gradle.version-catalog-generator",
             "dev.aga.gradle.version-catalog-generator.gradle.plugin",
           )
           .versionRef("generator")
-        library("sqlite.jdbc", "dev.aga.sqlite", "sqlite-jdbc").version("3.50.3.0")
-        library("commons.lang3", "org.apache.commons", "commons-lang3").version {
+        library("sqlite-jdbc", "dev.aga.sqlite", "sqlite-jdbc").version("3.50.3.0")
+        library("commons-lang3", "org.apache.commons", "commons-lang3").version {
           strictly("[3.8, 4.0[")
           prefer("3.9")
         }
-        bundle("existing", listOf("sqlite.jdbc", "version.catalog.generator"))
+        bundle("existing", listOf("sqlite-jdbc", "version-catalog-generator"))
         plugin("shadow", "com.gradleup.shadow").version("9.1.0")
         plugin("springBoot", "org.springframework.boot").versionRef("springBoot")
       }
 
+    whenever(container.names).thenReturn(setOf("libs").toSortedSet())
     whenever(container.getByName("libs")).thenReturn(builder)
 
     val config =
@@ -79,7 +80,7 @@ internal class GeneratorTest : GeneratorTestBase() {
         saveGeneratedCatalog = true
         from("org.springframework.boot:spring-boot-dependencies:3.1.2") { generateBomEntry = true }
         bundleMapping = {
-          if (it.alias in listOf("sqlite.jdbc", "commons.lang3", "dropwizard-metricsCaffeine")) {
+          if (it.alias in listOf("sqlite-jdbc", "commons-lang3", "dropwizard-metricsCaffeine")) {
             "combined"
           } else {
             it.versionRef
@@ -94,7 +95,7 @@ internal class GeneratorTest : GeneratorTestBase() {
       "libs",
       expected,
       true,
-      listOf("version.catalog.generator", "sqlite.jdbc", "commons.lang3"),
+      listOf("version-catalog-generator", "sqlite-jdbc", "commons-lang3"),
       listOf("generator", "springBoot"),
       listOf("shadow", "springBoot"),
     )
@@ -171,6 +172,40 @@ internal class GeneratorTest : GeneratorTestBase() {
     container.generate("myLibs", config, resolver)
     val expected = Paths.get("expectations", "spring-boot-dependencies", "property-overrides.toml")
     verifyGeneratedCatalog(config, "myLibs", expected, false)
+  }
+
+  @Test
+  fun `common prefix in existing catalog does not cause error - issue 251`() {
+    val builder =
+      MockVersionCatalogBuilder("libs").apply {
+        version("kotlin-logging", "3.0.5")
+        version("kotlin-logging-jvm", "7.0.13")
+        library("kotlin-logging", "io.github.oshai", "kotlin-logging").versionRef("kotlin-logging")
+        library("kotlin-logging-jvm", "io.github.oshai", "kotlin-logging-jvm")
+          .versionRef("kotlin-logging-jvm")
+      }
+
+    whenever(container.names).thenReturn(setOf("libs").toSortedSet())
+    whenever(container.getByName("libs")).thenReturn(builder)
+
+    val config =
+      GeneratorConfig(settings).apply {
+        saveDirectory = projectDir
+        saveGeneratedCatalog = true
+        from("org.assertj:assertj-bom:3.25.3")
+      }
+    val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+    container.generate("libs", config, resolver)
+    val expected = Paths.get("expectations", "issue-251", "libs.versions.toml")
+    verifyGeneratedCatalog(
+      config,
+      "libs",
+      expected,
+      true,
+      listOf("kotlin-logging", "kotlin-logging-jvm"),
+      listOf("kotlin-logging", "kotlin-logging-jvm"),
+      listOf(),
+    )
   }
 
   @ParameterizedTest
