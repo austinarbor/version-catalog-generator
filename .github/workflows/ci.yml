@@ -105,7 +105,6 @@ jobs:
       matrix:
         gradle-version:
           - "8.4"
-          - "8.4"
           - "8.6"
           - "8.7"
           - "8.8"
