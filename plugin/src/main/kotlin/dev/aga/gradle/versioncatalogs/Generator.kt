@@ -162,9 +162,10 @@ object Generator {
     source: DefaultVersionCatalog,
     container: TomlContainer,
   ) {
+    fun String.hyphenize() = replace('.', '-')
     source.versionAliases.forEach { alias ->
       val sourceVersion = source.getVersion(alias).version
-      val alias = alias.replace('.', '-')
+      val alias = alias.hyphenize()
       version(alias, copyVersion(sourceVersion))
       val versionToAdd =
         when {
@@ -175,15 +176,15 @@ object Generator {
     }
     source.libraryAliases.forEach { alias ->
       val sourceLibrary = source.getDependencyData(alias)
-      val alias = alias.replace('.', '-')
+      val alias = alias.hyphenize()
       val versionBuilder = library(alias, sourceLibrary.group, sourceLibrary.name)
       if (sourceLibrary.versionRef != null) {
-        versionBuilder.versionRef(sourceLibrary.versionRef!!.replace('.', '-'))
+        versionBuilder.versionRef(sourceLibrary.versionRef!!.hyphenize())
         container.addLibrary(
           alias,
           sourceLibrary.group,
           sourceLibrary.name,
-          sourceLibrary.versionRef!!.replace('.', '-'),
+          sourceLibrary.versionRef!!.hyphenize(),
           true,
         )
       } else {
@@ -193,7 +194,7 @@ object Generator {
     }
     source.pluginAliases.forEach { alias ->
       val sourcePlugin = source.getPlugin(alias)
-      val alias = alias.replace('.', '-')
+      val alias = alias.hyphenize()
       val versionBuilder = plugin(alias, sourcePlugin.id)
       if (sourcePlugin.versionRef != null) {
         versionBuilder.versionRef(sourcePlugin.versionRef!!)
@@ -210,8 +211,8 @@ object Generator {
     }
     source.bundleAliases.forEach { alias ->
       val sourceBundle = source.getBundle(alias)
-      val alias = alias.replace('.', '-')
-      val components = sourceBundle.components.map { it.replace('.', '-') }
+      val alias = alias.hyphenize()
+      val components = sourceBundle.components.map { it.hyphenize() }
       bundle(alias, components)
       container.addBundle(alias, components)
     }
