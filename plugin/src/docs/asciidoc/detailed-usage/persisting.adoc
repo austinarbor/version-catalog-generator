@@ -29,3 +29,13 @@ generator.generate("myLibs") {
 <1> Enable saving the generated catalog to disk
 <2> The directory to save the generated catalogs in. If not specified, the generated catalogs will be saved in
 `build/version-catalogs`, relative to the _root_ project directory.
+
+WARNING: When appending to an existing catalog, the output of the saved catalog may be
+incorrect for entries from the original catalog with aliases that contain `.`. When building the
+catalog, Gradle converts all `-` to `.` and does not provide a way to recover the original value. When we
+copy the catalog to prepare it for appending, we convert all periods in the alias into hyphens. This is required
+to prevent invalid TOML tables from being created by multiple aliases that share a common prefix, such as
+`kotlin-logging` and `kotling-logging-jvm`. The end result of this is that _using_ the catalog will be correct,
+but the printed values in the persisted catalog may not be the exact value from the original catalog.
+See https://github.com/austinarbor/version-catalog-generator/issues/251[#251]
+for more information.
