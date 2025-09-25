@@ -1,0 +1,15 @@
+[versions]
+kotlin-logging = "3.0.5"
+kotlin-logging-jvm = "7.0.13"
+
+[libraries]
+kotlin-logging = { group = "io.github.oshai", name = "kotlin-logging", version.ref = "kotlin-logging" }
+kotlin-logging-jvm = { group = "io.github.oshai", name = "kotlin-logging-jvm", version.ref = "kotlin-logging-jvm" }
+assertj-assertjCore = { group = "org.assertj", name = "assertj-core", version = "3.25.3" }
+assertj-assertjGuava = { group = "org.assertj", name = "assertj-guava", version = "3.25.3" }
+
+[bundles]
+kotlin-logging = ["kotlin-logging"]
+kotlin-logging-jvm = ["kotlin-logging-jvm"]
+
+[plugins]

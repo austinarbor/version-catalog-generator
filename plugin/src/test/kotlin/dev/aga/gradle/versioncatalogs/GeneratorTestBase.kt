@@ -287,8 +287,10 @@ internal abstract class GeneratorTestBase {
     bundles.dottedKeySet().forEach {
       verify(builder).bundle(eq(it), any<List<String>>())
       assertThat(generatedBundles).containsKey(it)
-      val expectedLibraries = bundles.getArrayOrEmpty(it).toList()
-      assertThat(expectedLibraries).containsExactlyInAnyOrderElementsOf(generatedBundles[it])
+      val expectedLibraries = (bundles.getArrayOrEmpty(it).toList() as List<String>)
+      assertThat(generatedBundles[it])
+        .`as`("bundle with name '${it}'")
+        .containsExactlyInAnyOrderElementsOf(expectedLibraries)
     }
     verify(builder, times(bundles.size())).bundle(any<String>(), any<List<String>>())
   }
