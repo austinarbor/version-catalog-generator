@@ -44,14 +44,14 @@ detekt {
 }
 
 gradlePlugin {
-  website = providers.gradleProperty("url")
-  vcsUrl = providers.gradleProperty("url")
+  website = "https://github.com/austinarbor/version-catalog-generator"
+  vcsUrl = "https://github.com/austinarbor/version-catalog-generator.git"
   plugins {
     create("generatorPlugin") {
       id = "dev.aga.gradle.version-catalog-generator"
       implementationClass = "dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPlugin"
-      displayName = providers.gradleProperty("displayName").get()
-      description = providers.gradleProperty("description").get()
+      displayName = "Version Catalog Generator"
+      description = "Automatically generate a Gradle version catalog from a Maven BOM"
       tags =
         listOf(
           "version-catalog",
@@ -74,8 +74,8 @@ publishing {
       version = "${project.version}"
 
       pom {
-        name = providers.gradleProperty("displayName")
-        description = providers.gradleProperty("description")
+        name = "Version Catalog Generator"
+        description = "Automatically generate a Gradle version catalog from a Maven BOM"
         licenses {
           license {
             name = "The Apache Software License, Version 2.0"
@@ -91,11 +91,10 @@ publishing {
           }
         }
         scm {
-          url = providers.gradleProperty("url")
-          connection = url.map { it.replaceFirst("https", "scm:git:git") }
+          url = "https://github.com/austinarbor/version-catalog-generator"
+          connection = "scm:git:git@github.com:austinarbor/version-catalog-generator.git"
         }
       }
-
       from(components["java"])
     }
   }
