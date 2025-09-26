@@ -46,23 +46,24 @@ detekt {
 gradlePlugin {
   website = providers.gradleProperty("url")
   vcsUrl = providers.gradleProperty("url")
-  val generator by
-    plugins.creating {
+  plugins {
+    create("generatorPlugin") {
       id = "dev.aga.gradle.version-catalog-generator"
       implementationClass = "dev.aga.gradle.versioncatalogs.VersionCatalogGeneratorPlugin"
       displayName = providers.gradleProperty("displayName").get()
       description = providers.gradleProperty("description").get()
       tags =
         listOf(
-          "version",
-          "catalog",
+          "version-catalog",
           "generate",
           "bom",
           "pom",
           "dependencies",
           "dependency-management",
+          "maven",
         )
     }
+  }
 }
 
 publishing {
