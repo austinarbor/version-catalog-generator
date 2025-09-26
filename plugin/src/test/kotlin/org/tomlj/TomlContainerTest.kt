@@ -76,6 +76,18 @@ class TomlContainerTest {
     }
   }
 
+  @Test
+  fun getVersionAliases() {
+    val container = TomlContainer()
+    container.addVersion("a", "1")
+    container.addVersion("a-b", "2")
+    container.addVersion("a-b-c", "3")
+    container.addVersion("b.c", "4")
+    container.addVersion("d.e.f", "5")
+    assertThat(container.getVersionAliases())
+      .containsExactlyInAnyOrder("a", "a-b", "a-b-c", "b.c", "d.e.f")
+  }
+
   private fun createVersion(
     preferred: String,
     strict: String,

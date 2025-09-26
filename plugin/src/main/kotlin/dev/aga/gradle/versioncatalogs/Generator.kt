@@ -320,7 +320,10 @@ object Generator {
     rootDep: Boolean,
     container: TomlContainer,
   ) {
-    val registeredVersions = mutableSetOf<String>()
+    // start the registered versions with the existing ones in the container (if any)
+    // if any exist at this point, they would have come from the source catalog we are
+    // appending to
+    val registeredVersions = container.getVersionAliases().toMutableSet()
     val deps = getNewDependencies(model, seenModules, substitutor, importFilter, using)
     deps.forEach { (version, boms) ->
       boms.forEach { bom ->

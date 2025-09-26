@@ -69,6 +69,10 @@ class TomlContainer : Iterable<GeneratedLibrary> {
     }
   }
 
+  fun getVersionAliases(): Set<String> {
+    return versions.dottedKeySet()
+  }
+
   fun toToml(): String {
     return toml.toToml()
   }

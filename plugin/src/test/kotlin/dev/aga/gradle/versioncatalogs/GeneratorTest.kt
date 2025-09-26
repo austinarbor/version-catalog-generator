@@ -183,6 +183,7 @@ internal class GeneratorTest : GeneratorTestBase() {
         library("kotlin-logging", "io.github.oshai", "kotlin-logging").versionRef("kotlin-logging")
         library("kotlin-logging-jvm", "io.github.oshai", "kotlin-logging-jvm")
           .versionRef("kotlin-logging-jvm")
+        version("zipkin", "2.16.5")
       }
 
     whenever(container.names).thenReturn(setOf("libs").toSortedSet())
@@ -193,6 +194,7 @@ internal class GeneratorTest : GeneratorTestBase() {
         saveDirectory = projectDir
         saveGeneratedCatalog = true
         from("org.assertj:assertj-bom:3.25.3")
+        from("io.zipkin.reporter2:zipkin-reporter-bom:2.16.3")
       }
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("libs", config, resolver)
@@ -203,7 +205,7 @@ internal class GeneratorTest : GeneratorTestBase() {
       expected,
       true,
       listOf("kotlin-logging", "kotlin-logging-jvm"),
-      listOf("kotlin-logging", "kotlin-logging-jvm"),
+      listOf("kotlin-logging", "kotlin-logging-jvm", "zipkin"),
       listOf(),
     )
   }
