@@ -1,15 +1,24 @@
 [versions]
 kotlin-logging = "3.0.5"
 kotlin-logging-jvm = "7.0.13"
+zipkin = "2.16.5"
+zipkinProto3 = "1.0.0"
 
 [libraries]
 kotlin-logging = { group = "io.github.oshai", name = "kotlin-logging", version.ref = "kotlin-logging" }
 kotlin-logging-jvm = { group = "io.github.oshai", name = "kotlin-logging-jvm", version.ref = "kotlin-logging-jvm" }
 assertj-assertjCore = { group = "org.assertj", name = "assertj-core", version = "3.25.3" }
 assertj-assertjGuava = { group = "org.assertj", name = "assertj-guava", version = "3.25.3" }
+zipkin-zipkin = { group = "io.zipkin.zipkin2", name = "zipkin", version.ref = "zipkin" }
+zipkin-zipkinProto3 = { group = "io.zipkin.proto3", name = "zipkin-proto3", version.ref = "zipkinProto3" }
+zipkin-zipkinReporter = { group = "io.zipkin.reporter2", name = "zipkin-reporter", version = "2.16.3" }
+zipkin-zipkinReporterBrave = { group = "io.zipkin.reporter2", name = "zipkin-reporter-brave", version = "2.16.3" }
+
 
 [bundles]
 kotlin-logging = ["kotlin-logging"]
 kotlin-logging-jvm = ["kotlin-logging-jvm"]
+zipkin = ["zipkin-zipkin"]
+zipkinProto3 = ["zipkin-zipkinProto3"]
 
 [plugins]
