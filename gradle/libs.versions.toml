@@ -6,8 +6,7 @@ commons-text = "1.14.0"
 detekt = "1.23.8"
 gradle-publish = "2.0.0"
 jacoco = "0.8.13"
-junit = "5.13.4"
-junitPlatformLauncher = "1.13.4"
+junit = "6.0.0"
 kasechange = "1.4.1"
 kotlin = "2.2.20"
 maven = "3.9.11"
@@ -29,7 +28,7 @@ mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mo
 mockito-junit-jupiter = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockito" }
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito-kotlin" }
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
-junitPlatformLauncher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junitPlatformLauncher" }
+junitPlatformLauncher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit" }
 tomlj = { group = "org.tomlj", name = "tomlj", version.ref = "tomlj" }
 
 [bundles]
