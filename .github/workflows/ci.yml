@@ -114,6 +114,7 @@ jobs:
           - "8.13"
           - "8.14"
           - "9.0.0"
+          - "9.1.0"
           - "release-nightly"
           - "release-candidate"
       fail-fast: false
