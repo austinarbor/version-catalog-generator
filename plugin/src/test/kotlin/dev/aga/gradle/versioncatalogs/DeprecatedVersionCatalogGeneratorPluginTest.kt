@@ -101,33 +101,33 @@ class DeprecatedVersionCatalogGeneratorPluginTest {
     )
     buildFile.writeText(
       """
-            plugins {
-              java
-            }
-            dependencies {
-              implementation(springLibs.spring.springBootStarterWeb)
-              implementation(jsonLibs.jackson.jacksonDatabind)
-              implementation(jsonLibs.bundles.jacksonModule)
-              implementation(awsLibs.s3)
-              testImplementation(mockitoLibs.mockito.core)
-              testImplementation(mockitoLibs.mockito.junit.jupiter)
-              testImplementation(junitLibs.junitJupiter)
-              testImplementation(junitLibs.junitJupiterParams)
-            }
-            """
+      plugins {
+        java
+      }
+      dependencies {
+        implementation(springLibs.spring.springBootStarterWeb)
+        implementation(jsonLibs.jackson.jacksonDatabind)
+        implementation(jsonLibs.bundles.jacksonModule)
+        implementation(awsLibs.s3)
+        testImplementation(mockitoLibs.mockito.core)
+        testImplementation(mockitoLibs.mockito.junit.jupiter)
+        testImplementation(junitLibs.junitJupiter)
+        testImplementation(junitLibs.junitJupiterParams)
+      }
+      """
         .trimIndent()
     )
 
     versionCatalogFile.writeText(
       """
-                [versions]
-                aws = "2.21.15"
-                jackson = "2.18.1"
-                spring = "3.4.1"
-                [libraries]
-                aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
-                spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
-            """
+          [versions]
+          aws = "2.21.15"
+          jackson = "2.18.1"
+          spring = "3.4.1"
+          [libraries]
+          aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
+          spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
+      """
         .trimIndent()
     )
 
@@ -211,30 +211,30 @@ class DeprecatedVersionCatalogGeneratorPluginTest {
     )
     buildFile.writeText(
       """
-            plugins {
-              java
-            }
-            dependencies {
-              implementation(springLibs.spring.springBootStarterWeb)
-              implementation(jsonLibs.jackson.jacksonDatabind)
-              implementation(jsonLibs.bundles.jacksonModule)
-              testImplementation(mockitoLibs.mockito.mockitoCore)
-              testImplementation(junitLibs.junitJupiter)
-            }
-            """
+      plugins {
+        java
+      }
+      dependencies {
+        implementation(springLibs.spring.springBootStarterWeb)
+        implementation(jsonLibs.jackson.jacksonDatabind)
+        implementation(jsonLibs.bundles.jacksonModule)
+        testImplementation(mockitoLibs.mockito.mockitoCore)
+        testImplementation(junitLibs.junitJupiter)
+      }
+      """
         .trimIndent()
     )
 
     versionCatalogFile.writeText(
       """
-                [versions]
-                aws = "2.21.15"
-                jackson = "2.18.1"
-                spring = "3.4.1"
-                [libraries]
-                aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
-                spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
-            """
+          [versions]
+          aws = "2.21.15"
+          jackson = "2.18.1"
+          spring = "3.4.1"
+          [libraries]
+          aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
+          spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
+      """
         .trimIndent()
     )
 
