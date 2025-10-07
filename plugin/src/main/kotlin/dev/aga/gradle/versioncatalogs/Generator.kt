@@ -89,6 +89,7 @@ object Generator {
     config: GeneratorConfig,
     resolver: DependencyResolver,
   ): VersionCatalogBuilder {
+    val extraDependencies = mutableListOf<Pair<GeneratorConfig.UsingConfig, Dependency>>()
     // need to clean up this logic so that we don't double-resolve the first
     // dependency. I think the resolver interface/logic could use some
     // improvement as well
@@ -96,6 +97,7 @@ object Generator {
       config.sources.flatMap { src ->
         val (cfg, sources) = src()
         val mergedConfig = GeneratorConfig.UsingConfig.merge(cfg.usingConfig, config.usingConfig)
+        mergedConfig.extraDeps.forEach { extraDependencies.add(mergedConfig to it()) }
         sources.map {
           when (it) {
             is Dependency -> mergedConfig to it
@@ -115,7 +117,7 @@ object Generator {
         else -> DefaultVersionCatalog(name, "", emptyMap(), emptyMap(), emptyMap(), emptyMap())
       }
 
-    val action = getCreateAction(name, config, rootDeps, resolver, sourceCatalog)
+    val action = getCreateAction(name, config, rootDeps, resolver, sourceCatalog, extraDependencies)
     return create(name, action)
   }
 
@@ -125,6 +127,7 @@ object Generator {
     rootDeps: List<Pair<GeneratorConfig.UsingConfig, Dependency>>,
     resolver: DependencyResolver,
     sourceCatalog: DefaultVersionCatalog,
+    extraDependencies: List<Pair<GeneratorConfig.UsingConfig, Dependency>>,
   ) =
     Action<VersionCatalogBuilder> {
       val container = TomlContainer()
@@ -143,6 +146,10 @@ object Generator {
         }
         val (model, parentModel) = resolver.resolve(dep)
         loadBom(model, parentModel, using, queue, seenModules, rootDep, container)
+      }
+
+      extraDependencies.forEach { (using, dep) ->
+        createLibrary(dep, Version(dep.version, dep.version, dep.version), using, false, container)
       }
 
       createBundles(container, config)

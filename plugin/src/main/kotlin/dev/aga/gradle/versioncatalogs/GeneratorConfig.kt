@@ -509,6 +509,7 @@ class GeneratorConfig(val settings: Settings) {
   }
 
   class UsingConfig(private val catalogParserSupplier: () -> CatalogParser) {
+    internal val extraDeps = mutableListOf<() -> Dependency>()
 
     /**
      * Convenience function to construct a [PropertyOverride] that references a version alias from
@@ -542,6 +543,17 @@ class GeneratorConfig(val settings: Settings) {
      * @param alias the version alias to lookup
      */
     fun versionRef(alias: String): TomlVersionRef = TomlVersionRef(alias, catalogParserSupplier)
+
+    fun withDep(group: String, name: String, version: String) =
+      withDep("${group}:${name}:${version}")
+
+    fun withDep(notation: String) {
+      extraDeps += { notation.toDependency() }
+    }
+
+    fun withDepFromToml(alias: String) {
+      extraDeps += { catalogParserSupplier().findLibrary(alias) }
+    }
 
     /**
      * Function to generate the name of the library in the generated catalog. The default behavior
@@ -737,6 +749,8 @@ class GeneratorConfig(val settings: Settings) {
               null -> fallback.generateBomEntryForNestedBoms
               else -> bool
             }
+
+          extraDeps += primary.extraDeps
         }
       }
     }
