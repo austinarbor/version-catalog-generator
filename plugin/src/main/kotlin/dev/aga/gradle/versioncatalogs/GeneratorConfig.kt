@@ -735,6 +735,8 @@ class GeneratorConfig(val settings: Settings) {
 
           if (primary::filter.isInitialized) {
             filter = primary.filter
+          } else if (fallback::filter.isInitialized) {
+            filter = fallback.filter
           }
 
           generateBomEntry =
