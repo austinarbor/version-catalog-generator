@@ -640,36 +640,38 @@ class GeneratorConfig(val settings: Settings) {
 
     internal val excludeFilter: (Dependency) -> Boolean by lazy {
       {
-        // this is an _exclude_ filter whereas filter is include
-        // so we need to negate the result
-        if (::filter.isInitialized) {
-          return@lazy !filter(it)
-        }
-        if (!::excludeGroups.isInitialized) {
-          excludeGroups = ""
-        }
-        if (!::excludeNames.isInitialized) {
-          excludeNames = ""
-        }
-
-        if (excludeGroups.isBlank() && excludeNames.isBlank()) {
-          false
-        } else {
-          // default to true because if one of the regexes is non-blank, then
-          // the blank value should basically be equivalent to always matching
-          val excludeGroup =
-            when {
-              excludeGroups.isBlank() -> true
-              else -> excludeGroups.toRegex().matches(it.groupId)
+        when {
+          // this is an _exclude_ filter whereas filter is include
+          // so we need to negate the result
+          ::filter.isInitialized -> !filter(it)
+          else -> {
+            if (!::excludeGroups.isInitialized) {
+              excludeGroups = ""
+            }
+            if (!::excludeNames.isInitialized) {
+              excludeNames = ""
             }
 
-          val excludeName =
-            when {
-              excludeNames.isBlank() -> true
-              else -> excludeNames.toRegex().matches(it.artifactId)
-            }
+            if (excludeGroups.isBlank() && excludeNames.isBlank()) {
+              false
+            } else {
+              // default to true because if one of the regexes is non-blank, then
+              // the blank value should basically be equivalent to always matching
+              val excludeGroup =
+                when {
+                  excludeGroups.isBlank() -> true
+                  else -> excludeGroups.toRegex().matches(it.groupId)
+                }
 
-          excludeGroup && excludeName
+              val excludeName =
+                when {
+                  excludeNames.isBlank() -> true
+                  else -> excludeNames.toRegex().matches(it.artifactId)
+                }
+
+              excludeGroup && excludeName
+            }
+          }
         }
       }
     }
