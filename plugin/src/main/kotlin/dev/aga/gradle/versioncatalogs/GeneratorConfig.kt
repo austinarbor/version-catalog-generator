@@ -596,6 +596,13 @@ class GeneratorConfig(val settings: Settings) {
      */
     lateinit var excludeNames: String
 
+    /**
+     * Filter function to include or exclude dependencies. Dependencies that return `true` for the
+     * predicate will be included in the generated catalog. If this is set, [excludeGroups] and
+     * [excludeNames] will be ignored.
+     */
+    lateinit var filter: (Dependency) -> Boolean
+
     /** When true, an entry for the BOM itself will be added to the catalog. */
     var generateBomEntry: Boolean? = null
       set(value) {
@@ -633,6 +640,11 @@ class GeneratorConfig(val settings: Settings) {
 
     internal val excludeFilter: (Dependency) -> Boolean by lazy {
       {
+        // this is an _exclude_ filter whereas filter is include
+        // so we need to negate the result
+        if (::filter.isInitialized) {
+          return@lazy !filter(it)
+        }
         if (!::excludeGroups.isInitialized) {
           excludeGroups = ""
         }
@@ -718,6 +730,10 @@ class GeneratorConfig(val settings: Settings) {
             } else {
               fallback.excludeNames
             }
+
+          if (primary::filter.isInitialized) {
+            filter = primary.filter
+          }
 
           generateBomEntry =
             when (val bool = primary.generateBomEntry) {
