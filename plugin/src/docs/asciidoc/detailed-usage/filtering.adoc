@@ -1,7 +1,54 @@
 
 === Filtering Dependencies
 If you want to exclude certain dependencies from having entries generated for them in your catalog, you can filter
-dependencies either by `groupId` or by `name` (artifactId)
+dependencies either by providing a filter or by providing regex patterns
+to exclude by `groupId` or by `name` (artifactId)
+
+==== Customizable Filtering
+The most flexible and granular way of filtering is by setting a `filter` in the
+`UsingConfig`. When this function returns `true` for a dependency it will be
+included in the generated catalog. Otherwise, it will be excluded.
+
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
+----
+generate("testLibs") {
+  // excluded for brevity
+  using { // <1>
+    filter = { "testing" in it.artifactId } // <2>
+  }
+  from {
+    // excluded for brevity
+    using { // <3>
+      filter = "..." // excluded for brevity
+    }
+  }
+}
+----
+<1> Set the default `filter` for all `from` blocks
+<2> Only include dependencies whose `artifactId` contain the word "testing"
+<3> Set/override the `filter` for just this from block
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+generator.generate("testLibs") {
+  // excluded for brevity
+  it.using { using ->  // <1>
+    using.filter = { dep -> dep.artifactId.contains("testing") } // <2>
+  }
+  it.from { from ->
+   // excluded for brevity
+   from.using { using -> // <3>
+     using.filter = { "..." } // excluded for brevity
+   }
+  }
+}
+----
+<1> Set the default `filter` for all `from` blocks
+<2> Only include dependencies whose `artifactId` contain the word "testing"
+<3> Set/override the `filter` for just this from block
+
 
 ==== Filtering By GroupId
 
