@@ -48,6 +48,37 @@ internal class GeneratorTest : GeneratorTestBase() {
   }
 
   @Test
+  fun `source config overrides generator config with filter`() {
+    val config =
+      GeneratorConfig(settings).apply {
+        saveDirectory = projectDir
+        saveGeneratedCatalog = true
+        using {
+          aliasPrefixGenerator = { _, _ -> "foo" }
+          aliasSuffixGenerator = { _, _, _ -> "bar" }
+          versionNameGenerator = { _ -> "foobar" }
+          filter = { false }
+          generateBomEntry = false
+          propertyOverrides = mapOf("jackson-bom.version" to "2.16.1")
+          generateBomEntryForNestedBoms = false
+        }
+        from("org.springframework.boot:spring-boot-dependencies:3.1.2") {
+          aliasPrefixGenerator = GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR
+          aliasSuffixGenerator = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR
+          versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
+          filter = { true }
+          generateBomEntry = true
+          propertyOverrides = emptyMap()
+          generateBomEntryForNestedBoms = true
+        }
+      }
+    val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+    container.generate("myLibs", config, resolver)
+    val expected = Paths.get("expectations", "spring-boot-dependencies", "libs.versions.toml")
+    verifyGeneratedCatalog(config, "myLibs", expected, false)
+  }
+
+  @Test
   fun `appends to existing version catalog`() {
     whenever(container.names).thenReturn(TreeSet(setOf("libs")))
 
