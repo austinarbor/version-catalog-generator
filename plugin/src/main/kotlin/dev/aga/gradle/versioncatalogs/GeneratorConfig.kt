@@ -675,7 +675,7 @@ class GeneratorConfig(val settings: Settings) {
     }
 
     companion object {
-      @Suppress("detekt:LongMethod")
+      @Suppress("detekt:LongMethod", "detekt:CyclomaticComplexMethod")
       fun merge(primary: UsingConfig, fallback: UsingConfig): UsingConfig {
         return UsingConfig(primary.catalogParserSupplier).apply {
           aliasPrefixGenerator =
