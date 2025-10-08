@@ -596,6 +596,13 @@ class GeneratorConfig(val settings: Settings) {
      */
     lateinit var excludeNames: String
 
+    /**
+     * Filter function to include or exclude dependencies. Dependencies that return `true` for the
+     * predicate will be included in the generated catalog. If this is set, [excludeGroups] and
+     * [excludeNames] will be ignored.
+     */
+    lateinit var filter: (Dependency) -> Boolean
+
     /** When true, an entry for the BOM itself will be added to the catalog. */
     var generateBomEntry: Boolean? = null
       set(value) {
@@ -633,37 +640,44 @@ class GeneratorConfig(val settings: Settings) {
 
     internal val excludeFilter: (Dependency) -> Boolean by lazy {
       {
-        if (!::excludeGroups.isInitialized) {
-          excludeGroups = ""
-        }
-        if (!::excludeNames.isInitialized) {
-          excludeNames = ""
-        }
-
-        if (excludeGroups.isBlank() && excludeNames.isBlank()) {
-          false
-        } else {
-          // default to true because if one of the regexes is non-blank, then
-          // the blank value should basically be equivalent to always matching
-          val excludeGroup =
-            when {
-              excludeGroups.isBlank() -> true
-              else -> excludeGroups.toRegex().matches(it.groupId)
+        when {
+          // this is an _exclude_ filter whereas filter is include
+          // so we need to negate the result
+          ::filter.isInitialized -> !filter(it)
+          else -> {
+            if (!::excludeGroups.isInitialized) {
+              excludeGroups = ""
+            }
+            if (!::excludeNames.isInitialized) {
+              excludeNames = ""
             }
 
-          val excludeName =
-            when {
-              excludeNames.isBlank() -> true
-              else -> excludeNames.toRegex().matches(it.artifactId)
-            }
+            if (excludeGroups.isBlank() && excludeNames.isBlank()) {
+              false
+            } else {
+              // default to true because if one of the regexes is non-blank, then
+              // the blank value should basically be equivalent to always matching
+              val excludeGroup =
+                when {
+                  excludeGroups.isBlank() -> true
+                  else -> excludeGroups.toRegex().matches(it.groupId)
+                }
 
-          excludeGroup && excludeName
+              val excludeName =
+                when {
+                  excludeNames.isBlank() -> true
+                  else -> excludeNames.toRegex().matches(it.artifactId)
+                }
+
+              excludeGroup && excludeName
+            }
+          }
         }
       }
     }
 
     companion object {
-      @Suppress("detekt:LongMethod")
+      @Suppress("detekt:LongMethod", "detekt:CyclomaticComplexMethod")
       fun merge(primary: UsingConfig, fallback: UsingConfig): UsingConfig {
         return UsingConfig(primary.catalogParserSupplier).apply {
           aliasPrefixGenerator =
@@ -718,6 +732,12 @@ class GeneratorConfig(val settings: Settings) {
             } else {
               fallback.excludeNames
             }
+
+          if (primary::filter.isInitialized) {
+            filter = primary.filter
+          } else if (fallback::filter.isInitialized) {
+            filter = fallback.filter
+          }
 
           generateBomEntry =
             when (val bool = primary.generateBomEntry) {

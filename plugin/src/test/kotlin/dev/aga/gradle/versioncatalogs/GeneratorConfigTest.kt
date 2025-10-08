@@ -117,6 +117,22 @@ class GeneratorConfigTest {
     assertThat(config.usingConfig.excludeNames).isEqualTo(expected)
   }
 
+  @Test
+  fun `filter overrides exclude groups and names`(@TempDir tmp: File) {
+    val settings = mock<Settings> { on { rootDir } doReturn tmp }
+    val config =
+      GeneratorConfig(settings).apply {
+        from {
+          using {
+            filter = { true }
+            excludeNames = ".*"
+            excludeGroups = ".*"
+          }
+        }
+      }
+    assertThat(config.usingConfig.excludeFilter(Dependency("a", "b", "c"))).isFalse
+  }
+
   @ParameterizedTest
   @NullSource
   @ValueSource(strings = ["a", "b"])
