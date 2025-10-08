@@ -1,0 +1,65 @@
+
+=== Including Additional Dependencies in the Generated Catalog
+
+Sometimes you may want to include dependencies in the generated catalog that may not be declared
+in the BOM(s) you are generated from. For example, `mockito-bom` does not include `mockito-kotlin`
+in its `dependencyManagement` section, so it would be cumbersome (or impossible) to include this dependency
+with your generated catalog and access it in a single place, or to include that dependency in a bundle.
+
+To include additional dependencies, you can either use `withDep`, `withDeps`, or `withDepsFromToml`.
+
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
+----
+import dev.aga.gradle.versioncatalogs.Generator.generate
+
+plugins {
+  id("dev.aga.gradle.version-catalog-generator") version "{version}"
+}
+
+dependencyResolutionManagement {
+  versionCatalogs {
+    generate("testingLibs") {
+      fromToml("junit-bom", "mockito-bom", "assertj-bom") {
+        withDepsFromToml("mockito-kotlin") // <1>
+        withDep("org.mockito.kotlin", "mockito-kotlin", "6.1.0") // <2>
+        withDeps("org.mockito.kotlin:mockito-kotlin:6.1.0") // <3>
+      }
+    }
+  }
+}
+----
+<1> Include the dependency associated with the specified alias(es) in the generated catalog
+<2> Include an extra dependency specified by its group, name, and version
+<3> Include one or more extra dependencies specified their shorthand concatenated notation
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+plugins {
+  id 'dev.aga.gradle.version-catalog-generator' version '{version}'
+}
+
+dependencyResolutionManagement {
+  versionCatalogs {
+    generator.generate("testingLibs") {
+      it.from { from ->
+        from.toml { toml ->
+          toml.libraryAliases = ["junit-bom", "mockito-bom", "assertj-bom"]
+        }
+        from.using { using ->
+          using.withDepsFromToml("mockito-kotlin") // <1>
+          using.withDep("org.mockito.kotlin", "mockito-kotlin", "6.1.0") // <2>
+          using.withDeps("org.mockito.kotlin:mockito-kotlin:6.1.0") // <3>
+        }
+      }
+    }
+  }
+}
+----
+<1> Include the dependency associated with the specified alias(es) in the generated catalog
+<2> Include an extra dependency specified by its group, name, and version
+<3> Include one or more extra dependencies specified their shorthand concatenated notation
+
+IMPORTANT: When using `withDepsFromToml`, you _must_ be loading a BOM from a catalog file within that block, and
+the version alias _must_ exist in that same catalog.
