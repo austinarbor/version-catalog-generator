@@ -1,0 +1,18 @@
+[versions]
+
+[libraries]
+junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version = "5.11.4" }
+junitJupiterApi = { group = "org.junit.jupiter", name = "junit-jupiter-api", version = "5.11.4" }
+junitJupiterEngine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version = "5.11.4" }
+junitPlatformEngine = { group = "org.junit.platform", name = "junit-platform-engine", version = "1.11.4" }
+assertjCore = { group = "org.assertj", name = "assertj-core", version = "3.25.3" }
+assertjGuava = { group = "org.assertj", name = "assertj-guava", version = "3.25.3" }
+mockitoCore = { group = "org.mockito", name = "mockito-core", version = "5.20.0" }
+mockitoJunitJupiter = { group = "org.mockito", name = "mockito-junit-jupiter", version = "5.20.0" }
+mockitoKotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version = "6.1.0" }
+kotlinxCoroutinesTest = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version = "1.10.2" }
+
+[bundles]
+testing = ["junitJupiter", "mockitoCore", "mockitoJunitJupiter", "mockitoKotlin", "assertjCore"]
+
+[plugins]

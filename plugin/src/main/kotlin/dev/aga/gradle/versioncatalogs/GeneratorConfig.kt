@@ -544,15 +544,29 @@ class GeneratorConfig(val settings: Settings) {
      */
     fun versionRef(alias: String): TomlVersionRef = TomlVersionRef(alias, catalogParserSupplier)
 
+    /**
+     * Add a dependency that cannot be found from the imported BOM by the dependency's group, name,
+     * and version.
+     */
     fun withDep(group: String, name: String, version: String) =
-      withDep("${group}:${name}:${version}")
+      withDeps("${group}:${name}:${version}")
 
-    fun withDep(notation: String) {
-      extraDeps += { notation.toDependency() }
+    /**
+     * Add one or more dependencies that cannot be found from the imported BOM by the dependency's
+     * by specifying their concatenated notation `${group}:${name}:${version}`
+     */
+    fun withDeps(vararg notation: String) {
+      notation.forEach { extraDeps += { it.toDependency() } }
     }
 
-    fun withDepFromToml(alias: String) {
-      extraDeps += { catalogParserSupplier().findLibrary(alias) }
+    /**
+     * Add additional dependencies that cannot be found from the imported BOM by their alias in an
+     * existing version catalog. The catalog to find them must be the same catalog that is used to
+     * find one or more BOMs from this declaration. If no BOMs are looked up from a TOML in this
+     * declaration, an exception will be thrown.
+     */
+    fun withDepsFromToml(vararg alias: String) {
+      alias.forEach { extraDeps += { catalogParserSupplier().findLibrary(it) } }
     }
 
     /**

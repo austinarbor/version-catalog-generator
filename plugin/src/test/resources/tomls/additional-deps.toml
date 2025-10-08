@@ -1,0 +1,13 @@
+[versions]
+junit = "5.11.4"
+assertj = "3.25.3"
+mockito = "5.20.0"
+mockito-kotlin = "6.1.0"
+kotlinx-coroutines = "1.10.2"
+
+[libraries]
+junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
+assertj-bom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
+mockito-bom = { group = "org.mockito", name = "mockito-bom", version.ref = "mockito" }
+mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito-kotlin" }
+kotlinx-coroutines-bom = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinx-coroutines" }
