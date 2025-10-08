@@ -509,6 +509,7 @@ class GeneratorConfig(val settings: Settings) {
   }
 
   class UsingConfig(private val catalogParserSupplier: () -> CatalogParser) {
+    internal val extraDeps = mutableListOf<() -> Dependency>()
 
     /**
      * Convenience function to construct a [PropertyOverride] that references a version alias from
@@ -542,6 +543,31 @@ class GeneratorConfig(val settings: Settings) {
      * @param alias the version alias to lookup
      */
     fun versionRef(alias: String): TomlVersionRef = TomlVersionRef(alias, catalogParserSupplier)
+
+    /**
+     * Add a dependency that cannot be found from the imported BOM by the dependency's group, name,
+     * and version.
+     */
+    fun withDep(group: String, name: String, version: String) =
+      withDeps("${group}:${name}:${version}")
+
+    /**
+     * Add one or more dependencies that cannot be found from the imported BOM by the dependency's
+     * by specifying their concatenated notation `${group}:${name}:${version}`
+     */
+    fun withDeps(vararg notation: String) {
+      notation.forEach { extraDeps += { it.toDependency() } }
+    }
+
+    /**
+     * Add additional dependencies that cannot be found from the imported BOM by their alias in an
+     * existing version catalog. The catalog to find them must be the same catalog that is used to
+     * find one or more BOMs from this declaration. If no BOMs are looked up from a TOML in this
+     * declaration, an exception will be thrown.
+     */
+    fun withDepsFromToml(vararg alias: String) {
+      alias.forEach { extraDeps += { catalogParserSupplier().findLibrary(it) } }
+    }
 
     /**
      * Function to generate the name of the library in the generated catalog. The default behavior
@@ -757,6 +783,8 @@ class GeneratorConfig(val settings: Settings) {
               null -> fallback.generateBomEntryForNestedBoms
               else -> bool
             }
+
+          extraDeps += primary.extraDeps
         }
       }
     }

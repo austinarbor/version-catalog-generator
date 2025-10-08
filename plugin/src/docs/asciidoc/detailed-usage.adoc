@@ -3,6 +3,7 @@
 include::{docdir}/detailed-usage/applying.adoc[]
 include::{docdir}/detailed-usage/existing-catalog.adoc[]
 include::{docdir}/detailed-usage/sources.adoc[]
+include::{docdir}/detailed-usage/additional-dependencies.adoc[]
 include::{docdir}/detailed-usage/bom-entry.adoc[]
 include::{docdir}/detailed-usage/nested-bom-entry.adoc[]
 include::{docdir}/detailed-usage/naming.adoc[]

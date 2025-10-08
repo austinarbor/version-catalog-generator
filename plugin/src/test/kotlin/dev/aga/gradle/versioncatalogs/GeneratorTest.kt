@@ -319,4 +319,59 @@ internal class GeneratorTest : GeneratorTestBase() {
     val expected = Paths.get("expectations", "spring-boot-dependencies", "no-nested-boms.toml")
     verifyGeneratedCatalog(config, "myLibs", expected, false)
   }
+
+  @Test
+  fun `additional dependencies included by notation`() {
+    val config =
+      GeneratorConfig(settings).apply {
+        saveDirectory = projectDir
+        saveGeneratedCatalog = true
+        from("org.junit:junit-bom:5.11.4", "org.assertj:assertj-bom:3.25.3") {
+          aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+          withDep("org.mockito.kotlin", "mockito-kotlin", "6.1.0")
+        }
+      }
+    val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+    container.generate("testingLibs", config, resolver)
+    val expected = Paths.get("expectations", "additional-deps", "libs.versions.toml")
+    verifyGeneratedCatalog(config, "testingLibs", expected, false)
+  }
+
+  @Test
+  fun `additional dependencies included from toml by alias`() {
+    val config =
+      GeneratorConfig(settings).apply {
+        saveDirectory = projectDir
+        saveGeneratedCatalog = true
+        defaultVersionCatalog =
+          Paths.get("src", "test", "resources", "tomls", "additional-deps.toml").toFile()
+        fromToml("junit-bom", "mockito-bom", "assertj-bom") {
+          aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+          withDepsFromToml("mockito-kotlin")
+        }
+        fromToml("kotlinx-coroutines-bom") {
+          aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+          filter = { it.artifactId.endsWith("-test") }
+        }
+
+        bundleMapping = {
+          when {
+            it.alias in
+              listOf(
+                "junitJupiter",
+                "mockitoCore",
+                "mockitoJunitJupiter",
+                "mockitoKotlin",
+                "assertjCore",
+              ) -> "testing"
+
+            else -> null
+          }
+        }
+      }
+    val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+    container.generate("testingLibs", config, resolver)
+    val expected = Paths.get("expectations", "additional-deps", "testingLibs.versions.toml")
+    verifyGeneratedCatalog(config, "testingLibs", expected, false)
+  }
 }

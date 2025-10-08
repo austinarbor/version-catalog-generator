@@ -117,6 +117,30 @@ class VersionCatalogGeneratorPluginTest {
                     aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
                   }
                 }
+                generate("testingLibs") {
+                  saveGeneratedCatalog = true
+                  fromToml("junit-bom", "assertj-bom", "mockito-bom") {
+                    aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+                    withDepsFromToml("mockito-kotlin")
+                  }
+                  fromToml("kotlinx-coroutines-bom") {
+                    aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+                    filter = { it.artifactId.endsWith("-test") }
+                  }
+                  bundleMapping = {
+                    when {
+                      it.alias in listOf(
+                        "junitJupiter", 
+                        "junitPlatformLauncher",
+                        "mockitoCore", 
+                        "mockitoJunitJupiter", 
+                        "mockitoKotlin", 
+                        "assertjCore",
+                      ) -> "testing"
+                      else -> null
+                    }
+                  }
+                }
               }
             }
         """
@@ -141,6 +165,13 @@ class VersionCatalogGeneratorPluginTest {
         testImplementation(mockitoLibs.mockito.junit.jupiter)
         testImplementation(junitLibs.junitJupiter)
         testImplementation(junitLibs.junitJupiterParams)
+        testImplementation(testingLibs.junitJupiter)
+        testImplementation(testingLibs.mockitoCore)
+        testImplementation(testingLibs.mockitoJunitJupiter)
+        testImplementation(testingLibs.mockitoKotlin)
+        testImplementation(testingLibs.assertjCore)
+        testImplementation(testingLibs.kotlinxCoroutinesTest)
+        testImplementation(testingLibs.bundles.testing)
       }
       """
         .trimIndent()
@@ -152,10 +183,21 @@ class VersionCatalogGeneratorPluginTest {
           aws = "2.21.15"
           jackson = "2.18.2"
           spring = "3.4.1"
+          mockito = "5.20.0"
+          mockito-kotlin = "6.1.0"
+          junit = "6.0.0"
+          assertj = "3.27.6"
+          kotlinx-coroutines = "1.10.2"
+       
           [libraries]
           aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
           jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
           spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
+          junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
+          mockito-bom = { group = "org.mockito", name = "mockito-bom", version.ref = "mockito" }
+          mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito-kotlin" } 
+          assertj-bom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
+          kotlinx-coroutines-bom = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinx-coroutines" }
       """
         .trimIndent()
     )
@@ -178,6 +220,7 @@ class VersionCatalogGeneratorPluginTest {
       .isDirectoryContaining { it.name == "jsonLibs.versions.toml" }
       .isDirectoryContaining { it.name == "junitLibs.versions.toml" }
       .isDirectoryContaining { it.name == "mockitoLibs.versions.toml" }
+      .isDirectoryContaining { it.name == "testingLibs.versions.toml" }
   }
 
   @Test
@@ -263,6 +306,35 @@ class VersionCatalogGeneratorPluginTest {
                     }
                   }
                 }
+                
+                generator.generate("testingLibs") {
+                  it.saveGeneratedCatalog = true
+                  it.from { from ->
+                    from.toml { toml ->
+                      toml.libraryAliases = ["junit-bom", "assertj-bom", "mockito-bom"]
+                    }
+                    from.using { u ->
+                      u.aliasPrefixGenerator = NO_PREFIX
+                      u.withDepsFromToml("mockito-kotlin")
+                    }
+                  }
+                  it.from { from -> 
+                    from.toml { toml ->
+                      toml.libraryAliases = ["kotlinx-coroutines-bom"]
+                    }
+                    from.using { u ->
+                      u.aliasPrefixGenerator = NO_PREFIX
+                      u.filter = { it.artifactId.endsWith("-test") }
+                    }
+                  }
+                  it.bundleMapping = {
+                    if(it.alias in ["junitJupiter", "junitPlatformLauncher", "mockitoCore", "mockitoJunitJupiter", "mockitoKotlin", "assertjCore" ]) {
+                      "testing"
+                    } else {
+                      null
+                    }
+                  }
+                }
               }
             }
         """
@@ -279,6 +351,13 @@ class VersionCatalogGeneratorPluginTest {
         implementation(jsonLibs.bundles.jacksonModule)
         testImplementation(mockitoLibs.mockito.mockitoCore)
         testImplementation(junitLibs.junitJupiter)
+        testImplementation(testingLibs.junitJupiter)
+        testImplementation(testingLibs.mockitoCore)
+        testImplementation(testingLibs.mockitoJunitJupiter)
+        testImplementation(testingLibs.mockitoKotlin)
+        testImplementation(testingLibs.assertjCore)
+        testImplementation(testingLibs.kotlinxCoroutinesTest)
+        testImplementation(testingLibs.bundles.testing)
       }
       """
         .trimIndent()
@@ -290,10 +369,21 @@ class VersionCatalogGeneratorPluginTest {
           aws = "2.21.15"
           jackson = "2.18.2"
           spring = "3.4.1"
+          mockito = "5.20.0"
+          mockito-kotlin = "6.1.0"
+          junit = "6.0.0"
+          assertj = "3.27.6"
+          kotlinx-coroutines = "1.10.2"
+          
           [libraries]
           aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
           jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
           spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
+          junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
+          mockito-bom = { group = "org.mockito", name = "mockito-bom", version.ref = "mockito" }
+          mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito-kotlin" } 
+          assertj-bom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
+          kotlinx-coroutines-bom = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinx-coroutines" }
       """
         .trimIndent()
     )
