@@ -134,7 +134,7 @@ jobs:
           cache-read-only: true
 
       - name: Download
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: plugin
 
