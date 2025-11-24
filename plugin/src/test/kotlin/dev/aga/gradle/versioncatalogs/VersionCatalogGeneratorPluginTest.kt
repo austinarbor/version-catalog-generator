@@ -179,25 +179,25 @@ class VersionCatalogGeneratorPluginTest {
 
     versionCatalogFile.writeText(
       """
-          [versions]
-          aws = "2.21.15"
-          jackson = "2.18.2"
-          spring = "3.4.1"
-          mockito = "5.20.0"
-          mockito-kotlin = "6.1.0"
-          junit = "6.0.0"
-          assertj = "3.27.6"
-          kotlinx-coroutines = "1.10.2"
-       
-          [libraries]
-          aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
-          jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
-          spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
-          junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
-          mockito-bom = { group = "org.mockito", name = "mockito-bom", version.ref = "mockito" }
-          mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito-kotlin" } 
-          assertj-bom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
-          kotlinx-coroutines-bom = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinx-coroutines" }
+      [versions]
+      aws = "2.21.15"
+      jackson = "2.18.2"
+      spring = "3.4.1"
+      mockito = "5.20.0"
+      mockito-kotlin = "6.1.0"
+      junit = "6.0.0"
+      assertj = "3.27.6"
+      kotlinx-coroutines = "1.10.2"
+
+      [libraries]
+      aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
+      jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
+      spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
+      junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
+      mockito-bom = { group = "org.mockito", name = "mockito-bom", version.ref = "mockito" }
+      mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito-kotlin" } 
+      assertj-bom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
+      kotlinx-coroutines-bom = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinx-coroutines" }
       """
         .trimIndent()
     )
@@ -365,25 +365,25 @@ class VersionCatalogGeneratorPluginTest {
 
     versionCatalogFile.writeText(
       """
-          [versions]
-          aws = "2.21.15"
-          jackson = "2.18.2"
-          spring = "3.4.1"
-          mockito = "5.20.0"
-          mockito-kotlin = "6.1.0"
-          junit = "6.0.0"
-          assertj = "3.27.6"
-          kotlinx-coroutines = "1.10.2"
-          
-          [libraries]
-          aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
-          jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
-          spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
-          junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
-          mockito-bom = { group = "org.mockito", name = "mockito-bom", version.ref = "mockito" }
-          mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito-kotlin" } 
-          assertj-bom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
-          kotlinx-coroutines-bom = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinx-coroutines" }
+      [versions]
+      aws = "2.21.15"
+      jackson = "2.18.2"
+      spring = "3.4.1"
+      mockito = "5.20.0"
+      mockito-kotlin = "6.1.0"
+      junit = "6.0.0"
+      assertj = "3.27.6"
+      kotlinx-coroutines = "1.10.2"
+
+      [libraries]
+      aws-bom = { group = "software.amazon.awssdk", name = "bom", version.ref = "aws"}
+      jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
+      spring-boot-dependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring" }
+      junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
+      mockito-bom = { group = "org.mockito", name = "mockito-bom", version.ref = "mockito" }
+      mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito-kotlin" } 
+      assertj-bom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
+      kotlinx-coroutines-bom = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinx-coroutines" }
       """
         .trimIndent()
     )
