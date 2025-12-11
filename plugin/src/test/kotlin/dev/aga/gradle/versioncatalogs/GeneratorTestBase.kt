@@ -226,8 +226,8 @@ internal abstract class GeneratorTestBase {
               usedProps += it
               libraries.getString(it)!!
             }
-        verify(builder).library(alias, group, name)
         assertThat(generatedLibraries).containsKey(alias)
+        verify(builder).library(alias, group, name)
         val mock = generatedLibraries[alias]!!
         properties
           .filterNot { it in usedProps }
@@ -285,12 +285,12 @@ internal abstract class GeneratorTestBase {
 
   protected open fun verifyBundles(bundles: TomlTable, libraryAliasesFromSource: List<String>) {
     bundles.dottedKeySet().forEach {
-      verify(builder).bundle(eq(it), any<List<String>>())
       assertThat(generatedBundles).containsKey(it)
       val expectedLibraries = (bundles.getArrayOrEmpty(it).toList() as List<String>)
       assertThat(generatedBundles[it])
         .`as`("bundle with name '${it}'")
         .containsExactlyInAnyOrderElementsOf(expectedLibraries)
+      verify(builder).bundle(eq(it), any<List<String>>())
     }
     verify(builder, times(bundles.size())).bundle(any<String>(), any<List<String>>())
   }
