@@ -1030,6 +1030,7 @@ class GeneratorConfig(val settings: Settings) {
             "glassfish.jersey" to "jersey",
             "jetbrains.kotlinx" to "kotlinx",
             "jetbrains.kotlin" to "kotlin",
+            "json" to "json",
             "junit" to "junit",
             "mariadb" to "mariadb",
             "mockito" to "mockito",

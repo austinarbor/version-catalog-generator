@@ -49,6 +49,7 @@ set up. If you do not wish to use the aliases, you will need to provide your own
 | Group begins with | `org.hibernate` | `hibernate`
 | Group begins with | `org.jetbrains.kotlin` | `kotlin`
 | Group begins with | `org.jetbrains.kotlinx` | `kotlinx`
+| Group begins with | `org.json` | `json`
 | Group begins with | `org.junit` | `junit`
 | Group begins with | `org.mariadb` | `mariadb`
 | Group begins with | `org.mockito` | `mockito`
