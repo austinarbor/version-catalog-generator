@@ -53,6 +53,7 @@ set up. If you do not wish to use the aliases, you will need to provide your own
 | Group begins with | `org.mockito` | `mockito`
 | Group begins with | `org.neo4j` | `neo4j`
 | Group begins with | `org.osgi` | `osgi`
+| Group begins with | `org.slf4j` | `slf4j`
 | Group begins with | `org.spockframework` | `spock`
 | Group begins with | `org.springframework` | `spring`
 | Group begins with | `io.dropwizard` | `dropwizard`

@@ -240,6 +240,7 @@ class GeneratorConfigTest {
         arguments("org.clojure.contrib", "anything", "clojure"),
         arguments("org.apache.maven.shared", "anything", "maven"),
         arguments("org.apache.logging.log4j.osgi", "anything", "log4j"),
+        arguments("org.slf4j.api", "source", "slf4j"),
       )
     }
 
