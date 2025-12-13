@@ -12,13 +12,15 @@ Easily use any BOM as a https://docs.gradle.org/current/userguide/platforms.html
 
 [%autowidth]
 |===
-|*Gradle Version*|*Plugin Version*
-|7.6.x
+|*Plugin Version*|*Gradle Version*
 |1.x
-|8.x
+|7.6.x
 |1.x, 2.x, 3.x
-|9.x
+|8.x
 |3.x
+|9.x
+|4.x
+|9.x
 |===
 
 
