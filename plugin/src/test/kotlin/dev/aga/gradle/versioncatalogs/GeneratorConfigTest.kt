@@ -225,6 +225,8 @@ class GeneratorConfigTest {
         arguments("dev.aga", "version-catalog-generator", "aga"),
         arguments("dev.plugins", "anything", "devPlugins"),
         arguments("plugins", "anything", "error"),
+        arguments("com.squareup.okhttp", "okhttp", "okhttp"),
+        arguments("com.squareup.okhttp3", "okhttp", "okhttp"),
       )
     }
 
