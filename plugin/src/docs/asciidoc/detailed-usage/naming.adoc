@@ -40,6 +40,7 @@ set up. If you do not wish to use the aliases, you will need to provide your own
 | Group begins with | `org.jetbrains.kotlin` | `kotlin`
 | Group begins with | `org.junit` | `junit`
 | Group begins with | `org.mariadb` | `mariadb`
+| Group begins with | `org.mockito` | `mockito`
 | Group begins with | `org.neo4j` | `neo4j`
 | Group begins with | `io.projectreactor` | `projectreactor`
 | Group begins with | `io.zipkin` | `zipkin`

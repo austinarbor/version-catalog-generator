@@ -209,6 +209,7 @@ class GeneratorConfigTest {
         arguments("org.jetbrains.kotlin", "anything", "kotlin"),
         arguments("org.junit.jupiter", "junit-jupiter-api", "junit"),
         arguments("org.mariadb.jdbc", "mariadb-java-client", "mariadb"),
+        arguments("org.mockito.kotlin", "mockito-kotlin", "mockito"),
         arguments("org.neo4j.build", "advanced-build", "neo4j"),
         arguments("io.projectreactor.rabbitmq", "reactor-rabbitmq", "projectreactor"),
         arguments("io.zipkin.brave", "brave", "zipkin"),

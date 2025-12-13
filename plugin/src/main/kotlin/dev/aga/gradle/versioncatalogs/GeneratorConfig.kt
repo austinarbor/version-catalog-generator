@@ -1010,6 +1010,7 @@ class GeneratorConfig(val settings: Settings) {
             "jetbrains.kotlin" to "kotlin",
             "junit" to "junit",
             "mariadb" to "mariadb",
+            "mockito" to "mockito",
             "neo4j" to "neo4j",
           ),
         "io." to
