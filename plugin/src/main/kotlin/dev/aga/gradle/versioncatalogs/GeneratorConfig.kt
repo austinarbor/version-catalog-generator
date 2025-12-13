@@ -999,6 +999,7 @@ class GeneratorConfig(val settings: Settings) {
         "org." to
           listOf(
             "springframework" to "spring",
+            "spockframework" to "spock",
             "hibernate" to "hibernate",
             "apache.httpcomponents" to "httpcomponents",
             "apache.tomcat" to "tomcat",

@@ -211,6 +211,7 @@ class GeneratorConfigTest {
         arguments("org.mariadb.jdbc", "mariadb-java-client", "mariadb"),
         arguments("org.mockito.kotlin", "mockito-kotlin", "mockito"),
         arguments("org.neo4j.build", "advanced-build", "neo4j"),
+        arguments("org.spockframework", "spock", "spock"),
         arguments("io.projectreactor.rabbitmq", "reactor-rabbitmq", "projectreactor"),
         arguments("io.zipkin.brave", "brave", "zipkin"),
         arguments("io.dropwizard.metrics", "metrics", "dropwizard"),
