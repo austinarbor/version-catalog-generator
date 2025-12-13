@@ -236,6 +236,7 @@ class GeneratorConfigTest {
         arguments("com.h2database.wso2", "h2", "h2"),
         arguments("org.osgi", "osgi", "osgi"),
         arguments("org.osgi.service", "org.osgi.service", "osgi"),
+        arguments("com.google.protobuf.tools", "maven-protoc-plugin", "protobuf"),
       )
     }
 

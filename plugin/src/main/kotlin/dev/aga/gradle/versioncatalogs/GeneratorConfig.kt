@@ -996,6 +996,7 @@ class GeneratorConfig(val settings: Settings) {
             "fasterxml.jackson" to "jackson",
             "oracle.database" to "oracle",
             "google.android" to "android",
+            "google.protobuf" to "protobuf",
             "facebook" to "facebook",
             "h2database" to "h2",
             "squareup.okhttp3" to "okhttp3",
