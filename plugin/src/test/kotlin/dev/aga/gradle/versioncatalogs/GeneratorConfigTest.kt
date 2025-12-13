@@ -234,6 +234,8 @@ class GeneratorConfigTest {
         arguments("ch.qos.logback.contrib", "logback-json-classic", "logback"),
         arguments("com.h2database", "h2", "h2"),
         arguments("com.h2database.wso2", "h2", "h2"),
+        arguments("org.osgi", "osgi", "osgi"),
+        arguments("org.osgi.service", "org.osgi.service", "osgi"),
       )
     }
 

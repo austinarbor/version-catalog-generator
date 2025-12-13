@@ -1029,6 +1029,7 @@ class GeneratorConfig(val settings: Settings) {
             "mariadb" to "mariadb",
             "mockito" to "mockito",
             "neo4j" to "neo4j",
+            "osgi" to "osgi",
           ),
         "tools." to listOf("jackson" to "jackson3"),
       )
