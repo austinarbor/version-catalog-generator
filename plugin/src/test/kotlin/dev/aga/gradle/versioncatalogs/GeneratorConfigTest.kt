@@ -238,6 +238,7 @@ class GeneratorConfigTest {
         arguments("org.osgi.service", "org.osgi.service", "osgi"),
         arguments("com.google.protobuf.tools", "maven-protoc-plugin", "protobuf"),
         arguments("org.clojure.contrib", "anything", "clojure"),
+        arguments("org.apache.maven.shared", "anything", "maven"),
       )
     }
 

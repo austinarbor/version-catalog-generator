@@ -1019,6 +1019,7 @@ class GeneratorConfig(val settings: Settings) {
             "spockframework" to "spock",
             "hibernate" to "hibernate",
             "apache.httpcomponents" to "httpcomponents",
+            "apache.maven" to "maven",
             "apache.tomcat" to "tomcat",
             "clojure" to "clojure",
             "eclipse.jetty" to "jetty",
