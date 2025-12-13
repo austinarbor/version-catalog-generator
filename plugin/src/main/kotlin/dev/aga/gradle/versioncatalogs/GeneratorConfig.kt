@@ -1034,6 +1034,7 @@ class GeneratorConfig(val settings: Settings) {
             "mockito" to "mockito",
             "neo4j" to "neo4j",
             "osgi" to "osgi",
+            "scala-lang" to "scala",
             "slf4j" to "slf4j",
           ),
         "tools." to listOf("jackson" to "jackson3"),
