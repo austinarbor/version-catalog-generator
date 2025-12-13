@@ -226,7 +226,9 @@ class GeneratorConfigTest {
         arguments("dev.plugins", "anything", "devPlugins"),
         arguments("plugins", "anything", "error"),
         arguments("com.squareup.okhttp", "okhttp", "okhttp"),
-        arguments("com.squareup.okhttp3", "okhttp", "okhttp"),
+        arguments("com.squareup.okhttp3", "okhttp3", "okhttp3"),
+        arguments("com.squareup.retrofit", "retrofit", "retrofit"),
+        arguments("com.squareup.retrofit2", "retrofit", "retrofit2"),
       )
     }
 

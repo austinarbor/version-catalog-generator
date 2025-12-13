@@ -995,7 +995,10 @@ class GeneratorConfig(val settings: Settings) {
             "oracle.database" to "oracle",
             "google.android" to "android",
             "facebook" to "facebook",
+            "squareup.okhttp3" to "okhttp3",
             "squareup.okhttp" to "okhttp",
+            "squareup.retrofit2" to "retrofit2",
+            "squareup.retrofit" to "retrofit",
           ),
         "org." to
           listOf(
