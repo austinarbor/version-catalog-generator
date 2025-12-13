@@ -230,6 +230,8 @@ class GeneratorConfigTest {
         arguments("com.squareup.retrofit", "retrofit", "retrofit"),
         arguments("com.squareup.retrofit2", "retrofit", "retrofit2"),
         arguments("javax.servlet", "servlet-api", "javax"),
+        arguments("ch.qos.logback", "logback-classic", "logback"),
+        arguments("ch.qos.logback.contrib", "logback-json-classic", "logback"),
       )
     }
 

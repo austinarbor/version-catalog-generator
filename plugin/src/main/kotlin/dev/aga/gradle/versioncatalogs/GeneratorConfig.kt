@@ -989,6 +989,8 @@ class GeneratorConfig(val settings: Settings) {
 
     private val prefixSubstitutions: Map<String, List<Pair<String, String>>> =
       mapOf(
+        "androidx." to listOf("" to "androidx"),
+        "ch." to listOf("qos.logback" to "logback"),
         "com." to
           listOf(
             "fasterxml.jackson" to "jackson",
@@ -1000,6 +1002,15 @@ class GeneratorConfig(val settings: Settings) {
             "squareup.retrofit2" to "retrofit2",
             "squareup.retrofit" to "retrofit",
           ),
+        "commons-" to listOf("" to "commons"),
+        "io." to
+          listOf(
+            "projectreactor" to "projectreactor",
+            "zipkin" to "zipkin",
+            "dropwizard" to "dropwizard",
+          ),
+        "jakarta." to listOf("" to "jakarta"),
+        "javax." to listOf("" to "javax"),
         "org." to
           listOf(
             "springframework" to "spring",
@@ -1018,16 +1029,6 @@ class GeneratorConfig(val settings: Settings) {
             "mockito" to "mockito",
             "neo4j" to "neo4j",
           ),
-        "io." to
-          listOf(
-            "projectreactor" to "projectreactor",
-            "zipkin" to "zipkin",
-            "dropwizard" to "dropwizard",
-          ),
-        "jakarta." to listOf("" to "jakarta"),
-        "javax." to listOf("" to "javax"),
-        "commons-" to listOf("" to "commons"),
-        "androidx." to listOf("" to "androidx"),
         "tools." to listOf("jackson" to "jackson3"),
       )
 

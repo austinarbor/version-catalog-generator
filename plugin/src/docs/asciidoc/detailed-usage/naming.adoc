@@ -24,6 +24,7 @@ set up. If you do not wish to use the aliases, you will need to provide your own
 |===
 | Condition         | Value | Generated Prefix
 | Group begins with | `androidx` | `androidx`
+| Group begins with | `ch.qos.logback` | `logback`
 | Group begins with | `com.fasterxml.jackson` | `jackson`
 | Group begins with | `com.facebook` | `facebook`
 | Group begins with | `com.google.android` | `android`
