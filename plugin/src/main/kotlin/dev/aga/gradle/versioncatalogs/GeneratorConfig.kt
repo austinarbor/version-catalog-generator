@@ -1020,6 +1020,7 @@ class GeneratorConfig(val settings: Settings) {
             "hibernate" to "hibernate",
             "apache.httpcomponents" to "httpcomponents",
             "apache.tomcat" to "tomcat",
+            "clojure" to "clojure",
             "eclipse.jetty" to "jetty",
             "elasticsearch" to "elasticsearch",
             "firebirdsql" to "firebird",

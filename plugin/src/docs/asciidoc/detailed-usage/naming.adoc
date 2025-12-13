@@ -38,6 +38,7 @@ set up. If you do not wish to use the aliases, you will need to provide your own
 | Group begins with | `commons-` | `commons`
 | Group begins with | `org.apache.httpcomponents` | `httpcomponents`
 | Group begins with | `org.apache.tomcat` | `tomcat`
+| Group begins with | `org.clojure` | `clojure`
 | Group begins with | `org.eclipse.jetty` | `jetty`
 | Group begins with | `org.elasticsearch` | `elasticsearch`
 | Group begins with | `org.firebirdsql` | `firebird`
