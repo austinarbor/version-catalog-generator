@@ -182,6 +182,20 @@ internal class GeneratorTest : GeneratorTestBase() {
   }
 
   @Test
+  fun `jackson2 and jackson3 can coexist`() {
+    val config =
+      GeneratorConfig(settings).apply {
+        saveDirectory = projectDir
+        saveGeneratedCatalog = true
+        from("dev.aga.example:sb4-jackson-bom:4.0.0") { generateBomEntry = true }
+      }
+    val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+    container.generate("myLibs", config, resolver)
+    val expected = Paths.get("expectations", "jackson", "libs.versions.toml")
+    verifyGeneratedCatalog(config, "myLibs", expected, false)
+  }
+
+  @Test
   fun `default version catalog`() {
     val config =
       GeneratorConfig(settings).apply {

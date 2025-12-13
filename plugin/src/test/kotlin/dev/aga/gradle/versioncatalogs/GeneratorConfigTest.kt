@@ -193,6 +193,7 @@ class GeneratorConfigTest {
     private fun defaultAliasPrefixProvider(): List<Arguments> {
       return listOf(
         arguments("com.fasterxml.jackson", "any-thing", "jackson"),
+        arguments("tools.jackson", "any-thing", "jackson3"),
         arguments("com.oracle.database.jdbc", "ojdbc8", "oracle"),
         arguments("com.google.android.material", "material", "android"),
         arguments("com.facebook.react", "react", "facebook"),

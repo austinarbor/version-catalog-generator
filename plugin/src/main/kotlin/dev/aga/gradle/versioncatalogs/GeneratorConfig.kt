@@ -1021,6 +1021,7 @@ class GeneratorConfig(val settings: Settings) {
         "jakarta." to listOf("" to "jakarta"),
         "commons-" to listOf("" to "commons"),
         "androidx." to listOf("" to "androidx"),
+        "tools." to listOf("jackson" to "jackson3"),
       )
 
     private fun nicePrefix(group: String): Pair<Boolean, String> {
