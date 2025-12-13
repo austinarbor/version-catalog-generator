@@ -989,29 +989,22 @@ class GeneratorConfig(val settings: Settings) {
 
     private val prefixSubstitutions: Map<String, List<Pair<String, String>>> =
       mapOf(
+        "androidx." to listOf("" to "androidx"),
+        "ch." to listOf("qos.logback" to "logback"),
         "com." to
           listOf(
             "fasterxml.jackson" to "jackson",
             "oracle.database" to "oracle",
             "google.android" to "android",
+            "google.protobuf" to "protobuf",
             "facebook" to "facebook",
+            "h2database" to "h2",
+            "squareup.okhttp3" to "okhttp3",
+            "squareup.okhttp" to "okhttp",
+            "squareup.retrofit2" to "retrofit2",
+            "squareup.retrofit" to "retrofit",
           ),
-        "org." to
-          listOf(
-            "springframework" to "spring",
-            "hibernate" to "hibernate",
-            "apache.httpcomponents" to "httpcomponents",
-            "apache.tomcat" to "tomcat",
-            "eclipse.jetty" to "jetty",
-            "elasticsearch" to "elasticsearch",
-            "firebirdsql" to "firebird",
-            "glassfish.jersey" to "jersey",
-            "jetbrains.kotlinx" to "kotlinx",
-            "jetbrains.kotlin" to "kotlin",
-            "junit" to "junit",
-            "mariadb" to "mariadb",
-            "neo4j" to "neo4j",
-          ),
+        "commons-" to listOf("" to "commons"),
         "io." to
           listOf(
             "projectreactor" to "projectreactor",
@@ -1019,8 +1012,34 @@ class GeneratorConfig(val settings: Settings) {
             "dropwizard" to "dropwizard",
           ),
         "jakarta." to listOf("" to "jakarta"),
-        "commons-" to listOf("" to "commons"),
-        "androidx." to listOf("" to "androidx"),
+        "javax." to listOf("" to "javax"),
+        "org." to
+          listOf(
+            "springframework" to "spring",
+            "spockframework" to "spock",
+            "hibernate" to "hibernate",
+            "apache.httpcomponents" to "httpcomponents",
+            "apache.logging.log4j" to "log4j",
+            "apache.maven" to "maven",
+            "apache.tomcat" to "tomcat",
+            "assertj" to "assertj",
+            "clojure" to "clojure",
+            "eclipse.jetty" to "jetty",
+            "elasticsearch" to "elasticsearch",
+            "firebirdsql" to "firebird",
+            "glassfish.jersey" to "jersey",
+            "jetbrains.kotlinx" to "kotlinx",
+            "jetbrains.kotlin" to "kotlin",
+            "json" to "json",
+            "junit" to "junit",
+            "mariadb" to "mariadb",
+            "mockito" to "mockito",
+            "neo4j" to "neo4j",
+            "osgi" to "osgi",
+            "renjin" to "renjin",
+            "scala-lang" to "scala",
+            "slf4j" to "slf4j",
+          ),
         "tools." to listOf("jackson" to "jackson3"),
       )
 

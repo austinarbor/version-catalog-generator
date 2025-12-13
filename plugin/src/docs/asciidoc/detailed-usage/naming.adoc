@@ -23,30 +23,49 @@ set up. If you do not wish to use the aliases, you will need to provide your own
 [cols="3*", options="header"]
 |===
 | Condition         | Value | Generated Prefix
+| Group begins with | `androidx` | `androidx`
+| Group begins with | `ch.qos.logback` | `logback`
 | Group begins with | `com.fasterxml.jackson` | `jackson`
-| Group begins with | `tools.jackson` | `jackson3`
-| Group begins with | `com.oracle.database` | `oracle`
-| Group begins with | `com.google.android` | `android`
 | Group begins with | `com.facebook` | `facebook`
-| Group begins with | `org.springframework` | `spring`
-| Group begins with | `org.hibernate` | `hibernate`
+| Group begins with | `com.google.android` | `android`
+| Group begins with | `com.google.protobuf` | `protobuf`
+| Group begins with | `com.h2database` | `h2`
+| Group begins with | `com.oracle.database` | `oracle`
+| Group begins with | `com.squareup.okhttp` | `okhttp`
+| Group begins with | `com.squareup.okhttp3` | `okhttp3`
+| Group begins with | `com.squareup.retrofit` | `okhttp`
+| Group begins with | `com.squareup.retrofit2` | `okhttp3`
+| Group begins with | `commons-` | `commons`
 | Group begins with | `org.apache.httpcomponents` | `httpcomponents`
+| Group begins with | `org.apache.logging.log4j` | `log4j`
+| Group begins with | `org.apache.maven` | `maven`
 | Group begins with | `org.apache.tomcat` | `tomcat`
+| Group begins with | `org.assertj` | `assertj`
+| Group begins with | `org.clojure` | `clojure`
 | Group begins with | `org.eclipse.jetty` | `jetty`
 | Group begins with | `org.elasticsearch` | `elasticsearch`
 | Group begins with | `org.firebirdsql` | `firebird`
 | Group begins with | `org.glassfish.jersey` | `jersey`
-| Group begins with | `org.jetbrains.kotlinx` | `kotlinx`
+| Group begins with | `org.hibernate` | `hibernate`
 | Group begins with | `org.jetbrains.kotlin` | `kotlin`
+| Group begins with | `org.jetbrains.kotlinx` | `kotlinx`
+| Group begins with | `org.json` | `json`
 | Group begins with | `org.junit` | `junit`
 | Group begins with | `org.mariadb` | `mariadb`
+| Group begins with | `org.mockito` | `mockito`
 | Group begins with | `org.neo4j` | `neo4j`
+| Group begins with | `org.osgi` | `osgi`
+| Group begins with | `org.renjin` | `renjin`
+| Group begins with | `org.scala-lang` | `scala`
+| Group begins with | `org.slf4j` | `slf4j`
+| Group begins with | `org.spockframework` | `spock`
+| Group begins with | `org.springframework` | `spring`
+| Group begins with | `io.dropwizard` | `dropwizard`
 | Group begins with | `io.projectreactor` | `projectreactor`
 | Group begins with | `io.zipkin` | `zipkin`
-| Group begins with | `io.dropwizard` | `dropwizard`
 | Group begins with | `jakarta.` | `jakarta`
-| Group begins with | `commons-` | `commons`
-| Group begins with | `androidx` | `androidx`
+| Group begins with | `javax.` | `javax`
+| Group begins with | `tools.jackson` | `jackson3`
 |===
 
 ===== Suffix Generation
