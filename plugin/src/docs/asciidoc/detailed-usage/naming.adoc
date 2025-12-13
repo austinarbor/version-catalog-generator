@@ -28,6 +28,7 @@ set up. If you do not wish to use the aliases, you will need to provide your own
 | Group begins with | `com.fasterxml.jackson` | `jackson`
 | Group begins with | `com.facebook` | `facebook`
 | Group begins with | `com.google.android` | `android`
+| Group begins with | `com.h2database` | `h2`
 | Group begins with | `com.oracle.database` | `oracle`
 | Group begins with | `com.squareup.okhttp` | `okhttp`
 | Group begins with | `com.squareup.okhttp3` | `okhttp3`

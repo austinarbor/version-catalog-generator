@@ -232,6 +232,8 @@ class GeneratorConfigTest {
         arguments("javax.servlet", "servlet-api", "javax"),
         arguments("ch.qos.logback", "logback-classic", "logback"),
         arguments("ch.qos.logback.contrib", "logback-json-classic", "logback"),
+        arguments("com.h2database", "h2", "h2"),
+        arguments("com.h2database.wso2", "h2", "h2"),
       )
     }
 
