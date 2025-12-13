@@ -37,6 +37,7 @@ set up. If you do not wish to use the aliases, you will need to provide your own
 | Group begins with | `com.squareup.retrofit2` | `okhttp3`
 | Group begins with | `commons-` | `commons`
 | Group begins with | `org.apache.httpcomponents` | `httpcomponents`
+| Group begins with | `org.apache.logging.log4j` | `log4j`
 | Group begins with | `org.apache.maven` | `maven`
 | Group begins with | `org.apache.tomcat` | `tomcat`
 | Group begins with | `org.clojure` | `clojure`
