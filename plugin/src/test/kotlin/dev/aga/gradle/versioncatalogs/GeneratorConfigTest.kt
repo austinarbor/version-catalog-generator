@@ -243,6 +243,7 @@ class GeneratorConfigTest {
         arguments("org.slf4j.api", "source", "slf4j"),
         arguments("org.scala-lang.modules", "scala-xml", "scala"),
         arguments("org.renjin.math", "renjin-amd", "renjin"),
+        arguments("org.assertj.generator", "any-thing", "assertj"),
       )
     }
 

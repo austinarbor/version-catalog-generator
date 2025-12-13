@@ -1022,6 +1022,7 @@ class GeneratorConfig(val settings: Settings) {
             "apache.logging.log4j" to "log4j",
             "apache.maven" to "maven",
             "apache.tomcat" to "tomcat",
+            "assertj" to "assertj",
             "clojure" to "clojure",
             "eclipse.jetty" to "jetty",
             "elasticsearch" to "elasticsearch",
