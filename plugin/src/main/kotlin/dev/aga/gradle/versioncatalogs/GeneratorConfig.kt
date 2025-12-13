@@ -1025,6 +1025,7 @@ class GeneratorConfig(val settings: Settings) {
             "dropwizard" to "dropwizard",
           ),
         "jakarta." to listOf("" to "jakarta"),
+        "javax." to listOf("" to "javax"),
         "commons-" to listOf("" to "commons"),
         "androidx." to listOf("" to "androidx"),
         "tools." to listOf("jackson" to "jackson3"),

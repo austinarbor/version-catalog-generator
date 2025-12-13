@@ -52,6 +52,7 @@ set up. If you do not wish to use the aliases, you will need to provide your own
 | Group begins with | `io.projectreactor` | `projectreactor`
 | Group begins with | `io.zipkin` | `zipkin`
 | Group begins with | `jakarta.` | `jakarta`
+| Group begins with | `javax.` | `javax`
 | Group begins with | `tools.jackson` | `jackson3`
 |===
 
