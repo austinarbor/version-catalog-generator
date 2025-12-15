@@ -53,7 +53,7 @@ jobs:
         run: ./gradlew clean test
 
       - name: Upload Test Report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }} # always run even if the previous step fails
         with:
           name: junit-test-results
@@ -91,7 +91,7 @@ jobs:
         run: ./gradlew clean publishToMavenLocal
 
       - name: Upload Plugin
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: plugin
           path: /home/runner/.m2/repository/dev/aga/gradle/plugin/plugin/${{ env.VERSION }}/plugin-${{ env.VERSION }}.jar
