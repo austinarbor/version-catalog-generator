@@ -104,17 +104,11 @@ jobs:
     strategy:
       matrix:
         gradle-version:
-          - "8.4"
-          - "8.6"
-          - "8.7"
-          - "8.8"
-          - "8.9"
-          - "8.10"
-          - "8.12"
           - "8.13"
           - "8.14"
           - "9.0.0"
           - "9.1.0"
+          - "9.2.0"
           - "release-nightly"
           - "release-candidate"
       fail-fast: false
