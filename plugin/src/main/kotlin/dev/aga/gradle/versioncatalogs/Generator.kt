@@ -1,5 +1,6 @@
 package dev.aga.gradle.versioncatalogs
 
+import dev.aga.gradle.versioncatalogs.model.GeneratedLibrary
 import dev.aga.gradle.versioncatalogs.model.PropertyOverride
 import dev.aga.gradle.versioncatalogs.model.Version
 import dev.aga.gradle.versioncatalogs.service.DependencyResolver
@@ -244,15 +245,25 @@ object Generator {
     container: TomlContainer,
     config: GeneratorConfig,
   ) {
-    container
-      .groupBy {
-        when (val bundleName = config.bundleMapping(it)) {
-          null -> ""
-          else -> bundleName
-        }
-      }
-      .filterKeys { it.isNotBlank() }
-      .mapValues { (_, values) -> values.map { it.alias } }
+    // sequence of GeneratedLibrary to the bundles it belongs to
+    // at this stage, the list of bundle names may be empty
+    val pairings0: Sequence<Pair<GeneratedLibrary, List<String>>> =
+      container.asSequence().flatMap { lib -> config.bundleMappings.map { bm -> lib to bm(lib) } }
+
+    // convert the sequence to a map, where the key is the bundle name
+    // and the value is the list of libraries to include
+    // in this stage is where we remove bundle names that are blank, and also
+    // we have no more empty lists after the flatMap
+    val pairings1: Map<String, List<String>> =
+      pairings0
+        .flatMap { (lib, bundleNames) -> bundleNames.map { bm -> lib to bm } }
+        .filterNot { (_, bundleName) -> bundleName.isBlank() }
+        .map { (lib, bundleNames) -> lib.alias to bundleNames }
+        .groupBy({ it.second }, { it.first })
+
+    // for each bundle name, create a bundle in the catalog with the list of
+    // library aliases that should be included
+    pairings1
       .filterValues { it.isNotEmpty() }
       .forEach { (bundleName, aliases) -> createBundle(bundleName, aliases, container) }
   }

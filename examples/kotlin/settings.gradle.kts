@@ -15,11 +15,10 @@ dependencyResolutionManagement {
     // test appending to existing catalog
     generate("myLibs") {
       fromToml("aws-bom") { aliasPrefixGenerator = GeneratorConfig.NO_PREFIX }
-      bundleMapping = {
-        if (it.alias == "sts" || it.alias == "commons-csv") {
-          "merged"
-        } else {
-          it.versionRef
+      bundle {
+        when {
+          it.alias in listOf("sts", "commons-csv") -> "merged"
+          else -> it.versionRef ?: ""
         }
       }
     }
@@ -35,6 +34,7 @@ dependencyResolutionManagement {
         }
         versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
       }
+      bundle("jacksonModule") { "module" in it.name }
     }
     generate("mockitoLibs") {
       saveGeneratedCatalog = true
