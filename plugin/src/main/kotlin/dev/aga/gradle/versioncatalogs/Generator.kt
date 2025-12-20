@@ -246,8 +246,9 @@ object Generator {
     config: GeneratorConfig,
   ) {
     // sequence of GeneratedLibrary to the bundles it belongs to
-    // at this stage, the list of bundle names may be empty
-    val pairings0: Sequence<Pair<GeneratedLibrary, List<String>>> =
+    // at this stage, the list of bundle names may be empty and the
+    // bundle names may be null or blank
+    val pairings0: Sequence<Pair<GeneratedLibrary, List<String?>>> =
       container.asSequence().flatMap { lib -> config.bundleMappings.map { bm -> lib to bm(lib) } }
 
     // convert the sequence to a map, where the key is the bundle name
@@ -257,9 +258,9 @@ object Generator {
     val pairings1: Map<String, List<String>> =
       pairings0
         .flatMap { (lib, bundleNames) -> bundleNames.map { bm -> lib to bm } }
-        .filterNot { (_, bundleName) -> bundleName.isBlank() }
+        .filterNot { (_, bundleName) -> bundleName.isNullOrBlank() }
         .map { (lib, bundleNames) -> lib.alias to bundleNames }
-        .groupBy({ it.second }, { it.first })
+        .groupBy({ it.second!! }, { it.first })
 
     // for each bundle name, create a bundle in the catalog with the list of
     // library aliases that should be included

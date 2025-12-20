@@ -40,7 +40,7 @@ internal class GeneratorTest : GeneratorTestBase() {
           propertyOverrides = emptyMap()
           generateBomEntryForNestedBoms = true
         }
-        bundle { it.versionRef ?: "" }
+        bundle { it.versionRef }
       }
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)
@@ -72,7 +72,7 @@ internal class GeneratorTest : GeneratorTestBase() {
           propertyOverrides = emptyMap()
           generateBomEntryForNestedBoms = true
         }
-        bundle { it.versionRef ?: "" }
+        bundle { it.versionRef }
       }
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)
@@ -116,7 +116,7 @@ internal class GeneratorTest : GeneratorTestBase() {
           when {
             it.alias in listOf("sqlite-jdbc", "commons-lang3", "dropwizard-metricsCaffeine") ->
               "combined"
-            else -> it.versionRef ?: ""
+            else -> it.versionRef
           }
         }
       }
@@ -176,7 +176,7 @@ internal class GeneratorTest : GeneratorTestBase() {
             }
           }
         }
-        bundle { it.versionRef ?: "" }
+        bundle { it.versionRef }
       }
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)
@@ -191,7 +191,7 @@ internal class GeneratorTest : GeneratorTestBase() {
         saveDirectory = projectDir
         saveGeneratedCatalog = true
         from("dev.aga.example:sb4-jackson-bom:4.0.0") { generateBomEntry = true }
-        bundle { it.versionRef ?: "" }
+        bundle { it.versionRef }
       }
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)
@@ -216,7 +216,7 @@ internal class GeneratorTest : GeneratorTestBase() {
               "caffeine.version" to "3.1.8",
             )
         }
-        bundle { it.versionRef ?: "" }
+        bundle { it.versionRef }
       }
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)
@@ -245,7 +245,7 @@ internal class GeneratorTest : GeneratorTestBase() {
         saveGeneratedCatalog = true
         from("org.assertj:assertj-bom:3.25.3")
         from("io.zipkin.reporter2:zipkin-reporter-bom:2.16.3")
-        bundle { it.versionRef ?: "" }
+        bundle { it.versionRef }
       }
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("libs", config, resolver)
@@ -320,6 +320,7 @@ internal class GeneratorTest : GeneratorTestBase() {
             else -> emptyList()
           }
         }
+        bundles(listOf(null, "")) { true } // make sure null and blank
       }
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)
@@ -335,7 +336,7 @@ internal class GeneratorTest : GeneratorTestBase() {
         saveGeneratedCatalog = true
         from("org.springframework.boot:spring-boot-dependencies:3.1.2")
         using { generateBomEntryForNestedBoms = false }
-        bundle { it.versionRef ?: "" }
+        bundle { it.versionRef }
       }
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)

@@ -21,7 +21,7 @@ dependencyResolutionManagement {
           if(lib.alias in ["sts", "commons-csv"]) {
             "merged"
           } else {
-            lib.versionRef ?: ""
+            lib.versionRef
           }
         }
       }

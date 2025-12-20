@@ -76,7 +76,7 @@ class GeneratorConfig(val settings: Settings) {
    */
   internal val sources = mutableListOf<() -> Pair<SourceConfig, List<Any>>>()
 
-  internal val bundleMappings = mutableListOf<(GeneratedLibrary) -> List<String>>()
+  internal val bundleMappings = mutableListOf<(GeneratedLibrary) -> List<String?>>()
 
   /**
    * Specify one or more source BOMs to generate the version catalog from using standard dependency
@@ -211,7 +211,7 @@ class GeneratorConfig(val settings: Settings) {
    *
    * @param block the mapping function to generate the bundle name
    */
-  fun bundle(block: (GeneratedLibrary) -> String) {
+  fun bundle(block: (GeneratedLibrary) -> String?) {
     bundle(block) { true }
   }
 
@@ -221,7 +221,7 @@ class GeneratorConfig(val settings: Settings) {
    * @param block mapping function used to generate the bundle name to assign the library
    * @param cond predicate that must return `true` for the mapping to be used
    */
-  fun bundle(block: (GeneratedLibrary) -> String, cond: (GeneratedLibrary) -> Boolean) {
+  fun bundle(block: (GeneratedLibrary) -> String?, cond: (GeneratedLibrary) -> Boolean) {
     bundleMappings.add {
       when (cond(it)) {
         true -> listOf(block(it))
@@ -236,7 +236,7 @@ class GeneratorConfig(val settings: Settings) {
    * @param names the bundle names to include the [GeneratedLibrary] in
    * @param cond the predicate for including the [GeneratedLibrary]
    */
-  fun bundles(names: List<String>, cond: (GeneratedLibrary) -> Boolean) {
+  fun bundles(names: List<String?>, cond: (GeneratedLibrary) -> Boolean) {
     bundles({ names }, cond)
   }
 
@@ -247,7 +247,7 @@ class GeneratorConfig(val settings: Settings) {
    * @param block mapping function used to generate the list of bundle names to assign the library
    * @param cond predicate that must return `true` for the mapping to be used
    */
-  fun bundles(block: (GeneratedLibrary) -> List<String>, cond: (GeneratedLibrary) -> Boolean) {
+  fun bundles(block: (GeneratedLibrary) -> List<String?>, cond: (GeneratedLibrary) -> Boolean) {
     bundleMappings.add {
       when (cond(it)) {
         true -> block(it)

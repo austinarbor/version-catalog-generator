@@ -18,7 +18,7 @@ dependencyResolutionManagement {
       bundle {
         when {
           it.alias in listOf("sts", "commons-csv") -> "merged"
-          else -> it.versionRef ?: ""
+          else -> it.versionRef
         }
       }
     }
