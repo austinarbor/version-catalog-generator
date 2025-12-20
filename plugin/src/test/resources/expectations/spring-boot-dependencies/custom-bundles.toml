@@ -60,9 +60,6 @@ zipkin-zipkinReporterBrave = { group = "io.zipkin.reporter2", name = "zipkin-rep
 [bundles]
 caffeine = ["caffeine-caffeine", "caffeine-guava", "caffeine-jcache"]
 awssdk = ["awssdk-sdkCore", "awssdk-sts", "awssdk-s3", "awssdk-bom", "awssdk-sqs"]
-aws1 = ["awssdk-sdkCore", "awssdk-sts", "awssdk-s3", "awssdk-bom", "awssdk-sqs"]
 aws2 = ["awssdk-sdkCore", "awssdk-sts", "awssdk-s3", "awssdk-bom", "awssdk-sqs"]
-dw1 = ["dropwizard-metricsBom", "dropwizard-metricsAnnotation", "dropwizard-metricsCaffeine", "dropwizard-metricsCaffeine3", "dropwizard-metricsCore"]
-dw2 = ["dropwizard-metricsBom", "dropwizard-metricsAnnotation", "dropwizard-metricsCaffeine", "dropwizard-metricsCaffeine3", "dropwizard-metricsCore"]
 
 [plugins]

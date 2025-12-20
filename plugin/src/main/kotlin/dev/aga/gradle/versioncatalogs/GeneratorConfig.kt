@@ -76,7 +76,7 @@ class GeneratorConfig(val settings: Settings) {
    */
   internal val sources = mutableListOf<() -> Pair<SourceConfig, List<Any>>>()
 
-  internal val bundleMappings = mutableListOf<(GeneratedLibrary) -> List<String?>>()
+  internal val bundleMappings = mutableListOf<(GeneratedLibrary) -> String?>()
 
   /**
    * Specify one or more source BOMs to generate the version catalog from using standard dependency
@@ -224,46 +224,10 @@ class GeneratorConfig(val settings: Settings) {
   fun bundle(block: (GeneratedLibrary) -> String?, cond: (GeneratedLibrary) -> Boolean) {
     bundleMappings.add {
       when (cond(it)) {
-        true -> listOf(block(it))
-        false -> emptyList()
-      }
-    }
-  }
-
-  /**
-   * Include a [GeneratedLibrary] in one or more bundles if [cond] evaluates to `true`.
-   *
-   * @param names the bundle names to include the [GeneratedLibrary] in
-   * @param cond the predicate for including the [GeneratedLibrary]
-   */
-  fun bundles(names: List<String?>, cond: (GeneratedLibrary) -> Boolean) {
-    bundles({ names }, cond)
-  }
-
-  /**
-   * Include a [GeneratedLibrary] in one or more bundles if [cond] evaluates to `true`. The bundle
-   * name(s) can be generated from the [GeneratedLibrary] itself.
-   *
-   * @param block mapping function used to generate the list of bundle names to assign the library
-   * @param cond predicate that must return `true` for the mapping to be used
-   */
-  fun bundles(block: (GeneratedLibrary) -> List<String?>, cond: (GeneratedLibrary) -> Boolean) {
-    bundleMappings.add {
-      when (cond(it)) {
         true -> block(it)
-        false -> emptyList()
+        false -> null
       }
     }
-  }
-
-  /**
-   * Include a [GeneratedLibrary] in one or more bundles. The bundle name(s) can be generated from
-   * the [GeneratedLibrary] itself.
-   *
-   * @param block the mapping function to generate the bundle name(s)
-   */
-  fun bundles(block: (GeneratedLibrary) -> List<String>) {
-    bundles(block) { true }
   }
 
   /**

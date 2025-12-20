@@ -307,7 +307,7 @@ generator.generate("myLibs") {
 
 === Generating Bundles
 In addition to generating libraries, you can also generate bundles from the generated libraries using the `bundle`
-and `bundles` functions exposed in the `GeneratorConfig`. The functions can be called multiple times in
+functions exposed by the `GeneratorConfig`. The functions can be called multiple times in
 the config and will be evaluated in the order they are called. By default, no bundles are generated.
 
 .settings.gradle.kts
@@ -316,15 +316,13 @@ the config and will be evaluated in the order they are called. By default, no bu
 generator.generate("myLibs") {
   bundle { it.versionRef } // <1>
   bundle("junit") { "junit" in it.alias } // <2>
-  bundles(listOf("test-min", "test-all")) { "junit" in it.alias || "mockito" in it.alias } // <3>
-  bundles({ listOf(it.versionRef, "hasVersionRef") }) { it.versionRef != null } // <4>
+  bundle({ it.versionRef }) { it.versionRef != null && it.alias.contains("dropwizard") } // <3>
 }
 ----
 <1> If the library's version is a version reference, add it to a bundle where the version reference is the bundle's name
 <2> If the library's alias contains the string `junit`, add it to a bundle named `junit`
-<3> If the library's alias contains the word `junit` _or_ the word `mockito`, add it to the bundles named `test-min` and `test-all`
-<4> If the library's version is a version reference, add it to a bundle where the version reference is the bundle's name,
-and another bundle containing all libraries that have a version reference
+<3> If the library's version is a version reference and the alias contains the string `dropwizard`, add it to a bundle
+having the name of the version reference
 
 .settings.gradle
 [source,groovy,subs="attributes+",role="secondary"]
@@ -332,15 +330,13 @@ and another bundle containing all libraries that have a version reference
 generator.generate("myLibs") {
   it.bundle { dep -> dep.versionRef } // <1>
   it.bundle("junit") { it.alias.contains("junit") } // <2>
-  it.bundles(["test-min", "test-all"]) { lib -> lib.alias.contai"junit" || lib.contains("mockito") } // <3>
-  it.bundles({ dep -> [dep.versionRef, "hasVersionRef"] }) { dep -> dep.versionRef != null } // <4>
+  it.bundle({ dep -> dep.versionRef }) { dep -> dep.versionRef != null && dep.alias.contains("dropwizard") } // <3>
 }
 ----
-<1> If the library's version is a version reference, add it to a bundle where the version reference is the bundle's name (null bundle names are ignored)
+<1> If the library's version is a version reference, add it to a bundle where the version reference is the bundle's name
 <2> If the library's alias contains the string `junit`, add it to a bundle named `junit`
-<3> If the library's alias contains the word `junit` _or_ the word `mockito`, add it to the bundles named `test-min` and `test-all`
-<4> If the library's version is a version reference, add it to a bundle where the version reference is the bundle's name,
-and another bundle containing all libraries that have a version reference
+<3> If the library's version is a version reference and the alias contains the string `dropwizard`, add it to a bundle
+having the name of the version reference
 
 TIP: If you are appending to an existing catalog, you can create bundles that contain dependencies from both original
 catalog and the BOM(s) you are generating from.

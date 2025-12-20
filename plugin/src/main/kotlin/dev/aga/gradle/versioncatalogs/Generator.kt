@@ -246,24 +246,22 @@ object Generator {
     config: GeneratorConfig,
   ) {
     // sequence of GeneratedLibrary to the bundles it belongs to
-    // at this stage, the list of bundle names may be empty and the
-    // bundle names may be null or blank
-    val pairings0: Sequence<Pair<GeneratedLibrary, List<String?>>> =
+    // at this stage, the bundle names may be null or blank
+    val pairings0: Sequence<Pair<GeneratedLibrary, String?>> =
       container.asSequence().flatMap { lib -> config.bundleMappings.map { bm -> lib to bm(lib) } }
 
     // convert the sequence to a map, where the key is the bundle name
     // and the value is the list of libraries to include
-    // in this stage is where we remove bundle names that are blank, and also
-    // we have no more empty lists after the flatMap
+    // in this stage is where we remove bundle names that are null or blank
     val pairings1: Map<String, List<String>> =
       pairings0
-        .flatMap { (lib, bundleNames) -> bundleNames.map { bm -> lib to bm } }
         .filterNot { (_, bundleName) -> bundleName.isNullOrBlank() }
-        .map { (lib, bundleNames) -> lib.alias to bundleNames }
-        .groupBy({ it.second!! }, { it.first })
+        .map { (lib, bundleName) -> bundleName as String to lib.alias }
+        .groupBy({ it.first }) { it.second }
 
     // for each bundle name, create a bundle in the catalog with the list of
     // library aliases that should be included
+    // remove any empty lists that may have somehow snuck in here
     pairings1
       .filterValues { it.isNotEmpty() }
       .forEach { (bundleName, aliases) -> createBundle(bundleName, aliases, container) }

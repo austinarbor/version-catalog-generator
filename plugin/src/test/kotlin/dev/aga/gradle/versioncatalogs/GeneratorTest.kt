@@ -313,14 +313,9 @@ internal class GeneratorTest : GeneratorTestBase() {
         from("org.springframework.boot:spring-boot-dependencies:3.1.2")
         bundle("caffeine") { it.alias.startsWith("caffeine-") }
         bundle("awssdk") { it.alias.startsWith("awssdk-") }
-        bundles(listOf("aws1", "aws2")) { "aws" in it.alias }
-        bundles {
-          when {
-            "dropwizard" in it.alias -> listOf("dw1", "dw2")
-            else -> emptyList()
-          }
-        }
-        bundles(listOf(null, "")) { true } // make sure null and blank
+        bundle("aws2") { "aws" in it.alias }
+        bundle("") { true } // make sure null and blank are ignored
+        bundle({ null }) { true } // make sure null and blank are ignored
       }
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)
