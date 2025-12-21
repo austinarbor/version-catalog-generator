@@ -27,6 +27,7 @@ internal class GeneratorTest : GeneratorTestBase() {
           excludeGroups = ".*"
           excludeNames = ".*"
           generateBomEntry = false
+          generateVersionRefs = false
           propertyOverrides = mapOf("jackson-bom.version" to "2.16.1")
           generateBomEntryForNestedBoms = false
         }
@@ -39,12 +40,39 @@ internal class GeneratorTest : GeneratorTestBase() {
           generateBomEntry = true
           propertyOverrides = emptyMap()
           generateBomEntryForNestedBoms = true
+          generateVersionRefs = true
         }
         bundle { it.versionRef }
       }
     val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
     container.generate("myLibs", config, resolver)
     val expected = Paths.get("expectations", "spring-boot-dependencies", "libs.versions.toml")
+    verifyGeneratedCatalog(config, "myLibs", expected, false)
+  }
+
+  @Test
+  fun `disabled version refs`() {
+    val config =
+      GeneratorConfig(settings).apply {
+        saveDirectory = projectDir
+        saveGeneratedCatalog = true
+        from("org.springframework.boot:spring-boot-dependencies:3.1.2") {
+          aliasPrefixGenerator = GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR
+          aliasSuffixGenerator = GeneratorConfig.DEFAULT_ALIAS_SUFFIX_GENERATOR
+          versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
+          excludeGroups = ""
+          excludeNames = ""
+          generateBomEntry = true
+          propertyOverrides = emptyMap()
+          generateBomEntryForNestedBoms = true
+          generateVersionRefs = false
+        }
+        bundle { it.versionRef }
+      }
+    val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+    container.generate("myLibs", config, resolver)
+    val expected =
+      Paths.get("expectations", "spring-boot-dependencies", "no-version-refs.versions.toml")
     verifyGeneratedCatalog(config, "myLibs", expected, false)
   }
 
