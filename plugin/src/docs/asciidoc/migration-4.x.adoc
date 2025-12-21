@@ -51,4 +51,4 @@ generator.generate("myLibs") {
   it.bundle { dep -> dep.versionRef }
 }
 ----
-.. If you had custom a `bundleMapping` definition, replace `bundleMapping = ...` with one or more calls to the new `bundle` functions (see documentation https://austinarbor.github.io/version-catalog-generator/#_customizing_bundle_generation[here])
+.. If you had custom a `bundleMapping` definition, replace `bundleMapping = ...` with one or more calls to the new `bundle` functions (see documentation https://austinarbor.github.io/version-catalog-generator/#_generating_bundles[here])
