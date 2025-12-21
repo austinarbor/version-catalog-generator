@@ -74,7 +74,9 @@ class GeneratorConfig(val settings: Settings) {
    * Each BOM may be represented as either a [Dependency] or a string notation of a dependency to
    * resolve.
    */
-  internal val sources: MutableList<() -> Pair<SourceConfig, List<Any>>> = mutableListOf()
+  internal val sources = mutableListOf<() -> Pair<SourceConfig, List<Any>>>()
+
+  internal val bundleMappings = mutableListOf<(GeneratedLibrary) -> String?>()
 
   /**
    * Specify one or more source BOMs to generate the version catalog from using standard dependency
@@ -193,13 +195,40 @@ class GeneratorConfig(val settings: Settings) {
   }
 
   /**
-   * Provide a mapping function to create bundles from the generated libraries. The return value of
-   * the lambda is the name of the bundle the library will be registered under. A null or blank
-   * string will be ignored. By default (for backwards compatibility), a library will be mapped to a
-   * bundle if and only if it was registered with a `versionRef`, and the name of the bundle will be
-   * the `versionRef` value.
+   * Create a bundle with a fixed name, which will include all [GeneratedLibrary] items for which
+   * [cond] returns `true`.
+   *
+   * @param name the name of the bundle
+   * @param cond the predicate for which to include the [GeneratedLibrary]
    */
-  var bundleMapping: (GeneratedLibrary) -> String? = { it.versionRef }
+  fun bundle(name: String, cond: (GeneratedLibrary) -> Boolean) {
+    bundle({ name }, cond)
+  }
+
+  /**
+   * Include a [GeneratedLibrary] in a bundle. The bundle name can be generated from the
+   * [GeneratedLibrary] itself.
+   *
+   * @param block the mapping function to generate the bundle name
+   */
+  fun bundle(block: (GeneratedLibrary) -> String?) {
+    bundle(block) { true }
+  }
+
+  /**
+   * Include a [GeneratedLibrary] in a bundle if [cond] evaluates to `true`.
+   *
+   * @param block mapping function used to generate the bundle name to assign the library
+   * @param cond predicate that must return `true` for the mapping to be used
+   */
+  fun bundle(block: (GeneratedLibrary) -> String?, cond: (GeneratedLibrary) -> Boolean) {
+    bundleMappings.add {
+      when (cond(it)) {
+        true -> block(it)
+        false -> null
+      }
+    }
+  }
 
   /**
    * Specify the source BOM to generate the version catalog from. BOMs can be specified by using a

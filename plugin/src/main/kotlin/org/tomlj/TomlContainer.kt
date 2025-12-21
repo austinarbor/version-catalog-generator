@@ -3,7 +3,6 @@ package org.tomlj
 import dev.aga.gradle.versioncatalogs.model.GeneratedLibrary
 import org.gradle.api.artifacts.VersionConstraint
 
-@Suppress("detekt:TooManyFunctions")
 class TomlContainer : Iterable<GeneratedLibrary> {
   private val oneOne = TomlPosition.positionAt(1, 1)
   private val toml: MutableTomlTable = MutableTomlTable(TomlVersion.LATEST)

@@ -111,6 +111,9 @@ jobs:
           - "9.2.0"
           - "release-nightly"
           - "release-candidate"
+        directory:
+          - "kotlin"
+          - "groovy"
       fail-fast: false
     steps:
       - uses: actions/checkout@v6
@@ -133,13 +136,8 @@ jobs:
           name: plugin
 
       - name: Copy Plugin
-        run: |
-          echo examples/{kotlin,groovy}/libs | xargs -n 1 cp plugin*.jar
+        run: cp plugin*.jar examples/${{ matrix.directory }}/libs
 
-      - name: Kotlin DSL
-        working-directory: examples/kotlin
-        run: gradle assemble
-
-      - name: Groovy DSL
-        working-directory: examples/groovy
+      - name: DSL Tests
+        working-directory: examples/${{ matrix.directory }}
         run: gradle assemble

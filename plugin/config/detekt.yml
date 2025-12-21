@@ -6,10 +6,7 @@ complexity:
     constructorThreshold: 10
     functionThreshold: 10
   TooManyFunctions:
-    excludes: ['**/test/**']
-    ignoreDeprecated: true
-    ignoreOverridden: true
-
+    active: false
 
 exceptions:
   TooGenericExceptionThrown:

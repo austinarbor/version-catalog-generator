@@ -16,7 +16,7 @@ dependencyResolutionManagement {
       from(files("gradle/libs.versions.toml"))
     }
     generate("libs") {
-      bundleMapping = { // <2>
+      bundle { // <2>
         // excluded for brevity
       }
     }
@@ -41,7 +41,7 @@ dependencyResolutionManagement {
       from(files("gradle/libs.versions.toml"))
     }
     generator.generate("myLibs") { // <2>
-      it.bundleMapping = {
+      it.bundle {
         // excluded for brevity
       }
     }

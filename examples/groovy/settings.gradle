@@ -17,8 +17,8 @@ dependencyResolutionManagement {
         it.using { u ->
           u.aliasPrefixGenerator = NO_PREFIX
         }
-        it.bundleMapping = { lib ->
-          if (lib.alias == "sts" || lib.alias == "commons-csv") {
+        it.bundle { lib ->
+          if(lib.alias in ["sts", "commons-csv"]) {
             "merged"
           } else {
             lib.versionRef
@@ -34,7 +34,8 @@ dependencyResolutionManagement {
             DEFAULT_ALIAS_GENERATOR.invoke(prefix,suffix)
           }
           u.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
-      }
+       }
+       bundle("jacksonModule") { lib -> lib.name.contains("module") }
     }
 
     generator.generate("mockitoLibs") {

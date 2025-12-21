@@ -66,6 +66,7 @@ class VersionCatalogGeneratorPluginTest {
                     }
                     versionNameGenerator = GeneratorConfig.DEFAULT_VERSION_NAME_GENERATOR
                   }
+                  bundle("jacksonModule") { it.name.contains("module") }
                 }
                 generate("mockitoLibs") {
                   saveGeneratedCatalog = true
@@ -127,18 +128,15 @@ class VersionCatalogGeneratorPluginTest {
                     aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
                     filter = { it.artifactId.endsWith("-test") }
                   }
-                  bundleMapping = {
-                    when {
-                      it.alias in listOf(
-                        "junitJupiter", 
+                  bundle("testing") { 
+                    it.alias in listOf(
+                       "junitJupiter", 
                         "junitPlatformLauncher",
                         "mockitoCore", 
                         "mockitoJunitJupiter", 
                         "mockitoKotlin", 
                         "assertjCore",
-                      ) -> "testing"
-                      else -> null
-                    }
+                        )
                   }
                 }
               }
@@ -243,8 +241,8 @@ class VersionCatalogGeneratorPluginTest {
               }
               versionCatalogs {
                 generator.generate("jsonLibs") {
-                  it.from("com.fasterxml.jackson:jackson-bom:2.15.2")
-                  it.using { u ->
+                  from("com.fasterxml.jackson:jackson-bom:2.15.2")
+                  using { u ->
                     u.libraryAliasGenerator = { groupId, artifactId -> 
                      def prefix = u.aliasPrefixGenerator.invoke(groupId, artifactId)
                      def suffix = u.aliasSuffixGenerator.invoke(prefix, groupId, artifactId)
@@ -252,11 +250,12 @@ class VersionCatalogGeneratorPluginTest {
                     }
                     u.versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
                   }
+                  bundle("jacksonModule") { it.name.contains("module") }
                 }
                 
                 generator.generate("mockitoLibs") {
-                    it.from("org.mockito:mockito-bom:5.5.0")
-                    it.using { u ->
+                    from("org.mockito:mockito-bom:5.5.0")
+                    using { u ->
                       u.generateBomEntry = true
                       u.libraryAliasGenerator = { groupId, artifactId -> 
                         def prefix = u.aliasPrefixGenerator.invoke(groupId, artifactId)
@@ -327,13 +326,7 @@ class VersionCatalogGeneratorPluginTest {
                       u.filter = { it.artifactId.endsWith("-test") }
                     }
                   }
-                  it.bundleMapping = {
-                    if(it.alias in ["junitJupiter", "junitPlatformLauncher", "mockitoCore", "mockitoJunitJupiter", "mockitoKotlin", "assertjCore" ]) {
-                      "testing"
-                    } else {
-                      null
-                    }
-                  }
+                  bundle("testing") { it.alias in ["junitJupiter", "junitPlatformLauncher", "mockitoCore", "mockitoJunitJupiter", "mockitoKotlin", "assertjCore" ] }
                 }
               }
             }

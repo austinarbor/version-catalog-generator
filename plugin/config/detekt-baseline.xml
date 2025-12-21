@@ -2,7 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues></ManuallySuppressedIssues>
   <CurrentIssues>
-    <ID>TooManyFunctions:Generator.kt$Generator</ID>
     <ID>TrailingCommaOnDeclarationSite:DependencyHandler.kt$DependencyHandler$( configurationName: String, dependencyNotation: Any )</ID>
     <ID>TrailingCommaOnDeclarationSite:DependencyHandler.kt$DependencyHandler$( configurationName: String, dependencyNotation: Provider&lt;T&gt; )</ID>
     <ID>TrailingCommaOnDeclarationSite:DependencyHandler.kt$DependencyHandler$( dependencyProvider: Provider&lt;MinimalExternalModuleDependency&gt; )</ID>
