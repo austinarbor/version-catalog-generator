@@ -6,5 +6,6 @@
 :srcdir: ../../main/java
 
 include::{rootdir}/README.adoc[tags=!exclude-from-docs]
+include::{docdir}/migration-4.x.adoc[]
 include::{docdir}/detailed-usage.adoc[]
 include::{docdir}/goals.adoc[]

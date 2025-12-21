@@ -129,6 +129,9 @@ dependencies {
 ----
 ====
 // tag::exclude-from-docs[]
+== Migrate to 4.x
+https://austinarbor.github.io/version-catalog-generator#_migrating_from_3_x_to_4_x[See guide]
+
 == Detailed Usage
 https://austinarbor.github.io/version-catalog-generator[See the docs]
 
