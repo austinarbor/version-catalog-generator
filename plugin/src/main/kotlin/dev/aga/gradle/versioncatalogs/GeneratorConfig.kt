@@ -15,7 +15,6 @@ import java.nio.file.Paths
 import net.pearx.kasechange.CaseFormat
 import net.pearx.kasechange.formatter.format
 import org.apache.maven.model.Dependency
-import org.gradle.api.Incubating
 import org.gradle.api.initialization.Settings
 
 @GeneratorConfigDsl
@@ -40,20 +39,18 @@ class GeneratorConfig(val settings: Settings) {
    * `build/catalogs` relative to the directory of where the settings file exists. An absolute path
    * will be used exactly as provided.
    */
-  @Incubating
   var saveDirectory: File =
     settings.rootDir.resolve(Paths.get("build", "version-catalogs").toFile())
     set(value) {
       field =
-        if (value.isAbsolute) {
-          value
-        } else {
-          settings.rootDir.resolve(value)
+        when {
+          value.isAbsolute -> value
+          else -> settings.rootDir.resolve(value)
         }
     }
 
   /** Whether to enable the caching functionality. Disabled by default. See [saveDirectory] */
-  @Incubating var saveGeneratedCatalog = false
+  var saveGeneratedCatalog = false
 
   internal var usingConfig =
     UsingConfig { FileCatalogParser(defaultVersionCatalog) }
