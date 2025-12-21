@@ -346,7 +346,7 @@ object Generator {
       boms.forEach { bom ->
         logger.info("${model.groupId}:${model.artifactId} contains other BOMs")
         if (using.generateBomEntryForNestedBoms == true) {
-          if (rootDep) {
+          if (rootDep && using.generateVersionRefs == true) {
             maybeRegisterVersion(version, using.versionNameGenerator, registeredVersions, container)
           }
           createLibrary(bom, version, using, rootDep, container)
@@ -362,7 +362,7 @@ object Generator {
 
     getNewDependencies(model, seenModules, substitutor, jarFilter, using).forEach { (version, deps)
       ->
-      if (rootDep) {
+      if (rootDep && using.generateVersionRefs == true) {
         maybeRegisterVersion(version, using.versionNameGenerator, registeredVersions, container)
       }
       deps.forEach { dep -> createLibrary(dep, version, using, rootDep, container) }
@@ -415,16 +415,15 @@ object Generator {
 
     val library = library(alias, dep.groupId, dep.artifactId)
     // only register version aliases if we are in the top-level BOM
-    if (rootDep && version.isRef) {
+    if (rootDep && version.isRef && using.generateVersionRefs == true) {
       val versionAlias = using.versionNameGenerator(version.unwrapped)
       library.versionRef(versionAlias)
       container.addLibrary(alias, dep.groupId, dep.artifactId, versionAlias, true)
     } else {
       val value =
-        if (version.isRef) {
-          version.resolvedValue
-        } else {
-          version.value
+        when {
+          version.isRef -> version.resolvedValue
+          else -> version.value
         }
       library.version(value)
       container.addLibrary(alias, dep.groupId, dep.artifactId, value, false)
@@ -445,10 +444,9 @@ object Generator {
       val group = lib.getString("group")
       val name = lib.getString("name")
       val newVersion =
-        if (version.isRef) {
-          using.versionNameGenerator(version.unwrapped)
-        } else {
-          version.value
+        when {
+          version.isRef -> using.versionNameGenerator(version.unwrapped)
+          else -> version.value
         }
       val msg =
         """

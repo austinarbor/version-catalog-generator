@@ -59,6 +59,7 @@ class GeneratorConfig(val settings: Settings) {
         aliasSuffixGenerator = DEFAULT_ALIAS_SUFFIX_GENERATOR
         versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
         generateBomEntry = false
+        generateVersionRefs = true
         propertyOverrides = emptyMap()
         excludeGroups = ""
         excludeNames = ""
@@ -409,6 +410,16 @@ class GeneratorConfig(val settings: Settings) {
       }
 
     /**
+     * Whether to generate version references. When `true`, dependencies in the root level BOMs
+     * which use a property reference for their version will have a version reference generated in
+     * the catalog, and that reference will be used by the entry in the catalog. Defaults to `true`.
+     */
+    var generateVersionRefs: Boolean? = null
+      set(value) {
+        field = requireNotNull(value) { "generateVersionRefs cannot be set to null" }
+      }
+
+    /**
      * Override property values that are set in the root BOM you are generating a catalog for. For
      * example if the BOM has the property `jackson-bom.version` with the value `2.15.3` but you'd
      * rather use `2.16.1`, you can pass in values to override the BOM.
@@ -530,6 +541,12 @@ class GeneratorConfig(val settings: Settings) {
           generateBomEntry =
             when (val bool = primary.generateBomEntry) {
               null -> fallback.generateBomEntry
+              else -> bool
+            }
+
+          generateVersionRefs =
+            when (val bool = primary.generateVersionRefs) {
+              null -> fallback.generateVersionRefs
               else -> bool
             }
 
