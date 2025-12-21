@@ -1,0 +1,54 @@
+== Migrating from 3.x to 4.x
+
+1. First, upgrade to version 3.4.0 and make sure everything is working as expected
+2. A small number of users may be impacted by new alias generation logic where additional "nice" prefixes
+have been included. The new/updated prefixes are:
++
+[cols="3*", options="header"]
+|===
+| Condition         | Value | Generated Prefix
+| Group begins with | `ch.qos.logback` | `logback`
+| Group begins with | `com.google.protobuf` | `protobuf`
+| Group begins with | `com.h2database` | `h2`
+| Group begins with | `com.squareup.okhttp3` | `okhttp3`
+| Group begins with | `com.squareup.okhttp` | `okhttp`
+| Group begins with | `com.squareup.retrofit` | `retrofit`
+| Group begins with | `com.squareup.retrofit2` | `retrofit2`
+| Group begins with | `javax.` | `javax`
+| Group begins with | `org.apache.logging.log4j` | `log4j`
+| Group begins with | `org.apache.maven` | `maven`
+| Group begins with | `org.assertj` | `assertj`
+| Group begins with | `org.clojure` | `clojure`
+| Group begins with | `org.json` | `json`
+| Group begins with | `org.mockito` | `mockito`
+| Group begins with | `org.osgi` | `osgi`
+| Group begins with | `org.renjin` | `renjin`
+| Group begins with | `org.scala-lang` | `scala`
+| Group begins with | `org.slf4j` | `slf4j`
+| Group begins with | `org.spockframework` | `spock`
+| Group begins with | `tools.jackson` | `jackson3`
+|===
+
+3. If you weren't using any bundles or using a custom `bundleMapping` function, no further changes should be required.
+4. Otherwise
+[arabic]
+.. If you were relying strictly on the existing bundle logic of 3.x with no customizations, add the block
++
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
+----
+generate("myLibs") {
+  // excluded for brevity
+  bundle { it.versionRef }
+}
+----
++
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+generator.generate("myLibs") {
+  // excluded for brevity
+  it.bundle { dep -> dep.versionRef }
+}
+----
+.. If you had custom a `bundleMapping` definition, replace `bundleMapping = ...` with one or more calls to the new `bundle` functions (see documentation https://austinarbor.github.io/version-catalog-generator/#_customizing_bundle_generation[here])
