@@ -1,7 +1,9 @@
 == Migrating from 3.x to 4.x
 
-1. First, upgrade to version 3.4.0 and make sure everything is working as expected
-2. A small number of users may be impacted by new alias generation logic where additional "nice" prefixes
+1. First, upgrade to version 3.4.0
+2. Update any code marked as deprecated with the non-deprecated equivalent and make sure
+everything is working as expected
+3. A small number of users may be impacted by new alias generation logic where additional "nice" prefixes
 have been included. The new/updated prefixes are:
 +
 [cols="3*", options="header"]
@@ -29,8 +31,8 @@ have been included. The new/updated prefixes are:
 | Group begins with | `tools.jackson` | `jackson3`
 |===
 
-3. If you weren't using any bundles or using a custom `bundleMapping` function, no further changes should be required.
-4. Otherwise
+4. If you weren't using any bundles or using a custom `bundleMapping` function, no further changes should be required.
+5. Otherwise
 [arabic]
 .. If you were relying strictly on the existing bundle logic of 3.x with no customizations, add the block
 +
