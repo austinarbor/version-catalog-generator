@@ -1,7 +1,7 @@
 [versions]
 asciidoctorj = "4.0.5"
 asciidoctorTabbedCode = "0.3"
-assertj = "3.27.6"
+assertj = "3.27.7"
 commons-text = "1.15.0"
 detekt = "1.23.8"
 gradle-publish = "2.0.0"
