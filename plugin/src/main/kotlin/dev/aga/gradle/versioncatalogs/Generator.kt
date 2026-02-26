@@ -34,7 +34,14 @@ import org.tomlj.TomlContainer
 object Generator {
 
   private val logger = LoggerFactory.getLogger(Generator::class.java)
-  private val jarFilter = { dep: Dependency -> null == dep.type || "jar" == dep.type }
+  private val depFilter = { dep: Dependency ->
+    when (dep.type) {
+      null,
+      "jar" -> true
+      "pom" if dep.scope.isNullOrBlank() -> true
+      else -> false
+    }
+  }
   private val importFilter = { dep: Dependency -> "pom" == dep.type && "import" == dep.scope }
 
   /** Getter for the extension */
@@ -360,7 +367,7 @@ object Generator {
       }
     }
 
-    getNewDependencies(model, seenModules, substitutor, jarFilter, using).forEach { (version, deps)
+    getNewDependencies(model, seenModules, substitutor, depFilter, using).forEach { (version, deps)
       ->
       if (rootDep && using.generateVersionRefs == true) {
         maybeRegisterVersion(version, using.versionNameGenerator, registeredVersions, container)

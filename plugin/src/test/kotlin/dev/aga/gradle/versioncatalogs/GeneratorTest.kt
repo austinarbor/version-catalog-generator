@@ -417,4 +417,18 @@ internal class GeneratorTest : GeneratorTestBase() {
     val expected = Paths.get("expectations", "additional-deps", "testingLibs.versions.toml")
     verifyGeneratedCatalog(config, "testingLibs", expected, false)
   }
+
+  @Test
+  fun `pom deps are added`() {
+    val config =
+      GeneratorConfig(settings).apply {
+        saveDirectory = projectDir
+        saveGeneratedCatalog = true
+        from("io.grpc:grpc-bom:1.79.0")
+      }
+    val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+    container.generate("testingLibs", config, resolver)
+    val expected = Paths.get("expectations", "grpc-bom", "libs.versions.toml")
+    verifyGeneratedCatalog(config, "testingLibs", expected, false)
+  }
 }
