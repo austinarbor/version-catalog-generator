@@ -25,6 +25,8 @@ dependencies {
   implementation(libs.commons.text)
   detektPlugins(libs.detekt.formatting)
 
+  compileOnly(libs.checker.qual)
+
   testImplementation(libs.bundles.testing)
   testImplementation(libs.bundles.mockito)
   testImplementation(gradleTestKit())
