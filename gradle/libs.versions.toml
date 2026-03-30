@@ -2,6 +2,7 @@
 asciidoctorj = "4.0.5"
 asciidoctorTabbedCode = "0.3"
 assertj = "3.27.7"
+checker = "3.54.0"
 commons-text = "1.15.0"
 detekt = "1.23.8"
 gradle-publish = "2.1.1"
@@ -19,6 +20,7 @@ tomlj = "1.1.1"
 [libraries]
 asciidoctor-tabbedCode = { group = "com.bmuschko", name = "asciidoctorj-tabbed-code-extension", version.ref = "asciidoctorTabbedCode" }
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
+checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checker" }
 commons-text = { group = "org.apache.commons", name = "commons-text", version.ref = "commons-text" }
 detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt" }
 jacoco-agent = { group = "org.jacoco", name = "org.jacoco.agent", version.ref = "jacoco" }
