@@ -142,6 +142,31 @@ class GeneratorConfigTest {
     }
   }
 
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(booleans = [true, false])
+  fun `generateLibraryVersions in using block cannot be set to null`(
+    toSet: Boolean?,
+    @TempDir tmp: File,
+  ) {
+    val settings = mock<Settings> { on { rootDir } doReturn tmp }
+    if (toSet == null) {
+      assertThatIllegalArgumentException().isThrownBy {
+        GeneratorConfig(settings).apply { using { generateLibraryVersions = toSet } }
+      }
+    } else {
+      val config = GeneratorConfig(settings).apply { using { generateLibraryVersions = toSet } }
+      assertThat(config.usingConfig.generateLibraryVersions).isEqualTo(toSet)
+    }
+  }
+
+  @Test
+  fun `generateLibraryVersions defaults to true`(@TempDir tmp: File) {
+    val settings = mock<Settings> { on { rootDir } doReturn tmp }
+    val config = GeneratorConfig(settings)
+    assertThat(config.usingConfig.generateLibraryVersions).isTrue()
+  }
+
   companion object {
     @JvmStatic
     private fun defaultLibraryNameProvider(): List<Arguments> {
