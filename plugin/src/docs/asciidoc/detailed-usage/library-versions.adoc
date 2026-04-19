@@ -1,0 +1,192 @@
+
+=== Versionless Libraries
+
+By default, every generated library entry carries either an inline `version` or a
+`version.ref` derived from the source BOM. When the consumer also imports the BOM as
+a Gradle `platform(...)` constraint, those catalog versions are **redundant** with
+the platform's own pins and force two sources of truth to be kept in sync.
+
+Setting `generateLibraryVersions = false` strips the version from every generated
+library entry, leaving the catalog as a pure typed-accessor layer (`group` + `name`
+only). The consumer's `platform(...)` import then supplies versions at resolution
+time. The BOM library entry itself (when `generateBomEntry = true`) is *not* affected
+by this flag — it always retains its version so `platform(libs.<bom>)` keeps working.
+See xref:_including_a_bom_entry[Including a BOM Entry].
+
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
+----
+generate("libs") {
+  from("org.springframework.boot:spring-boot-dependencies:3.4.0") {
+    generateBomEntry = true             // <1>
+    generateLibraryVersions = false     // <2>
+  }
+}
+----
+<1> Keep the BOM entry so `platform(libs.spring.springBootDependencies)` resolves.
+<2> Strip versions from every dependency in the BOM.
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+generator.generate("libs") {
+  it.from { from ->
+    from.dependency("org.springframework.boot:spring-boot-dependencies:3.4.0")
+    from.using { using ->
+      using.generateBomEntry = true             // <1>
+      using.generateLibraryVersions = false     // <2>
+    }
+  }
+}
+----
+<1> Keep the BOM entry so `platform(libs.spring.springBootDependencies)` resolves.
+<2> Strip versions from every dependency in the BOM.
+
+The flag also accepts a generator-wide default via the top-level `using { ... }`
+block, with per-source overrides exactly like `generateVersionRefs`:
+
+.settings.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
+----
+generate("libs") {
+  using {
+    generateLibraryVersions = false           // <1>
+  }
+  fromToml("springBootDependencies")          // <2>
+  fromToml("awsBom") {
+    generateLibraryVersions = true            // <3>
+  }
+}
+----
+<1> Set the default for every source in this catalog.
+<2> Inherits the generator-wide default (versionless).
+<3> Overrides back to the versioned form for just this source.
+
+.settings.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+generator.generate("libs") {
+  it.using { u ->                             // <1>
+    u.generateLibraryVersions = false
+  }
+  it.fromToml("springBootDependencies")       // <2>
+  it.from { from ->                           // <3>
+    from.toml { toml ->
+      toml.libraryAliases = ["awsBom"]
+    }
+    from.using { u ->
+      u.generateLibraryVersions = true
+    }
+  }
+}
+----
+<1> Set the default for every source in this catalog.
+<2> Inherits the generator-wide default (versionless).
+<3> Overrides back to the versioned form for just this source. Groovy cannot invoke
+    the `fromToml(name) { uc }` overload (varargs + trailing lambda), so use the
+    verbose `from { from -> from.toml { ... }; from.using { ... } }` form instead.
+
+==== Generated catalog shape
+
+Given the configuration above (Spring Boot, `generateBomEntry = true`,
+`generateLibraryVersions = false`), the generated TOML looks like this:
+
+[source,toml]
+----
+[versions]
+spring-boot = "3.4.0"
+# ...other version aliases derived from BOM properties...
+
+[libraries]
+# BOM entry retains its version so platform(...) works
+spring-springBootDependencies = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring-boot" }
+# Non-BOM libraries are emitted without a version
+spring-springBootStarterWeb   = { group = "org.springframework.boot", name = "spring-boot-starter-web" }
+spring-springBootStarterJdbc  = { group = "org.springframework.boot", name = "spring-boot-starter-jdbc" }
+----
+
+==== Consuming the versionless catalog
+
+In the consumer build, import the BOM as a `platform(...)` and use the versionless
+aliases as you would any catalog entry — Gradle supplies the version from the
+platform constraint:
+
+.build.gradle.kts
+[source,kotlin,subs="attributes+",role="primary"]
+----
+dependencies {
+  implementation(platform(libs.spring.springBootDependencies))   // <1>
+  implementation(libs.spring.springBootStarterWeb)               // <2>
+  implementation(libs.spring.springBootStarterJdbc)              // <2>
+}
+----
+<1> The BOM constraint that pins versions for everything it manages.
+<2> Versionless catalog entries; the platform supplies the version at resolution time.
+
+.build.gradle
+[source,groovy,subs="attributes+",role="secondary"]
+----
+dependencies {
+  implementation platform(libs.spring.springBootDependencies)    // <1>
+  implementation libs.spring.springBootStarterWeb                // <2>
+  implementation libs.spring.springBootStarterJdbc               // <2>
+}
+----
+<1> The BOM constraint that pins versions for everything it manages.
+<2> Versionless catalog entries; the platform supplies the version at resolution time.
+
+==== Behaviour matrix
+
+`generateLibraryVersions` is fully orthogonal to `generateVersionRefs`. The two flags
+combine cleanly:
+
+[cols="1,1,3,2",options="header"]
+|===
+| `generateLibraryVersions` | `generateVersionRefs` | Library entry shape | `[versions]` table
+
+| `true` (default)
+| `true` (default)
+| `{ group = "...", name = "...", version.ref = "x" }`
+| populated
+
+| `true`
+| `false`
+| `{ group = "...", name = "...", version = "x.y.z" }`
+| empty
+
+| `false`
+| `true`
+| `{ group = "...", name = "..." }`
+| populated
+
+| `false`
+| `false`
+| `{ group = "...", name = "..." }`
+| empty
+|===
+
+The third row is intentional: the `[versions]` table remains independently useful
+even when libraries are versionless, since users may reference versions in build
+scripts (`libs.versions.spring.boot.get()`) or pin Gradle plugins
+(`id("org.springframework.boot") version libs.versions.spring.boot`).
+
+==== Behaviour notes
+
+- *BOM entries always keep their version.* When `generateBomEntry = true` (or
+  `generateBomEntryForNestedBoms = true`), the BOM library entry is emitted with its
+  version regardless of `generateLibraryVersions`. The whole point of the flag is to
+  enable `platform(libs.<bom>)`, and that requires a versioned BOM entry.
+- *Extras keep their versions.* Dependencies declared via `withDep`, `withDeps`, or
+  `withDepsFromToml` are not covered by the BOM platform, so they always retain the
+  version supplied at declaration time. See
+  xref:_including_additional_dependencies_in_the_generated_catalog[Including
+  Additional Dependencies in the Generated Catalog].
+- *Existing catalog entries are passed through unchanged.* When appending to an
+  existing catalog (`create("libs") { from(files(...)) }` followed by
+  `generate("libs") { ... }`), pre-existing entries from the source TOML are copied
+  verbatim and are not affected by `generateLibraryVersions`. See
+  xref:_appending_to_an_existing_catalog[Appending to an Existing Catalog].
+- *Bundle predicates see versionless libs too.* Versionless entries are still passed
+  to `bundle { ... }` predicates, with `GeneratedLibrary.version == ""` and
+  `GeneratedLibrary.versionRef == null`. Predicates that need to opt out can guard on
+  `it.version.isNotBlank()`.
