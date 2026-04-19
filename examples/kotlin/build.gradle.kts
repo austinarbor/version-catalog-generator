@@ -18,4 +18,10 @@ dependencies {
   testImplementation(mockitoLibs.mockito.junit.jupiter)
   testImplementation(junitLibs.junitJupiter)
   testImplementation(junitLibs.junitJupiterParams)
+  // Versionless catalog: import the BOM as a Gradle platform, and the versionless
+  // aliases below pick up their versions from it.
+  testImplementation(platform(versionlessLibs.junitBom))
+  testImplementation(versionlessLibs.junitJupiter)
+  testImplementation(versionlessLibs.junitJupiterApi)
+  testImplementation(versionlessLibs.junitJupiterEngine)
 }

@@ -96,5 +96,19 @@ dependencyResolutionManagement {
         }
       }
     }
+    // Versionless catalog paired with `platform(...)` consumption: the BOM entry keeps
+    // its version so Gradle can resolve the platform constraint, while every non-BOM
+    // alias is emitted without a version and inherits one from the imported platform.
+    generator.generate("versionlessLibs") {
+      it.saveGeneratedCatalog = true
+      it.from { from ->
+        from.dependency("org.junit:junit-bom:5.11.4")
+        from.using { u ->
+          u.aliasPrefixGenerator = NO_PREFIX
+          u.generateBomEntry = true
+          u.generateLibraryVersions = false
+        }
+      }
+    }
   }
 }
