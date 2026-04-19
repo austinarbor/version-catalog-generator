@@ -1,0 +1,74 @@
+[versions]
+generator = "3.2.2"
+activemq = "5.18.2"
+assertj = "3.24.2"
+brave = "5.15.1"
+caffeine = "3.1.6"
+dropwizardMetrics = "4.2.19"
+jacksonBom = "2.15.2"
+springBoot = "3.5.5"
+
+[libraries]
+activemq-activemqBroker = { group = "org.apache.activemq", name = "activemq-broker" }
+activemq-activemqClient = { group = "org.apache.activemq", name = "activemq-client" }
+activemq-activemqJdbcStore = { group = "org.apache.activemq", name = "activemq-jdbc-store" }
+activemq-activemqSpring = { group = "org.apache.activemq", name = "activemq-spring" }
+assertj-assertjBom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
+assertj-assertjCore = { group = "org.assertj", name = "assertj-core" }
+assertj-assertjGuava = { group = "org.assertj", name = "assertj-guava" }
+awssdk-bom = { group = "software.amazon.awssdk", name = "bom", version = "2.21.21" }
+awssdk-sdkCore = { group = "software.amazon.awssdk", name = "sdk-core" }
+awssdk-s3 = { group = "software.amazon.awssdk", name = "s3" }
+awssdk-sqs = { group = "software.amazon.awssdk", name = "sqs" }
+awssdk-sts = { group = "software.amazon.awssdk", name = "sts" }
+spring-springBoot = { group = "org.springframework.boot", name = "spring-boot" }
+spring-springBootDevtools = { group = "org.springframework.boot", name = "spring-boot-devtools" }
+spring-springBootStarterActuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator" }
+spring-springBootStarterAop = { group = "org.springframework.boot", name = "spring-boot-starter-aop" }
+spring-springBootStarterJdbc = { group = "org.springframework.boot", name = "spring-boot-starter-jdbc" }
+spring-springBootStarterWeb = { group = "org.springframework.boot", name = "spring-boot-starter-web" }
+zipkin-braveBom = { group = "io.zipkin.brave", name = "brave-bom", version.ref = "brave" }
+zipkin-brave = { group = "io.zipkin.brave", name = "brave" }
+zipkin-braveTests = { group = "io.zipkin.brave", name = "brave-tests" }
+zipkin-braveSpringBeans = { group = "io.zipkin.brave", name = "brave-spring-beans" }
+caffeine-caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine" }
+caffeine-guava = { group = "com.github.ben-manes.caffeine", name = "guava" }
+caffeine-jcache = { group = "com.github.ben-manes.caffeine", name = "jcache" }
+jackson-jacksonBom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jacksonBom" }
+jackson-jacksonAnnotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations" }
+jackson-jacksonCore = { group = "com.fasterxml.jackson.core", name = "jackson-core" }
+jackson-jacksonDatabind = { group = "com.fasterxml.jackson.core", name = "jackson-databind" }
+jackson-jacksonDataformatAvro = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-avro" }
+jackson-jacksonDatatypeJdk8 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jdk8" }
+jackson-jacksonDatatypeJsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310" }
+jackson-jacksonJaxrsBase = { group = "com.fasterxml.jackson.jaxrs", name = "jackson-jaxrs-base" }
+jackson-jacksonJakartaRsBase = { group = "com.fasterxml.jackson.jakarta.rs", name = "jackson-jakarta-rs-base" }
+jackson-jacksonJrAll = { group = "com.fasterxml.jackson.jr", name = "jackson-jr-all" }
+jackson-jacksonModuleBlackbird = { group = "com.fasterxml.jackson.module", name = "jackson-module-blackbird" }
+jackson-jacksonModuleKotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin" }
+jackson-jacksonModuleScala211 = { group = "com.fasterxml.jackson.module", name = "jackson-module-scala_2.11" }
+dropwizard-metricsBom = { group = "io.dropwizard.metrics", name = "metrics-bom", version.ref = "dropwizardMetrics" }
+dropwizard-metricsAnnotation = { group = "io.dropwizard.metrics", name = "metrics-annotation" }
+dropwizard-metricsCaffeine = { group = "io.dropwizard.metrics", name = "metrics-caffeine" }
+dropwizard-metricsCaffeine3 = { group = "io.dropwizard.metrics", name = "metrics-caffeine3" }
+dropwizard-metricsCore = { group = "io.dropwizard.metrics", name = "metrics-core" }
+zipkin-zipkinReporterBom = { group = "io.zipkin.reporter2", name = "zipkin-reporter-bom", version = "2.16.3" }
+zipkin-zipkin = { group = "io.zipkin.zipkin2", name = "zipkin" }
+zipkin-zipkinProto3 = { group = "io.zipkin.proto3", name = "zipkin-proto3" }
+zipkin-zipkinReporter = { group = "io.zipkin.reporter2", name = "zipkin-reporter" }
+zipkin-zipkinReporterBrave = { group = "io.zipkin.reporter2", name = "zipkin-reporter-brave" }
+sqlite-jdbc = { group = "dev.aga.sqlite", name = "sqlite-jdbc", version = "3.50.3.0" }
+version-catalog-generator = { group = "dev.aga.gradle.version-catalog-generator", name = "dev.aga.gradle.version-catalog-generator.gradle.plugin", version.ref = "generator" }
+commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version = { strictly = "[3.8, 4.0[", prefer = "3.9" } }
+
+[bundles]
+existing = ["sqlite-jdbc", "version-catalog-generator"]
+generator = ["version-catalog-generator"]
+assertj = ["assertj-assertjBom"]
+brave = ["zipkin-braveBom"]
+dropwizardMetrics = ["dropwizard-metricsBom"]
+jacksonBom = ["jackson-jacksonBom"]
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version = "9.1.0" }
+springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }

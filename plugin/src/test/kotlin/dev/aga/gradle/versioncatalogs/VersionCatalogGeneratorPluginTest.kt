@@ -7,6 +7,8 @@ import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.tomlj.Toml
+import org.tomlj.TomlTable
 
 class VersionCatalogGeneratorPluginTest {
   @field:TempDir lateinit var projectDir: File
@@ -478,27 +480,42 @@ class VersionCatalogGeneratorPluginTest {
         Paths.get("build", "version-catalogs", "versionlessLibs.versions.toml").toString()
       )
     assertThat(generatedCatalog).exists()
-    val toml = generatedCatalog.readText()
-    assertThat(toml)
-      .`as`("BOM entry must keep its version so platform(...) consumers can resolve it")
-      .containsPattern("(?s)\\[libraries\\.junitBom](?:\\s|.)*?version\\s*=\\s*\"5\\.11\\.4\"")
-    assertThat(toml)
-      .`as`("Non-BOM libraries must be emitted without any version field")
-      .containsPattern("(?s)\\[libraries\\.junitJupiter](?:[^\\[])*?\\[libraries")
-      .containsPattern("(?s)\\[libraries\\.junitJupiterApi](?:[^\\[])*?\\[libraries")
-      .containsPattern("(?s)\\[libraries\\.junitJupiterEngine](?:[^\\[])*?\\[libraries")
-    val nonBomBlocks =
-      Regex("\\[libraries\\.junit(?:Jupiter|Platform|Vintage)[A-Za-z]*]([^\\[]*)")
-        .findAll(toml)
-        .map { it.groupValues[1] }
-        .toList()
-    assertThat(nonBomBlocks).`as`("Found non-BOM library blocks to inspect").isNotEmpty
-    nonBomBlocks.forEach { block ->
-      assertThat(block)
-        .`as`("non-BOM library block must not contain a version key: %s", block)
-        .doesNotContain("version")
+    val parsed = Toml.parse(generatedCatalog.toPath())
+    assertThat(parsed.hasErrors()).`as`("Generated TOML must be valid: %s", parsed.errors()).isFalse
+    val libraries = parsed.getTableOrEmpty("libraries")
+
+    val bomEntry = libraries.getTable("junitBom")
+    assertThat(bomEntry)
+      .`as`("BOM entry must be present so platform(...) consumers can resolve versions")
+      .isNotNull
+    assertThat(bomEntry!!.getString("group")).isEqualTo("org.junit")
+    assertThat(bomEntry.getString("name")).isEqualTo("junit-bom")
+    assertThat(bomEntry.getString("version"))
+      .`as`("BOM entry must keep its concrete version")
+      .isEqualTo("5.11.4")
+
+    val nonBomAliases = listOf("junitJupiter", "junitJupiterApi", "junitJupiterEngine")
+    nonBomAliases.forEach { alias ->
+      val entry = libraries.getTable(alias)
+      assertThat(entry).`as`("non-BOM library %s must be present", alias).isNotNull
+      assertThat(entry!!.keySet())
+        .`as`("non-BOM library %s must not declare any version field", alias)
+        .containsExactlyInAnyOrder("group", "name")
     }
+
+    val unexpectedVersionedNonBom =
+      libraries.keySet().filter { alias ->
+        if (alias == "junitBom") return@filter false
+        val entry = libraries.getTable(alias) ?: return@filter false
+        entry.hasVersionField()
+      }
+    assertThat(unexpectedVersionedNonBom)
+      .`as`("No non-BOM library may declare a version field")
+      .isEmpty()
   }
+
+  private fun TomlTable.hasVersionField(): Boolean =
+    contains("version") || contains("version.ref") || contains("version.require")
 
   companion object {
     private fun getResourceAsText(name: String): String {

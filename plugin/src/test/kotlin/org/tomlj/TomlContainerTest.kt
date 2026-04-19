@@ -150,13 +150,40 @@ class TomlContainerTest {
   fun `versionless library renders without a version field in toToml output`() {
     val container = TomlContainer()
     container.addLibrary("starter-web", "org.springframework.boot", "spring-boot-starter-web")
+    container.addLibrary("inline", "com.example", "inline-versioned", "1.2.3", false)
+    container.addVersion("springBoot", "3.4.0")
+    container.addLibrary(
+      "spring-boot-dependencies",
+      "org.springframework.boot",
+      "spring-boot-dependencies",
+      "springBoot",
+      true,
+    )
 
-    val toml = container.toToml()
-    assertThat(toml).contains("\"org.springframework.boot\"")
-    assertThat(toml).contains("\"spring-boot-starter-web\"")
-    // no `version =` attribute and no `version.ref` should be emitted for this entry
-    assertThat(toml).doesNotContain("version =")
-    assertThat(toml).doesNotContain("version.ref")
+    val parsed = Toml.parse(container.toToml())
+    assertThat(parsed.hasErrors())
+      .`as`("Generated TOML must parse cleanly: %s", parsed.errors())
+      .isFalse
+
+    val libraries = parsed.getTableOrEmpty("libraries")
+
+    val versionless = libraries.getTable("starter-web")
+    assertThat(versionless).`as`("versionless library must be present").isNotNull
+    assertThat(versionless!!.keySet())
+      .`as`("versionless library must declare only group and name")
+      .containsExactlyInAnyOrder("group", "name")
+    assertThat(versionless.getString("group")).isEqualTo("org.springframework.boot")
+    assertThat(versionless.getString("name")).isEqualTo("spring-boot-starter-web")
+
+    val inline = libraries.getTable("inline")
+    assertThat(inline!!.getString("version"))
+      .`as`("sibling inline-versioned library is unaffected by versionless rendering")
+      .isEqualTo("1.2.3")
+
+    val versionRef = libraries.getTable("spring-boot-dependencies")
+    assertThat(versionRef!!.getString("version.ref"))
+      .`as`("sibling version-ref library is unaffected by versionless rendering")
+      .isEqualTo("springBoot")
   }
 
   private fun createVersion(

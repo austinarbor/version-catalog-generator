@@ -86,7 +86,7 @@ generator.generate("libs") {
     the `fromToml(name) { uc }` overload (varargs + trailing lambda), so use the
     verbose `from { from -> from.toml { ... }; from.using { ... } }` form instead.
 
-==== Generated catalog shape
+==== Generated Catalog Shape
 
 Given the configuration above (Spring Boot, `generateBomEntry = true`,
 `generateLibraryVersions = false`), the generated TOML looks like this:
@@ -105,7 +105,7 @@ spring-springBootStarterWeb   = { group = "org.springframework.boot", name = "sp
 spring-springBootStarterJdbc  = { group = "org.springframework.boot", name = "spring-boot-starter-jdbc" }
 ----
 
-==== Consuming the versionless catalog
+==== Consuming the Versionless Catalog
 
 In the consumer build, import the BOM as a `platform(...)` and use the versionless
 aliases as you would any catalog entry — Gradle supplies the version from the
@@ -135,7 +135,7 @@ dependencies {
 <1> The BOM constraint that pins versions for everything it manages.
 <2> Versionless catalog entries; the platform supplies the version at resolution time.
 
-==== Behaviour matrix
+==== Behavior Matrix
 
 `generateLibraryVersions` is fully orthogonal to `generateVersionRefs`. The two flags
 combine cleanly:
@@ -170,7 +170,7 @@ even when libraries are versionless, since users may reference versions in build
 scripts (`libs.versions.spring.boot.get()`) or pin Gradle plugins
 (`id("org.springframework.boot") version libs.versions.spring.boot`).
 
-==== Behaviour notes
+==== Behavior Notes
 
 - *BOM entries always keep their version.* When `generateBomEntry = true` (or
   `generateBomEntryForNestedBoms = true`), the BOM library entry is emitted with its
