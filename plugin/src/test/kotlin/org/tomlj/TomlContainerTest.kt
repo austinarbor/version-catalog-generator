@@ -88,6 +88,104 @@ class TomlContainerTest {
       .containsExactlyInAnyOrder("a", "a-b", "a-b-c", "b.c", "d.e.f")
   }
 
+  @Test
+  fun `versionless addLibrary writes only group and name`() {
+    val container = TomlContainer()
+    container.addLibrary("starter-web", "org.springframework.boot", "spring-boot-starter-web")
+
+    val lib = container.getLibrary("starter-web")
+    assertThat(lib.getString("group")).isEqualTo("org.springframework.boot")
+    assertThat(lib.getString("name")).isEqualTo("spring-boot-starter-web")
+    assertThat(lib.contains("version")).isFalse()
+  }
+
+  @Test
+  fun `iterator yields versionless library with empty version and null versionRef`() {
+    val container = TomlContainer()
+    container.addLibrary("starter-web", "org.springframework.boot", "spring-boot-starter-web")
+
+    val libs = container.toList()
+    assertThat(libs).hasSize(1)
+    val lib = libs.first()
+    assertThat(lib.alias).isEqualTo("starter-web")
+    assertThat(lib.group).isEqualTo("org.springframework.boot")
+    assertThat(lib.name).isEqualTo("spring-boot-starter-web")
+    assertThat(lib.version).isEmpty()
+    assertThat(lib.versionRef).isNull()
+  }
+
+  @Test
+  fun `iterator yields mixed versionless and versioned libraries`() {
+    val container = TomlContainer()
+    container.addVersion("springBoot", "3.4.0")
+    container.addLibrary(
+      "spring-boot-dependencies",
+      "org.springframework.boot",
+      "spring-boot-dependencies",
+      "springBoot",
+      true,
+    )
+    container.addLibrary("starter-web", "org.springframework.boot", "spring-boot-starter-web")
+    container.addLibrary("inline", "com.example", "inline-versioned", "1.2.3", false)
+
+    val byAlias = container.associateBy { it.alias }
+    assertThat(byAlias.keys)
+      .containsExactlyInAnyOrder("spring-boot-dependencies", "starter-web", "inline")
+
+    with(byAlias.getValue("spring-boot-dependencies")) {
+      assertThat(version).isEqualTo("3.4.0")
+      assertThat(versionRef).isEqualTo("springBoot")
+    }
+    with(byAlias.getValue("starter-web")) {
+      assertThat(version).isEmpty()
+      assertThat(versionRef).isNull()
+    }
+    with(byAlias.getValue("inline")) {
+      assertThat(version).isEqualTo("1.2.3")
+      assertThat(versionRef).isNull()
+    }
+  }
+
+  @Test
+  fun `versionless library renders without a version field in toToml output`() {
+    val container = TomlContainer()
+    container.addLibrary("starter-web", "org.springframework.boot", "spring-boot-starter-web")
+    container.addLibrary("inline", "com.example", "inline-versioned", "1.2.3", false)
+    container.addVersion("springBoot", "3.4.0")
+    container.addLibrary(
+      "spring-boot-dependencies",
+      "org.springframework.boot",
+      "spring-boot-dependencies",
+      "springBoot",
+      true,
+    )
+
+    val parsed = Toml.parse(container.toToml())
+    assertThat(parsed.hasErrors())
+      .`as`("Generated TOML must parse cleanly: %s", parsed.errors())
+      .isFalse
+
+    val libraries = parsed.getTableOrEmpty("libraries")
+
+    val versionless = libraries.getTable("starter-web")
+    assertThat(versionless).`as`("versionless library must be present").isNotNull
+    assertThat(versionless!!.keySet())
+      .`as`("versionless library must declare only group and name")
+      .containsExactlyInAnyOrder("group", "name")
+    assertThat(versionless.getString("group")).isEqualTo("org.springframework.boot")
+    assertThat(versionless.getString("name")).isEqualTo("spring-boot-starter-web")
+
+    val inline = libraries.getTable("inline")
+    assertThat(inline!!.getString("version"))
+      .`as`("sibling inline-versioned library is unaffected by versionless rendering")
+      .isEqualTo("1.2.3")
+
+    val versionRef = libraries.getTable("spring-boot-dependencies")
+    assertThat(versionRef!!.getString("version.ref"))
+      .`as`("sibling version-ref library is unaffected by versionless rendering")
+      .isEqualTo("springBoot")
+  }
+
   private fun createVersion(
     preferred: String,
     strict: String,

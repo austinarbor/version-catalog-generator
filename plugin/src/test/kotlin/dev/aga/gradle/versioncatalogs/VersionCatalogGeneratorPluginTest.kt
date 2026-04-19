@@ -7,6 +7,8 @@ import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.tomlj.Toml
+import org.tomlj.TomlTable
 
 class VersionCatalogGeneratorPluginTest {
   @field:TempDir lateinit var projectDir: File
@@ -393,6 +395,127 @@ class VersionCatalogGeneratorPluginTest {
 
     assertThat(result.output).contains("BUILD SUCCESSFUL")
   }
+
+  @Test
+  fun `versionless catalog with platform usage succeeds`() {
+    settingsFile.writeText(
+      """
+            import dev.aga.gradle.versioncatalogs.Generator.generate
+            import dev.aga.gradle.versioncatalogs.GeneratorConfig
+
+            buildscript {
+              dependencies {
+                classpath(files($classpathString))
+              }
+            }
+            plugins {
+                id("dev.aga.gradle.version-catalog-generator")
+            }
+            dependencyResolutionManagement {
+              repositories {
+                mavenCentral()
+              }
+              versionCatalogs {
+                generate("versionlessLibs") {
+                  saveGeneratedCatalog = true
+                  from("org.junit:junit-bom:5.11.4") {
+                    aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+                    generateLibraryVersions = false
+                    generateBomEntry = true
+                  }
+                }
+              }
+            }
+        """
+        .trimIndent()
+    )
+    buildFile.writeText(
+      """
+      plugins {
+        java
+      }
+      dependencies {
+        testImplementation(platform(versionlessLibs.junitBom))
+        testImplementation(versionlessLibs.junitJupiter)
+        testImplementation(versionlessLibs.junitJupiterApi)
+        testImplementation(versionlessLibs.junitJupiterEngine)
+      }
+
+      tasks.register("resolveTestRuntime") {
+        val files = configurations["testRuntimeClasspath"].incoming.files
+        doLast {
+          val names = files.map { it.name }
+          require(names.any { it.startsWith("junit-jupiter-5.11.4") }) {
+            "Expected junit-jupiter-5.11.4 to be resolved via platform but got: " + names
+          }
+          require(names.any { it.startsWith("junit-jupiter-api-5.11.4") }) {
+            "Expected junit-jupiter-api-5.11.4 to be resolved via platform but got: " + names
+          }
+          require(names.any { it.startsWith("junit-jupiter-engine-5.11.4") }) {
+            "Expected junit-jupiter-engine-5.11.4 to be resolved via platform but got: " + names
+          }
+          println("Resolved versionless deps: " + names.filter { it.startsWith("junit-") })
+        }
+      }
+      """
+        .trimIndent()
+    )
+
+    val runner =
+      GradleRunner.create()
+        .forwardOutput()
+        .withPluginClasspath()
+        .withArguments("--stacktrace", "assemble", "resolveTestRuntime")
+        .withProjectDir(projectDir)
+
+    val result = runner.build()
+
+    assertThat(result.output).contains("BUILD SUCCESSFUL")
+    assertThat(result.output)
+      .`as`("Versionless aliases must resolve their version through the BOM platform")
+      .contains("Resolved versionless deps")
+
+    val generatedCatalog =
+      projectDir.resolve(
+        Paths.get("build", "version-catalogs", "versionlessLibs.versions.toml").toString()
+      )
+    assertThat(generatedCatalog).exists()
+    val parsed = Toml.parse(generatedCatalog.toPath())
+    assertThat(parsed.hasErrors()).`as`("Generated TOML must be valid: %s", parsed.errors()).isFalse
+    val libraries = parsed.getTableOrEmpty("libraries")
+
+    val bomEntry = libraries.getTable("junitBom")
+    assertThat(bomEntry)
+      .`as`("BOM entry must be present so platform(...) consumers can resolve versions")
+      .isNotNull
+    assertThat(bomEntry!!.getString("group")).isEqualTo("org.junit")
+    assertThat(bomEntry.getString("name")).isEqualTo("junit-bom")
+    assertThat(bomEntry.getString("version"))
+      .`as`("BOM entry must keep its concrete version")
+      .isEqualTo("5.11.4")
+
+    val nonBomAliases = listOf("junitJupiter", "junitJupiterApi", "junitJupiterEngine")
+    nonBomAliases.forEach { alias ->
+      val entry = libraries.getTable(alias)
+      assertThat(entry).`as`("non-BOM library %s must be present", alias).isNotNull
+      assertThat(entry!!.keySet())
+        .`as`("non-BOM library %s must not declare any version field", alias)
+        .containsExactlyInAnyOrder("group", "name")
+    }
+
+    val unexpectedVersionedNonBom =
+      libraries.keySet().filter { alias ->
+        if (alias == "junitBom") return@filter false
+        val entry = libraries.getTable(alias) ?: return@filter false
+        entry.hasVersionField()
+      }
+    assertThat(unexpectedVersionedNonBom)
+      .`as`("No non-BOM library may declare a version field")
+      .isEmpty()
+  }
+
+  private fun TomlTable.hasVersionField(): Boolean =
+    contains("version") || contains("version.ref") || contains("version.require")
 
   companion object {
     private fun getResourceAsText(name: String): String {

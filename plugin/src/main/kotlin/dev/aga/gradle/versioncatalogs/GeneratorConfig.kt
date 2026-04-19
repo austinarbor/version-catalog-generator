@@ -60,6 +60,7 @@ class GeneratorConfig(val settings: Settings) {
         versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
         generateBomEntry = false
         generateVersionRefs = true
+        generateLibraryVersions = true
         propertyOverrides = emptyMap()
         excludeGroups = ""
         excludeNames = ""
@@ -420,6 +421,28 @@ class GeneratorConfig(val settings: Settings) {
       }
 
     /**
+     * Whether to emit a `version` (or `version.ref`) on generated library entries. When `true` (the
+     * default), libraries carry a version as before. When `false`, libraries are emitted as `{
+     * group = "...", name = "..." }` with no version field, suitable for use when the consumer
+     * imports the same BOM as a Gradle `platform(...)` and so versions are managed by the platform.
+     *
+     * The BOM library entry itself (controlled by [generateBomEntry] and
+     * [generateBomEntryForNestedBoms]) is **not** affected by this flag — it always retains its
+     * version so that `platform(libs.<bom>)` works at the consumer.
+     *
+     * Extra dependencies declared via [withDep], [withDeps], or [withDepsFromToml] are also
+     * unaffected — their versions are taken from the user-supplied notation.
+     *
+     * This flag is independent of [generateVersionRefs]: when this is `false` and
+     * [generateVersionRefs] is `true`, the `[versions]` table is still populated even though no
+     * library references it (useful for manually pinning Gradle plugins, etc.).
+     */
+    var generateLibraryVersions: Boolean? = null
+      set(value) {
+        field = requireNotNull(value) { "generateLibraryVersions cannot be set to null" }
+      }
+
+    /**
      * Override property values that are set in the root BOM you are generating a catalog for. For
      * example if the BOM has the property `jackson-bom.version` with the value `2.15.3` but you'd
      * rather use `2.16.1`, you can pass in values to override the BOM.
@@ -547,6 +570,12 @@ class GeneratorConfig(val settings: Settings) {
           generateVersionRefs =
             when (val bool = primary.generateVersionRefs) {
               null -> fallback.generateVersionRefs
+              else -> bool
+            }
+
+          generateLibraryVersions =
+            when (val bool = primary.generateLibraryVersions) {
+              null -> fallback.generateLibraryVersions
               else -> bool
             }
 

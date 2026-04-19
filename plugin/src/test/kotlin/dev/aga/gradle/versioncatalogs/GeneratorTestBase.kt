@@ -229,9 +229,13 @@ internal abstract class GeneratorTestBase {
         assertThat(generatedLibraries).containsKey(alias)
         verify(builder).library(alias, group, name)
         val mock = generatedLibraries[alias]!!
-        properties
-          .filterNot { it in usedProps }
-          .forEach { prop ->
+        val remainingProps = properties.filterNot { it in usedProps }
+        if (remainingProps.isEmpty()) {
+          // Versionless library: must have explicitly opted out so Gradle's catalog
+          // parser does not reject the alias as "not finished".
+          verify(mock).withoutVersion()
+        } else {
+          remainingProps.forEach { prop ->
             when {
               prop.endsWith(".ref") -> {
                 val ref = libraries.getString(prop)!!
@@ -250,6 +254,7 @@ internal abstract class GeneratorTestBase {
               else -> throw RuntimeException("Unexpected property: ${prop}")
             }
           }
+        }
       }
     verify(builder, times(libraries.size())).library(any<String>(), any<String>(), any<String>())
   }

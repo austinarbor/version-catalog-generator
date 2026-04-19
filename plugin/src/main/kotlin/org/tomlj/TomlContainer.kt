@@ -32,6 +32,18 @@ class TomlContainer : Iterable<GeneratedLibrary> {
     addLibrary(alias, group, name, createVersion(version))
   }
 
+  /**
+   * Add a library entry with no version. The resulting TOML entry will only contain `group` and
+   * `name`, suitable for use when the version is supplied externally (e.g. by a Gradle
+   * `platform(...)` constraint imported from the same BOM).
+   */
+  fun addLibrary(alias: String, group: String, name: String) {
+    val lib = MutableTomlTable(TomlVersion.LATEST)
+    lib.set("group", group)
+    lib.set("name", name)
+    libraries.set(alias, lib)
+  }
+
   private fun addLibrary(alias: String, group: String, name: String, version: Any) {
     val lib = MutableTomlTable(TomlVersion.LATEST)
     lib.set("group", group)
@@ -130,7 +142,6 @@ class TomlContainer : Iterable<GeneratedLibrary> {
         .dottedKeySet(true)
         .asSequence()
         .filter { !it.endsWith(".version") && libraries.isTable(it) }
-        .filter { libraries.getTable(it)?.contains("version") == true }
         .iterator()
     }
 
@@ -141,6 +152,7 @@ class TomlContainer : Iterable<GeneratedLibrary> {
       val lib = libraries.getTable(key)!!
       val (version, isRef) =
         when (val v = lib.get("version")) {
+          null -> "" to false
           is String -> v to false
           is TomlTable ->
             when {
