@@ -150,14 +150,28 @@ object Generator {
         // equality
         val rootDep = rootDeps.any { it.second == dep }
         if (rootDep && using.generateBomEntry == true) {
-          createLibrary(dep, Version(dep.version, dep.version, dep.version), using, true, container)
+          createLibrary(
+            dep,
+            Version(dep.version, dep.version, dep.version),
+            using,
+            true,
+            container,
+            keepVersion = true,
+          )
         }
         val (model, parentModel) = resolver.resolve(dep)
         loadBom(model, parentModel, using, queue, seenModules, rootDep, container)
       }
 
       extraDependencies.forEach { (using, dep) ->
-        createLibrary(dep, Version(dep.version, dep.version, dep.version), using, false, container)
+        createLibrary(
+          dep,
+          Version(dep.version, dep.version, dep.version),
+          using,
+          false,
+          container,
+          keepVersion = true,
+        )
       }
 
       createBundles(container, config)
@@ -356,7 +370,7 @@ object Generator {
           if (rootDep && using.generateVersionRefs == true) {
             maybeRegisterVersion(version, using.versionNameGenerator, registeredVersions, container)
           }
-          createLibrary(bom, version, using, rootDep, container)
+          createLibrary(bom, version, using, rootDep, container, keepVersion = true)
         }
         // if the version is a property, replace it with the
         // actual version value
@@ -401,14 +415,23 @@ object Generator {
   /**
    * Create a library from the given information. If the [version] exists as a key in properties
    * then the library will be created with a versionRef to it. Otherwise, the version will be set
-   * directly on the library
+   * directly on the library.
+   *
+   * When [GeneratorConfig.UsingConfig.generateLibraryVersions] is `false` and [keepVersion] is
+   * `false`, the library is emitted without any `version` field, suitable for use when the consumer
+   * imports the same BOM as a Gradle `platform(...)` constraint. BOM-entry and user-supplied extra
+   * dependency call sites pass `keepVersion = true` so they retain their version regardless of the
+   * flag.
    *
    * @param dep the dependency
    * @param version the version of the dependency, may be a property of actual version
    * @param using the [GeneratorConfig.UsingConfig]
    * @param rootDep true if this is the very first BOM in the tree, otherwise false
    * @param container the container for the TOML file we are generating
-   * @return the library's alias and true if the version was a reference, or false if it was not
+   * @param keepVersion if true, the library always retains its version even when
+   *   [GeneratorConfig.UsingConfig.generateLibraryVersions] is `false`. Used for BOM library
+   *   entries (so `platform(libs.<bom>)` works) and user-supplied extras.
+   * @return the library's alias
    */
   internal fun VersionCatalogBuilder.createLibrary(
     dep: Dependency,
@@ -416,24 +439,36 @@ object Generator {
     using: GeneratorConfig.UsingConfig,
     rootDep: Boolean,
     container: TomlContainer,
+    keepVersion: Boolean = false,
   ): String {
     val alias = using.libraryAliasGenerator(dep.groupId, dep.artifactId)
     checkAlias(alias, using, container, dep, version)
 
     val library = library(alias, dep.groupId, dep.artifactId)
-    // only register version aliases if we are in the top-level BOM
-    if (rootDep && version.isRef && using.generateVersionRefs == true) {
-      val versionAlias = using.versionNameGenerator(version.unwrapped)
-      library.versionRef(versionAlias)
-      container.addLibrary(alias, dep.groupId, dep.artifactId, versionAlias, true)
-    } else {
-      val value =
-        when {
-          version.isRef -> version.resolvedValue
-          else -> version.value
-        }
-      library.version(value)
-      container.addLibrary(alias, dep.groupId, dep.artifactId, value, false)
+    val skipVersion = using.generateLibraryVersions == false && !keepVersion
+    when {
+      skipVersion -> {
+        // Gradle's catalog parser requires every alias to either declare a version or
+        // explicitly opt out via withoutVersion(); not calling either fails build with
+        // "alias '<name>' was not finished".
+        library.withoutVersion()
+        container.addLibrary(alias, dep.groupId, dep.artifactId)
+      }
+      // only register version aliases if we are in the top-level BOM
+      rootDep && version.isRef && using.generateVersionRefs == true -> {
+        val versionAlias = using.versionNameGenerator(version.unwrapped)
+        library.versionRef(versionAlias)
+        container.addLibrary(alias, dep.groupId, dep.artifactId, versionAlias, true)
+      }
+      else -> {
+        val value =
+          when {
+            version.isRef -> version.resolvedValue
+            else -> version.value
+          }
+        library.version(value)
+        container.addLibrary(alias, dep.groupId, dep.artifactId, value, false)
+      }
     }
     return alias
   }

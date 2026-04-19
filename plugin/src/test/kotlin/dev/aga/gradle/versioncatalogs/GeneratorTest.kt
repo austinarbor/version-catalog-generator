@@ -77,6 +77,88 @@ internal class GeneratorTest : GeneratorTestBase() {
   }
 
   @Test
+  fun `versionless libraries`() {
+    val config =
+      GeneratorConfig(settings).apply {
+        saveDirectory = projectDir
+        saveGeneratedCatalog = true
+        from("org.springframework.boot:spring-boot-dependencies:3.1.2") {
+          generateLibraryVersions = false
+        }
+        bundle { it.versionRef }
+      }
+    val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+    container.generate("myLibs", config, resolver)
+    val expected =
+      Paths.get("expectations", "spring-boot-dependencies", "no-library-versions.versions.toml")
+    verifyGeneratedCatalog(config, "myLibs", expected, false)
+  }
+
+  @Test
+  fun `versionless libraries with BOM entry`() {
+    val config =
+      GeneratorConfig(settings).apply {
+        saveDirectory = projectDir
+        saveGeneratedCatalog = true
+        from("org.springframework.boot:spring-boot-dependencies:3.1.2") {
+          generateLibraryVersions = false
+          generateBomEntry = true
+        }
+        bundle { it.versionRef }
+      }
+    val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+    container.generate("myLibs", config, resolver)
+    val expected =
+      Paths.get(
+        "expectations",
+        "spring-boot-dependencies",
+        "no-library-versions-with-bom.versions.toml",
+      )
+    verifyGeneratedCatalog(config, "myLibs", expected, false)
+  }
+
+  @Test
+  fun `versionless libraries without version refs`() {
+    val config =
+      GeneratorConfig(settings).apply {
+        saveDirectory = projectDir
+        saveGeneratedCatalog = true
+        from("org.springframework.boot:spring-boot-dependencies:3.1.2") {
+          generateLibraryVersions = false
+          generateVersionRefs = false
+        }
+        bundle { it.versionRef }
+      }
+    val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+    container.generate("myLibs", config, resolver)
+    val expected =
+      Paths.get(
+        "expectations",
+        "spring-boot-dependencies",
+        "no-library-versions-no-version-refs.versions.toml",
+      )
+    verifyGeneratedCatalog(config, "myLibs", expected, false)
+  }
+
+  @Test
+  fun `versionless libraries do not strip versions from extras`() {
+    val config =
+      GeneratorConfig(settings).apply {
+        saveDirectory = projectDir
+        saveGeneratedCatalog = true
+        from("org.junit:junit-bom:5.11.4", "org.assertj:assertj-bom:3.25.3") {
+          aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+          generateLibraryVersions = false
+          withDep("org.mockito.kotlin", "mockito-kotlin", "6.1.0")
+        }
+      }
+    val resolver = MockGradleDependencyResolver(resourceRoot.resolve("poms"))
+    container.generate("testingLibs", config, resolver)
+    val expected = Paths.get("expectations", "additional-deps", "extras-versionless.versions.toml")
+    verifyGeneratedCatalog(config, "testingLibs", expected, false)
+  }
+
+  @Test
   fun `source config overrides generator config with filter`() {
     val config =
       GeneratorConfig(settings).apply {

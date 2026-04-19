@@ -394,6 +394,112 @@ class VersionCatalogGeneratorPluginTest {
     assertThat(result.output).contains("BUILD SUCCESSFUL")
   }
 
+  @Test
+  fun `versionless catalog with platform usage succeeds`() {
+    settingsFile.writeText(
+      """
+            import dev.aga.gradle.versioncatalogs.Generator.generate
+            import dev.aga.gradle.versioncatalogs.GeneratorConfig
+
+            buildscript {
+              dependencies {
+                classpath(files($classpathString))
+              }
+            }
+            plugins {
+                id("dev.aga.gradle.version-catalog-generator")
+            }
+            dependencyResolutionManagement {
+              repositories {
+                mavenCentral()
+              }
+              versionCatalogs {
+                generate("versionlessLibs") {
+                  saveGeneratedCatalog = true
+                  from("org.junit:junit-bom:5.11.4") {
+                    aliasPrefixGenerator = GeneratorConfig.NO_PREFIX
+                    generateLibraryVersions = false
+                    generateBomEntry = true
+                  }
+                }
+              }
+            }
+        """
+        .trimIndent()
+    )
+    buildFile.writeText(
+      """
+      plugins {
+        java
+      }
+      dependencies {
+        testImplementation(platform(versionlessLibs.junitBom))
+        testImplementation(versionlessLibs.junitJupiter)
+        testImplementation(versionlessLibs.junitJupiterApi)
+        testImplementation(versionlessLibs.junitJupiterEngine)
+      }
+
+      tasks.register("resolveTestRuntime") {
+        val files = configurations["testRuntimeClasspath"].incoming.files
+        doLast {
+          val names = files.map { it.name }
+          require(names.any { it.startsWith("junit-jupiter-5.11.4") }) {
+            "Expected junit-jupiter-5.11.4 to be resolved via platform but got: " + names
+          }
+          require(names.any { it.startsWith("junit-jupiter-api-5.11.4") }) {
+            "Expected junit-jupiter-api-5.11.4 to be resolved via platform but got: " + names
+          }
+          require(names.any { it.startsWith("junit-jupiter-engine-5.11.4") }) {
+            "Expected junit-jupiter-engine-5.11.4 to be resolved via platform but got: " + names
+          }
+          println("Resolved versionless deps: " + names.filter { it.startsWith("junit-") })
+        }
+      }
+      """
+        .trimIndent()
+    )
+
+    val runner =
+      GradleRunner.create()
+        .forwardOutput()
+        .withPluginClasspath()
+        .withArguments("--stacktrace", "assemble", "resolveTestRuntime")
+        .withProjectDir(projectDir)
+
+    val result = runner.build()
+
+    assertThat(result.output).contains("BUILD SUCCESSFUL")
+    assertThat(result.output)
+      .`as`("Versionless aliases must resolve their version through the BOM platform")
+      .contains("Resolved versionless deps")
+
+    val generatedCatalog =
+      projectDir.resolve(
+        Paths.get("build", "version-catalogs", "versionlessLibs.versions.toml").toString()
+      )
+    assertThat(generatedCatalog).exists()
+    val toml = generatedCatalog.readText()
+    assertThat(toml)
+      .`as`("BOM entry must keep its version so platform(...) consumers can resolve it")
+      .containsPattern("(?s)\\[libraries\\.junitBom](?:\\s|.)*?version\\s*=\\s*\"5\\.11\\.4\"")
+    assertThat(toml)
+      .`as`("Non-BOM libraries must be emitted without any version field")
+      .containsPattern("(?s)\\[libraries\\.junitJupiter](?:[^\\[])*?\\[libraries")
+      .containsPattern("(?s)\\[libraries\\.junitJupiterApi](?:[^\\[])*?\\[libraries")
+      .containsPattern("(?s)\\[libraries\\.junitJupiterEngine](?:[^\\[])*?\\[libraries")
+    val nonBomBlocks =
+      Regex("\\[libraries\\.junit(?:Jupiter|Platform|Vintage)[A-Za-z]*]([^\\[]*)")
+        .findAll(toml)
+        .map { it.groupValues[1] }
+        .toList()
+    assertThat(nonBomBlocks).`as`("Found non-BOM library blocks to inspect").isNotEmpty
+    nonBomBlocks.forEach { block ->
+      assertThat(block)
+        .`as`("non-BOM library block must not contain a version key: %s", block)
+        .doesNotContain("version")
+    }
+  }
+
   companion object {
     private fun getResourceAsText(name: String): String {
       return VersionCatalogGeneratorPluginTest::class.java.classLoader.getResource(name).readText()
