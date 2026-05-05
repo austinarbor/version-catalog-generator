@@ -5,6 +5,7 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
@@ -27,10 +28,7 @@ internal class DependencyHandler : org.gradle.api.artifacts.dsl.DependencyHandle
     TODO("Not yet implemented")
   }
 
-  override fun add(
-    configurationName: String,
-    dependencyNotation: Any,
-  ): org.gradle.api.artifacts.Dependency? {
+  override fun add(configurationName: String, dependencyNotation: Any): Dependency? {
     TODO("Not yet implemented")
   }
 
@@ -38,7 +36,7 @@ internal class DependencyHandler : org.gradle.api.artifacts.dsl.DependencyHandle
     configurationName: String,
     dependencyNotation: Any,
     configureClosure: Closure<*>,
-  ): org.gradle.api.artifacts.Dependency? {
+  ): Dependency? {
     TODO("Not yet implemented")
   }
 
@@ -73,26 +71,31 @@ internal class DependencyHandler : org.gradle.api.artifacts.dsl.DependencyHandle
     return mock<DefaultMinimalDependency>() { on { name } doReturn "unit-test" }
   }
 
-  override fun create(
-    dependencyNotation: Any,
-    configureClosure: Closure<*>,
-  ): org.gradle.api.artifacts.Dependency {
+  override fun create(dependencyNotation: Any, configureClosure: Closure<*>): Dependency {
     TODO("Not yet implemented")
   }
 
-  override fun project(notation: MutableMap<String, *>): org.gradle.api.artifacts.Dependency {
+  override fun project(notation: MutableMap<String, *>): Dependency {
     TODO("Not yet implemented")
   }
 
-  override fun gradleApi(): org.gradle.api.artifacts.Dependency {
+  override fun project(): ProjectDependency {
     TODO("Not yet implemented")
   }
 
-  override fun gradleTestKit(): org.gradle.api.artifacts.Dependency {
+  override fun project(projectPath: String): ProjectDependency {
     TODO("Not yet implemented")
   }
 
-  override fun localGroovy(): org.gradle.api.artifacts.Dependency {
+  override fun gradleApi(): Dependency {
+    TODO("Not yet implemented")
+  }
+
+  override fun gradleTestKit(): Dependency {
+    TODO("Not yet implemented")
+  }
+
+  override fun localGroovy(): Dependency {
     TODO("Not yet implemented")
   }
 
@@ -147,25 +150,19 @@ internal class DependencyHandler : org.gradle.api.artifacts.dsl.DependencyHandle
     TODO("Not yet implemented")
   }
 
-  override fun platform(notation: Any): org.gradle.api.artifacts.Dependency {
+  override fun platform(notation: Any): Dependency {
     TODO("Not yet implemented")
   }
 
-  override fun platform(
-    notation: Any,
-    configureAction: Action<in Dependency>,
-  ): org.gradle.api.artifacts.Dependency {
+  override fun platform(notation: Any, configureAction: Action<in Dependency>): Dependency {
     TODO("Not yet implemented")
   }
 
-  override fun enforcedPlatform(notation: Any): org.gradle.api.artifacts.Dependency {
+  override fun enforcedPlatform(notation: Any): Dependency {
     TODO("Not yet implemented")
   }
 
-  override fun enforcedPlatform(
-    notation: Any,
-    configureAction: Action<in Dependency>,
-  ): org.gradle.api.artifacts.Dependency {
+  override fun enforcedPlatform(notation: Any, configureAction: Action<in Dependency>): Dependency {
     TODO("Not yet implemented")
   }
 
@@ -175,14 +172,11 @@ internal class DependencyHandler : org.gradle.api.artifacts.dsl.DependencyHandle
     TODO("Not yet implemented")
   }
 
-  override fun testFixtures(notation: Any): org.gradle.api.artifacts.Dependency {
+  override fun testFixtures(notation: Any): Dependency {
     TODO("Not yet implemented")
   }
 
-  override fun testFixtures(
-    notation: Any,
-    configureAction: Action<in Dependency>,
-  ): org.gradle.api.artifacts.Dependency {
+  override fun testFixtures(notation: Any, configureAction: Action<in Dependency>): Dependency {
     TODO("Not yet implemented")
   }
 
