@@ -1,4 +1,3 @@
-import dev.aga.gradle.versioncatalogs.tasks.CreateTestKitFilesTask
 import io.gitlab.arturbosch.detekt.Detekt
 
 plugins {
@@ -30,7 +29,6 @@ dependencies {
   testImplementation(libs.bundles.testing)
   testImplementation(libs.bundles.mockito)
   testImplementation(gradleTestKit())
-  testRuntimeOnly(files(layout.buildDirectory.dir("testkit")))
   testRuntimeOnly(libs.junitPlatformLauncher)
   jacocoRuntime(variantOf(libs.jacoco.agent) { classifier("runtime") })
 
@@ -109,16 +107,6 @@ idea {
   }
 }
 
-// creates files in build/testkit that we use in
-// VersionCatalogGeneratorPluginTest to instrument
-// the Testkit runner with jacoco so we get test
-// coverage output
-val createTestkitFiles by
-  tasks.registering(CreateTestKitFilesTask::class) {
-    jacocoClasspath = jacocoRuntime.asPath
-    runtimeClasspath.from(sourceSets.main.get().runtimeClasspath)
-  }
-
 tasks {
   shadowJar { archiveClassifier = "" }
   withType<Detekt>().configureEach {
@@ -126,7 +114,7 @@ tasks {
     exclude("dev/aga/gradle/versioncatalogs/mock/**")
   }
   test {
-    dependsOn(createTestkitFiles)
+    systemProperty("jacocoAgent", jacocoRuntime.asPath)
     finalizedBy(jacocoTestReport) // report is always generated after tests run
     useJUnitPlatform()
   }

@@ -2,6 +2,7 @@ package dev.aga.gradle.versioncatalogs
 
 import java.io.File
 import java.nio.file.Paths
+import java.util.Properties
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
@@ -21,18 +22,25 @@ class VersionCatalogGeneratorPluginTest {
     projectDir.resolve("gradle").resolve("libs.versions.toml")
   }
 
-  private lateinit var classpathString: String
+  private val classpathString: String by lazy {
+    val props =
+      Properties().apply {
+        VersionCatalogGeneratorPluginTest::class
+          .java
+          .classLoader
+          .getResourceAsStream("plugin-under-test-metadata.properties")!!
+          .use { load(it) }
+      }
+    props.getProperty("implementation-classpath").split(File.pathSeparator).joinToString(",") {
+      "\"${it.replace('\\', '/')}\""
+    }
+  }
 
   @BeforeEach
   fun setup() {
-    // create the classpath string which we use in the buildscript in the test build file
-    val classpathFiles = getResourceAsText("testkit-classpath.txt").lines().map { File(it) }
-
-    classpathString =
-      classpathFiles.map { it.absolutePath.replace('\\', '/') }.joinToString(",") { "\"$it\"" }
-    // copy the generated properties file into the runner's directory
-    propertiesFile.writeText(getResourceAsText("testkit-gradle.properties"))
-
+    val agent = System.getProperty("jacocoAgent").replace('\\', '/')
+    val destFile = File("build/jacoco/test.exec").absolutePath.replace('\\', '/')
+    propertiesFile.writeText("org.gradle.jvmargs=-javaagent:$agent=destfile=$destFile")
     versionCatalogFile.parentFile.mkdirs()
   }
 
@@ -43,7 +51,7 @@ class VersionCatalogGeneratorPluginTest {
       """
             import dev.aga.gradle.versioncatalogs.Generator.generate
             import dev.aga.gradle.versioncatalogs.GeneratorConfig
-                        
+
             buildscript {
               dependencies {
                 classpath(files($classpathString))
@@ -227,7 +235,7 @@ class VersionCatalogGeneratorPluginTest {
   fun `groovy dsl usage succeeds`() {
     // Set up the test build
     groovySettingsFile.writeText(
-      """ 
+      """
             buildscript {
               dependencies {
                 classpath(files($classpathString))
@@ -516,10 +524,4 @@ class VersionCatalogGeneratorPluginTest {
 
   private fun TomlTable.hasVersionField(): Boolean =
     contains("version") || contains("version.ref") || contains("version.require")
-
-  companion object {
-    private fun getResourceAsText(name: String): String {
-      return VersionCatalogGeneratorPluginTest::class.java.classLoader.getResource(name).readText()
-    }
-  }
 }
