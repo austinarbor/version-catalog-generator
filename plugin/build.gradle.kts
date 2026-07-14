@@ -108,7 +108,14 @@ idea {
 }
 
 tasks {
-  shadowJar { archiveClassifier = "" }
+  shadowJar {
+    archiveClassifier = ""
+    dependencies {
+      // kasechange brings in kotlin-stdlib from transitive dependencies
+      exclude(dependency("org.jetbrains.kotlin:.*"))
+      exclude(dependency("org.jetbrains:annotations"))
+    }
+  }
   withType<Detekt>().configureEach {
     // exclude the mock classes from detekt
     exclude("dev/aga/gradle/versioncatalogs/mock/**")
