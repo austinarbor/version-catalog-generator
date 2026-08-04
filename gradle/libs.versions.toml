@@ -13,7 +13,7 @@ kotlin = "2.4.10"
 maven = "3.9.16"
 mockito = "5.23.0"
 mockito-kotlin = "6.3.0"
-shadow = "9.5.1"
+shadow = "9.6.1"
 spotless = "8.9.0"
 tomlj = "1.1.1"
 
