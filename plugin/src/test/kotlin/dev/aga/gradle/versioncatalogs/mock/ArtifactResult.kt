@@ -6,6 +6,8 @@ import org.apache.maven.model.Dependency
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
+import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.capabilities.Capability
 import org.gradle.api.component.Artifact
 
 internal class ArtifactResult(val root: Path, val source: Dependency) : ResolvedArtifactResult {
@@ -23,6 +25,14 @@ internal class ArtifactResult(val root: Path, val source: Dependency) : Resolved
   }
 
   override fun getVariant(): ResolvedVariantResult {
+    TODO("Not yet implemented")
+  }
+
+  override fun getAttributes(): AttributeContainer {
+    TODO("Not yet implemented")
+  }
+
+  override fun getCapabilities(): Collection<Capability> {
     TODO("Not yet implemented")
   }
 }
