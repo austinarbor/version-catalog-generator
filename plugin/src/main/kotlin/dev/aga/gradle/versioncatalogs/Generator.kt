@@ -513,7 +513,7 @@ object Generator {
     if (deps.isEmpty()) {
       logger.warn(
         "${model.groupId}:${model.artifactId}:${model.version} does not have any dependencies defined " +
-          "in dependencyManagement"
+          "in dependencyManagement",
       )
     }
 
@@ -579,11 +579,11 @@ object Generator {
         is PropertyOverride ->
           override.getValue()
             ?: throw IllegalArgumentException(
-              "No value found for property override ${propertyName}"
+              "No value found for property override ${propertyName}",
             )
         else ->
           throw IllegalArgumentException(
-            "Invalid type ${override::class.java} for property override ${propertyName}"
+            "Invalid type ${override::class.java} for property override ${propertyName}",
           )
       }
     } else {

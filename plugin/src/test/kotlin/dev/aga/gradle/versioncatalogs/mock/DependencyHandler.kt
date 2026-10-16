@@ -167,7 +167,7 @@ internal class DependencyHandler : org.gradle.api.artifacts.dsl.DependencyHandle
   }
 
   override fun enforcedPlatform(
-    dependencyProvider: Provider<MinimalExternalModuleDependency>
+    dependencyProvider: Provider<MinimalExternalModuleDependency>,
   ): Provider<MinimalExternalModuleDependency> {
     TODO("Not yet implemented")
   }

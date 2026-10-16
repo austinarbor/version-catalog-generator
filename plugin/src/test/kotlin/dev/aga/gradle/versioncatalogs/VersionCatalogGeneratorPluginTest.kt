@@ -152,7 +152,7 @@ class VersionCatalogGeneratorPluginTest {
               }
             }
         """
-        .trimIndent()
+        .trimIndent(),
     )
     buildFile.writeText(
       """
@@ -182,7 +182,7 @@ class VersionCatalogGeneratorPluginTest {
         testImplementation(testingLibs.bundles.testing)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     versionCatalogFile.writeText(
@@ -207,7 +207,7 @@ class VersionCatalogGeneratorPluginTest {
       assertj-bom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
       kotlinx-coroutines-bom = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinx-coroutines" }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Run the build
@@ -341,7 +341,7 @@ class VersionCatalogGeneratorPluginTest {
               }
             }
         """
-        .trimIndent()
+        .trimIndent(),
     )
     buildFile.writeText(
       """
@@ -363,7 +363,7 @@ class VersionCatalogGeneratorPluginTest {
         testImplementation(testingLibs.bundles.testing)
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     versionCatalogFile.writeText(
@@ -388,7 +388,7 @@ class VersionCatalogGeneratorPluginTest {
       assertj-bom = { group = "org.assertj", name = "assertj-bom", version.ref = "assertj" }
       kotlinx-coroutines-bom = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinx-coroutines" }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     // Run the build
@@ -435,7 +435,7 @@ class VersionCatalogGeneratorPluginTest {
               }
             }
         """
-        .trimIndent()
+        .trimIndent(),
     )
     buildFile.writeText(
       """
@@ -466,7 +466,7 @@ class VersionCatalogGeneratorPluginTest {
         }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val runner =
@@ -485,7 +485,7 @@ class VersionCatalogGeneratorPluginTest {
 
     val generatedCatalog =
       projectDir.resolve(
-        Paths.get("build", "version-catalogs", "versionlessLibs.versions.toml").toString()
+        Paths.get("build", "version-catalogs", "versionlessLibs.versions.toml").toString(),
       )
     assertThat(generatedCatalog).exists()
     val parsed = Toml.parse(generatedCatalog.toPath())

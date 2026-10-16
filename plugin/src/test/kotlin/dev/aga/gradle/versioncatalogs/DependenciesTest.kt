@@ -20,7 +20,7 @@ class DependenciesTest {
     assertThatIllegalArgumentException()
       .isThrownBy { "x".toDependency() }
       .withMessage(
-        "String must contain exactly 3 segments separated by a ':'. Provided string contains 1."
+        "String must contain exactly 3 segments separated by a ':'. Provided string contains 1.",
       )
 
     val dep = "dev.aga:version-catalog-generator:1.0.0".toDependency()

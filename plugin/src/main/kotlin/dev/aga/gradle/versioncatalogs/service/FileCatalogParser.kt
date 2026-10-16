@@ -23,7 +23,7 @@ internal class FileCatalogParser(private val file: File) : CatalogParser {
     val library =
       toml["libraries"]?.let { it as? TomlTable }?.let { it[libraryName] }?.let { it as? TomlTable }
         ?: throw ConfigurationException(
-          "${libraryName} not found in catalog file ${file.absolutePath}"
+          "${libraryName} not found in catalog file ${file.absolutePath}",
         )
 
     val versions = toml["versions"]?.let { it as? TomlTable }
@@ -40,12 +40,12 @@ internal class FileCatalogParser(private val file: File) : CatalogParser {
         val group =
           library["group"]?.let { it as? String }
             ?: throw ConfigurationException(
-              "Group not found for library ${libraryName} in catalog file ${file.absolutePath}"
+              "Group not found for library ${libraryName} in catalog file ${file.absolutePath}",
             )
         val name =
           library["name"]?.let { it as? String }
             ?: throw ConfigurationException(
-              "Name not found for library ${libraryName} in catalog file ${file.absolutePath}"
+              "Name not found for library ${libraryName} in catalog file ${file.absolutePath}",
             )
         group to name
       }
@@ -63,7 +63,7 @@ internal class FileCatalogParser(private val file: File) : CatalogParser {
       val ref = library.getString("version.ref")
       return versions?.getString(ref)
         ?: throw ConfigurationException(
-          "Version ref '${ref}' not found for library ${libraryName} in catalog file ${file.absolutePath}"
+          "Version ref '${ref}' not found for library ${libraryName} in catalog file ${file.absolutePath}",
         )
     }
 
@@ -72,7 +72,7 @@ internal class FileCatalogParser(private val file: File) : CatalogParser {
     }
 
     throw ConfigurationException(
-      "Version not found for library ${libraryName} in catalog file ${file.absolutePath}"
+      "Version not found for library ${libraryName} in catalog file ${file.absolutePath}",
     )
   }
 
