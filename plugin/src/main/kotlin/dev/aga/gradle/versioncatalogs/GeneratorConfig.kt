@@ -52,20 +52,21 @@ class GeneratorConfig(val settings: Settings) {
   /** Whether to enable the caching functionality. Disabled by default. See [saveDirectory] */
   var saveGeneratedCatalog = false
 
-  internal var usingConfig =
-    UsingConfig { FileCatalogParser(defaultVersionCatalog) }
-      .apply {
-        aliasPrefixGenerator = DEFAULT_ALIAS_PREFIX_GENERATOR
-        aliasSuffixGenerator = DEFAULT_ALIAS_SUFFIX_GENERATOR
-        versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
-        generateBomEntry = false
-        generateVersionRefs = true
-        generateLibraryVersions = true
-        propertyOverrides = emptyMap()
-        excludeGroups = ""
-        excludeNames = ""
-        generateBomEntryForNestedBoms = true
-      }
+  internal var usingConfig = UsingConfig {
+    FileCatalogParser(defaultVersionCatalog)
+  }
+    .apply {
+      aliasPrefixGenerator = DEFAULT_ALIAS_PREFIX_GENERATOR
+      aliasSuffixGenerator = DEFAULT_ALIAS_SUFFIX_GENERATOR
+      versionNameGenerator = DEFAULT_VERSION_NAME_GENERATOR
+      generateBomEntry = false
+      generateVersionRefs = true
+      generateLibraryVersions = true
+      propertyOverrides = emptyMap()
+      excludeGroups = ""
+      excludeNames = ""
+      generateBomEntryForNestedBoms = true
+    }
 
   /**
    * List of lambdas which when invoked will return a [Pair] with the first element being a

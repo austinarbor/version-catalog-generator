@@ -34,7 +34,7 @@ class GeneratorConfigTest {
       assertThatExceptionOfType(IllegalArgumentException::class.java)
         .isThrownBy { GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR(groupId, artifactId) }
         .withMessage(
-          "Cannot generate alias for ${groupId}:${artifactId}, please provide custom generator"
+          "Cannot generate alias for ${groupId}:${artifactId}, please provide custom generator",
         )
     } else {
       val actual = GeneratorConfig.DEFAULT_ALIAS_PREFIX_GENERATOR(groupId, artifactId)
