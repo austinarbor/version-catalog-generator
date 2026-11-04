@@ -2,12 +2,21 @@ name: Publish Plugin
 
 on:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'The git ref (e.g. a release tag) to publish'
+        required: true
+        type: string
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # empty for workflow_dispatch, which checks out the selected ref
+          ref: ${{ inputs.ref }}
       - uses: actions/setup-java@v6
         with:
           distribution: temurin

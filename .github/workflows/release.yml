@@ -1,0 +1,113 @@
+name: Release
+run-name: Release (${{ inputs.bump }} bump)${{ inputs.publish && ' with publish' || '' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Which part of the version to bump'
+        required: true
+        default: patch
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+      publish:
+        description: 'Also publish the plugin to the Gradle Plugin Portal'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+    env:
+      ACTOR: ${{ github.actor }}
+      ACTOR_ID: ${{ github.actor_id }}
+      # Pushes and releases made with the default GITHUB_TOKEN do not trigger other
+      # workflows, so use a PAT to let CI and Publish Documentation run on the new tag.
+      GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+    steps:
+      # workflow_dispatch has no branch filter, so enforce it here
+      - name: Require main
+        run: |
+          if [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "::error::releases must be run from main, not '$GITHUB_REF'"
+            exit 1
+          fi
+
+      # fetch-depth: 0 so the existing-tag guard sees every tag
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name "$ACTOR"
+          git config user.email "$ACTOR_ID+$ACTOR@users.noreply.github.com"
+
+      - name: Bump version
+        id: bump
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          scripts/bump-version.sh "$BUMP"
+          version="$(sed -n 's/^version=//p' gradle.properties)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          # A re-run starts again from the same pre-bump commit, so it computes the same
+          # version. If an earlier attempt of this run already pushed the bump commit and
+          # tag (the bump commit's parent is this run's commit), skip straight to the release.
+          if git rev-parse -q --verify "refs/tags/$version" >/dev/null; then
+            if [ "$(git rev-parse "refs/tags/$version^{commit}^")" = "$GITHUB_SHA" ]; then
+              echo "tag $version was pushed by an earlier attempt of this run; resuming"
+              echo "pushed=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "::error::tag $version already exists"
+              exit 1
+            fi
+          fi
+
+      # Push the commit and tag atomically so main and the tag can never diverge:
+      # if main moved or the push is rejected, neither ref is updated.
+      - name: Commit, tag and push
+        if: steps.bump.outputs.pushed != 'true'
+        env:
+          VERSION: ${{ steps.bump.outputs.version }}
+        run: |
+          git add gradle.properties README.adoc plugin/src/docs/asciidoc/index.adoc
+          git commit -m "bump version to $VERSION"
+          git tag -a "$VERSION" -m "$VERSION"
+          git push --atomic origin HEAD:main "refs/tags/$VERSION"
+
+      - name: Create release
+        env:
+          VERSION: ${{ steps.bump.outputs.version }}
+        run: |
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "release $VERSION already exists"
+          else
+            gh release create "$VERSION" --title "$VERSION" --generate-notes --verify-tag
+          fi
+
+  # A called workflow inherits the caller's github context (GITHUB_SHA is the
+  # pre-bump commit), so pass the new tag explicitly.
+  publish:
+    needs: release
+    if: inputs.publish
+    uses: ./.github/workflows/publish.yml
+    with:
+      # fully qualified so a branch with the same name can't be picked instead
+      ref: refs/tags/${{ needs.release.outputs.version }}
+    secrets: inherit
